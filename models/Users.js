@@ -7,7 +7,9 @@ const basicDetailsSchema = mongoose.Schema({
   placeOfBirthState: { type: Number, required: true },
   placeOfBirthCity: { type: Number, required: true },
   dateOfBirth: { type: String, required: true },
+  timeOfBirth : { type: String, required: true },
   manglik: { type: String, required: true },
+  horoscope : { type: String, required: true }
 });
 
 const additionalDetailsSchema = mongoose.Schema({
@@ -86,8 +88,8 @@ const createdBySchema = mongoose.Schema({
       return this.createdFor !== "myself";
     },
   },
-  phone: { type: String, required: true },
-  gender: {enum : ["F", "M"]},
+  phone: { type: Number, required: true },
+  gender: { type : String, enum : ["F", "M"]},
 });
 
 const userSchema = mongoose.Schema(
@@ -99,18 +101,18 @@ const userSchema = mongoose.Schema(
     familyDetails: [familyDetailsSchema],
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
-    gender : {}
+    gender : {type : String}
   },
   { timestamps: true }
 );
 
 // Pre-save middleware to update userSchema's gender when createdBy's gender is added
-createdBySchema.pre("save", function (next) {
-  if (this.gender && this.gender !== this.parent().gender) {
-    this.parent().gender = this.gender;
-  }
-  next();
-});
+// createdBySchema.pre("save", function (next) {
+//   if (this.gender && this.gender !== this.parent().gender) {
+//     this.parent().gender = this.gender;
+//   }
+//   next();
+// });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

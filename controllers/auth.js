@@ -40,6 +40,7 @@ dotenv.config();
 const signupController = async (req, res) => {
   try {
     let { name, createdFor, gender, phone } = req.body;
+    
     const mapFrontendToEnum = {
       1: "myself",
       2: "myson",
@@ -47,7 +48,7 @@ const signupController = async (req, res) => {
       4: "myrelative",
       5: "myfriend",
     };
-    ("65e7269e47275ec3bf5f044a");
+
     createdFor = mapFrontendToEnum[createdFor] || null;
 
     // Create a new user instance
@@ -59,7 +60,7 @@ const signupController = async (req, res) => {
       familyDetails: [],
       selfDetails: [],
       partnerPreference: [],
-      gender: gender,
+      gender : gender
     });
 
     // Save the user to the database
