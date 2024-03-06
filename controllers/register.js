@@ -27,7 +27,11 @@ exports.registerUser = async (req, res) => {
         user.familyDetails.push(req.body.familyDetails);
         break;
       case '5':
-        user.selfDetails.push(req.body.selfDetails);
+        //this is the case to deal with image storing
+        // user.selfDetails.push(req.body.selfDetails);
+
+        console.log(req.body.selfDetails);
+
         break;
       case '6':
         user.partnerPreference.push(req.body.partnerPreference);

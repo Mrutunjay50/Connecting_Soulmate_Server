@@ -55,11 +55,15 @@ const familyDetailsSchema = mongoose.Schema({
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: {},
+  interests: {type : String},
+  fun : {type : String},
+  fitness: {type : String},
+  other : {type : String},
   profilePicture: { type: String, required: true },
-  userPhotos: [],
-  userPhotosUrl : [],
-  aboutYourself: {},
+  userPhotos: [{type : String}],
+  userPhotosUrl : [{type : String}],
+  profilePictureUrl : {type : String},
+  aboutYourself: {type : String},
 });
 
 const preferenceSchema = mongoose.Schema({
