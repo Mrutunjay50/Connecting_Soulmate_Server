@@ -8,7 +8,7 @@ const dotenv = require("dotenv");
 const apiRoute = require("./routes/userRoutes");
 const userRoutes = require("./routes/auth");
 const masterRoutes = require('./routes/masterDataRoutes');
-const User = require("./models/Users"); // Import User model
+const User = require("./models/Users");
 
 dotenv.config();
 
