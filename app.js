@@ -36,8 +36,8 @@ async function connectToMongoDB() {
     ]);
 
     // Displaying indexes on the Users collection
-    const userCollection = mongoose.connection.collection("users");
-    const indexes = await userCollection.find({}).toArray();
+    // const userCollection = mongoose.connection.collection("users");
+    // const indexes = await userCollection.find({}).toArray();
 
     // console.log("Indexes on Users collection:", indexes);
     console.log("MongoDB connected successfully with indexes");
