@@ -1,41 +1,75 @@
 const express = require("express");
-const app = express();
-const path = require("path");
-const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
+const dotenv = require("dotenv");
 
 const apiRoute = require("./routes/userRoutes");
 const userRoutes = require("./routes/auth");
 const masterRoutes = require('./routes/masterDataRoutes');
-// const cartRoutes = require('./routes/cart');
-  
+const User = require("./models/Users"); // Import User model
+
 dotenv.config();
 
+const app = express();
+const port = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(result => {
-    const server = app.listen(process.env.PORT || 5000);
-    if(server){
-        console.log("connected");
-    }})
-.catch(err => console.log(err));
+async function connectToMongoDB() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    
+    // Create indexes on User model
+    await User.createIndexes([
+      { "basicDetails.age": 1 },
+      { "additionalDetails.height": 1 },
+      { "carrierDetails.annualIncomeValue": 1 },
+      { "additionalDetails.maritalStatus": 1 },
+      { "familyDetails.community": 1 },
+      { "familyDetails.caste": 1 },
+      { "additionalDetails.currentlyLivingInCountry": 1 },
+      { "additionalDetails.currentlyLivingInState": 1 },
+      { "additionalDetails.currentlyLivingInCity": 1 },
+      { "carrierDetails.highestEducation": 1 },
+      { "carrierDetails.profession": 1 },
+      { "additionalDetails.diet": 1 },
+    ]);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(helmet({  crossOriginResourcePolicy: false}));
-app.use(morgan("common"));
+    // Displaying indexes on the Users collection
+    const userCollection = mongoose.connection.collection("users");
+    const indexes = await userCollection.find({}).toArray();
+
+    // console.log("Indexes on Users collection:", indexes);
+    console.log("MongoDB connected successfully with indexes");
+  } catch (error) {
+    console.error("Error connecting to MongoDB or creating indexes:", error);
+    process.exit(1);
+  }
+}
 
 
-app.use(cors());
+async function startServer() {
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(helmet({ crossOriginResourcePolicy: false }));
+  app.use(morgan("common"));
+  app.use(cors());
 
+  // Routes setup
+  app.use(apiRoute);
+  app.use(userRoutes);
+  app.use(masterRoutes);
 
-app.use(apiRoute);
-app.use(userRoutes);
-app.use(masterRoutes);
-// app.use(cartRoutes);
-app.use('/', (req, res) => {
-  res.status(200).send('API in Connected'); //write a response to the client
-})
+  // Default route
+  app.use('/', (req, res) => {
+    res.status(200).send('API is connected');
+  });
+
+  // Start the server
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+// Connect to MongoDB and start the server
+connectToMongoDB().then(startServer);

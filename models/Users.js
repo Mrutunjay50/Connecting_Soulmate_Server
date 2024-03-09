@@ -8,6 +8,7 @@ const basicDetailsSchema = mongoose.Schema({
   placeOfBirthCity: { type: Number, required: true },
   dateOfBirth: { type: String, required: true },
   timeOfBirth : { type: String, required: true },
+  age:{type: String, required: true},
   manglik: { type: String, required: true },
   horoscope : { type: String, required: true }
 });
@@ -51,6 +52,7 @@ const familyDetailsSchema = mongoose.Schema({
   familyLocationCity: { type: Number, required: true },
   religion: {},
   caste: {},
+  community : {},
   familyAnnualIncome: {},
 });
 
@@ -114,7 +116,3 @@ const userSchema = mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
-
-
-
-
