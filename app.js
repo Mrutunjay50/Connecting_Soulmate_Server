@@ -9,7 +9,7 @@ const morgan = require("morgan");
 
 const apiRoute = require("./routes/userRoutes");
 const userRoutes = require("./routes/auth");
-// const blogRoutes = require('./routes/blog');
+const masterRoutes = require('./routes/masterDataRoutes');
 // const cartRoutes = require('./routes/cart');
   
 dotenv.config();
@@ -34,7 +34,7 @@ app.use(cors());
 
 app.use(apiRoute);
 app.use(userRoutes);
-// app.use(blogRoutes);
+app.use(masterRoutes);
 // app.use(cartRoutes);
 app.use('/', (req, res) => {
   res.status(200).send('API in Connected'); //write a response to the client

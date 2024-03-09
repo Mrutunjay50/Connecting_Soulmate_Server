@@ -105,18 +105,12 @@ const userSchema = mongoose.Schema(
     familyDetails: [familyDetailsSchema],
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
-    gender : {type : String}
+    gender : {type : String},
+    regiaterationPhase : {type : String, enum : ["registering", "notApproved", "Approved"]},
+    registerationPage : {type : String, enum : ["","1","2","3","4","5","6"]}
   },
   { timestamps: true }
 );
-
-// Pre-save middleware to update userSchema's gender when createdBy's gender is added
-// createdBySchema.pre("save", function (next) {
-//   if (this.gender && this.gender !== this.parent().gender) {
-//     this.parent().gender = this.gender;
-//   }
-//   next();
-// });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
