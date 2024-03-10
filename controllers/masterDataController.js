@@ -14,7 +14,7 @@ const {
 } = require("../models/masterSchemas");
 const csv = require("csvtojson");
 
-exports.uploadcsv = async (req, res) => {
+exports.masterDataCSV = async (req, res) => {
   let masterData = [];
   try {
     const response = await csv().fromFile(req.file.path);
@@ -121,3 +121,35 @@ exports.addProffesion = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+
+
+exports.uploadcsv = async (req, res) => {
+    let masterData = [];
+    try {
+      const response = await csv().fromFile(req.file.path);
+  
+      for (var i = 0; i < response.length; i++) {
+        // Check if any of the properties in the response object is an empty string
+        if (
+          Object.values(response[i]).some(
+            (value) => typeof value === "string" && value.trim() === ""
+          )
+        ) {
+          // Skip this iteration if any property has an empty string
+          continue;
+        }
+        
+          masterData.push({
+            communityId: response[i]?.,
+            communityName: response[i]?.,
+          });
+      }
+  
+      // await Community.insertMany(masterData);
+      res.status(201).json({ message: "uploaded", masterData });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: err.message });
+    }
+  };
