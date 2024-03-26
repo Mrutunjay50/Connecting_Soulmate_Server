@@ -141,8 +141,8 @@ exports.uploadcsv = async (req, res) => {
         }
         
           masterData.push({
-            communityId: response[i]?.,
-            communityName: response[i]?.,
+            communityId: response[i]?.communityId,
+            communityName: response[i]?.communityName,
           });
       }
   

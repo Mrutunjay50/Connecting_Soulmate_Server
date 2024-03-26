@@ -4,10 +4,10 @@ const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
+let router = express.Router();
 
-const apiRoute = require("./routes/userRoutes");
-const userRoutes = require("./routes/auth");
-const masterRoutes = require('./routes/masterDataRoutes');
+const {initializeRoutes} = require("./routes")
+
 const User = require("./models/Users");
 
 dotenv.config();
@@ -56,9 +56,7 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
-  app.use(apiRoute);
-  app.use(userRoutes);
-  app.use(masterRoutes);
+  initializeRoutes(router)
 
   // Default route
   app.use('/', (req, res) => {
