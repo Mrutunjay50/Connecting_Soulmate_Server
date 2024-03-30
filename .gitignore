@@ -1,4 +1,6 @@
 /node_modules
 .env
 
+/routes/index.js
+
 /utils/googleAuth.js
