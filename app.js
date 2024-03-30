@@ -6,7 +6,6 @@ const morgan = require("morgan");
 const dotenv = require("dotenv");
 let router = express.Router();
 
-const {initializeRoutes} = require("./routes")
 
 const User = require("./models/Users");
 
@@ -56,7 +55,6 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
-  initializeRoutes(router)
 
   // Default route
   app.use('/', (req, res) => {
