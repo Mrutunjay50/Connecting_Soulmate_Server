@@ -109,7 +109,8 @@ const userSchema = mongoose.Schema(
     partnerPreference: [preferenceSchema],
     gender : {type : String},
     regiaterationPhase : {type : String, enum : ["registering", "notApproved", "Approved"]},
-    registerationPage : {type : String, enum : ["","1","2","3","4","5","6"]}
+    registerationPage : {type : String, enum : ["","1","2","3","4","5","6"]},
+    annualIncomeType : {type : String}
   },
   { timestamps: true }
 );
