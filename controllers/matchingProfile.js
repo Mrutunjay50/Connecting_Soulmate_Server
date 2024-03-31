@@ -1,6 +1,5 @@
 const User = require("../models/Users");
 
-
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
     const {
@@ -72,4 +71,7 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
 
 exports.getMatchesNewlyJoined = async (req, res) => {};
 
-exports.getMatchesShortedByU = async (req, res) => {};
+exports.getMatchesShortedByU = async (req, res) => {
+  const { userId } = req.params;
+  const { matchId } = req.body;
+};
