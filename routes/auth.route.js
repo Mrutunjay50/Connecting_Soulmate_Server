@@ -5,7 +5,14 @@ const {
   getUser,
   getUserNo,
 } = require("../controllers/auth");
-
+const express = require("express");
+const {
+  getAllUsers,
+  createMatch,
+  getShortlistedUsers,
+  getMatchesNewlyJoined,
+} = require("../controllers/matchingProfile");
+const router = express.Router();
 const validateSignupInput = [
   body("email")
     .if((value, { req }) => !req.body.googleAccessToken) // Skip validation for Google signup
@@ -45,12 +52,15 @@ const validateSignupInput = [
   },
 ];
 
-const router = (app) => {
-  app.post("/signup", signupController);
-  // app.post("/signin", signinController)
+// const router = (app) => {
+router.post("/signup", signupController);
+router.post("/shortlist/:matchedById", createMatch);
+router.get("/new/getUser", getAllUsers);
+router.get("/new/getUser", getAllUsers);
+router.get("/shortlisted", getShortlistedUsers);
+router.get("/newlyJoined", getMatchesNewlyJoined);
 
-  // app.get("/auth/getUser", getUser)
-  // app.get("/usersno", getUserNo)
-};
+// router.get("/usersno", getUserNo);
+// };
 
 module.exports = router;

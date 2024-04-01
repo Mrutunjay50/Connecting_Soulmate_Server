@@ -1,5 +1,5 @@
 const User = require("../models/Users");
-
+const Matches = require("../models/matches");
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
     const {
@@ -69,9 +69,61 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
   }
 };
 
-exports.getMatchesNewlyJoined = async (req, res) => {};
+exports.getMatchesNewlyJoined = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 2;
+    const skip = (page - 1) * limit;
 
-exports.getMatchesShortedByU = async (req, res) => {
-  const { userId } = req.params;
-  const { matchId } = req.body;
+    // Fetch users in descending order of creation date
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error retrieving newly joined users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.createMatch = async (req, res) => {
+  try {
+    const { matchedTo } = req.body;
+    const matchedBy = req.params.matchedById;
+    const match = new Matches({
+      matchedBy,
+      matchedTo,
+    });
+
+    await match.save();
+
+    res.status(201).json({ message: "Match created successfully", match });
+  } catch (error) {
+    console.error("Error creating match:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error retrieving users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getShortlistedUsers = async (req, res) => {
+  try {
+    const shortlistedUsers = await Matches.find().populate(
+      "matchedBy matchedTo"
+    );
+    res.status(200).json({ shortlistedUsers });
+  } catch (error) {
+    console.error("Error retrieving shortlisted users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
