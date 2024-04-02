@@ -88,24 +88,6 @@ exports.getMatchesNewlyJoined = async (req, res) => {
   }
 };
 
-exports.createMatch = async (req, res) => {
-  try {
-    const { matchedTo } = req.body;
-    const matchedBy = req.params.matchedById;
-    const match = new Matches({
-      matchedBy,
-      matchedTo,
-    });
-
-    await match.save();
-
-    res.status(201).json({ message: "Match created successfully", match });
-  } catch (error) {
-    console.error("Error creating match:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -127,3 +109,33 @@ exports.getShortlistedUsers = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.sendMatchRequest = async (senderId, recipientId) => {
+  try {
+    const matchRequest = new Matches({
+      matchedBy: senderId,
+      matchedTo: recipientId,
+      status: "pending",
+    });
+    await matchRequest.save();
+    return matchRequest;
+  } catch (error) {
+    console.error("Error sending match request:", error);
+    throw new Error("Failed to send match request");
+  }
+};
+
+// Function to respond to a match request
+exports.respondToMatchRequest = async (matchRequestId, response) => {
+  try {
+    await Matches.findByIdAndUpdate(matchRequestId, { status: response });
+  } catch (error) {
+    console.error("Error responding to match request:", error);
+    throw new Error("Failed to respond to match request");
+  }
+};
+
+// module.exports = {
+//   sendMatchRequest,
+//   respondToMatchRequest
+// };

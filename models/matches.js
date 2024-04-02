@@ -9,6 +9,9 @@ const MatchesSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  status: {
+    type: String,
+  },
 });
 
 const Matches = mongoose.model("Matches", MatchesSchema);
