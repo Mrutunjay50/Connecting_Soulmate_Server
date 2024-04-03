@@ -9,10 +9,14 @@ const express = require("express");
 const {
   getAllUsers,
   createMatch,
-  getShortlistedUsers,
   getMatchesNewlyJoined,
   sendMatchRequest,
   respondToMatchRequest,
+  addToShortlist,
+  getShortlistedUser,
+  getAllMatches,
+  getUserMatches,
+  deleteMatchById,
 } = require("../controllers/matchingProfile");
 const router = express.Router();
 const validateSignupInput = [
@@ -57,7 +61,7 @@ const validateSignupInput = [
 // const router = (app) => {
 router.post("/signup", signupController);
 router.get("/new/getUser", getAllUsers);
-router.get("/shortlisted", getShortlistedUsers);
+
 router.get("/newlyJoined", getMatchesNewlyJoined);
 
 // Route to send a match request
@@ -83,6 +87,12 @@ router.post("/matches/respond", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+router.post("/shortlist/add", addToShortlist);
+router.get("/shortlist/get/:UserId", getShortlistedUser);
+router.get("/matches/get", getAllMatches);
+router.get("/matches/get/:userId", getUserMatches);
+
 // router.get("/usersno", getUserNo);
 // };
 
