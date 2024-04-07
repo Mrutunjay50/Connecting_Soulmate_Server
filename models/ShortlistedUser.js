@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const shortlistedSchema = mongoose.Schema({
-  user: { type: String },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   shortlistedUser: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 

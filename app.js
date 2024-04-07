@@ -5,7 +5,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 let router = express.Router();
-const UserRoutes = require("./routes/auth.route");
+const UserRoutes = require("./routes/authRoute");
 
 const { initializeRoutes } = require("./routes");
 
@@ -56,12 +56,12 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
-  //   initializeRoutes(router);
+    // initializeRoutes(router);
 
-  //   // Default route
-  //   app.use("/", (req, res) => {
-  //     res.status(200).send("API is connected");
-  //   });
+    // Default route
+    app.use("/", (req, res) => {
+      res.status(200).send("API is connected");
+    });
 
   // routes
   app.use("/auth", UserRoutes);

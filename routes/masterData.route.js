@@ -4,7 +4,7 @@ const masterController = require('../controllers/masterDataController')
 
 
 const router = (app) => {
-    app.post('/masterDataUploader', fileMulter,masterController.masterDataCSV);
+    app.post('/masterDataUploader', fileMulter,masterController.uploadcsv);
 }
 
 module.exports = router;

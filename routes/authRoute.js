@@ -93,7 +93,5 @@ router.get("/shortlist/get/:UserId", getShortlistedUser);
 router.get("/matches/get", getAllMatches);
 router.get("/matches/get/:userId", getUserMatches);
 
-// router.get("/usersno", getUserNo);
-// };
 
 module.exports = router;

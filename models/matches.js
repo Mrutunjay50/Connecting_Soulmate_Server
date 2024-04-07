@@ -11,6 +11,7 @@ const MatchesSchema = mongoose.Schema({
   },
   status: {
     type: String,
+    enum : ["accepted", "pending", "rejected"]
   },
 });
 
