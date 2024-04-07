@@ -7,10 +7,10 @@ const basicDetailsSchema = mongoose.Schema({
   placeOfBirthState: { type: Number, required: true },
   placeOfBirthCity: { type: Number, required: true },
   dateOfBirth: { type: String, required: true },
-  timeOfBirth : { type: String, required: true },
-  age:{type: String, required: true},
+  timeOfBirth: { type: String, required: true },
+  age: { type: String, required: true },
   manglik: { type: String, required: true },
-  horoscope : { type: String, required: true }
+  horoscope: { type: String, required: true },
 });
 
 const additionalDetailsSchema = mongoose.Schema({
@@ -19,9 +19,9 @@ const additionalDetailsSchema = mongoose.Schema({
   email: { type: String, required: true },
   contact: { type: Number, required: true },
   personalAppearance: { type: String, required: false },
-  currentlyLivingInCountry: {type: Number, required: true},
-  currentlyLivingInState: {type: Number, required: true},
-  currentlyLivingInCity: {type: Number, required: true},
+  currentlyLivingInCountry: { type: Number, required: true },
+  currentlyLivingInState: { type: Number, required: true },
+  currentlyLivingInCity: { type: Number, required: true },
   countryCode: {},
   relocationInFuture: {},
   diet: {},
@@ -52,20 +52,20 @@ const familyDetailsSchema = mongoose.Schema({
   familyLocationCity: { type: Number, required: true },
   religion: {},
   caste: {},
-  community : {},
+  community: {},
   familyAnnualIncome: {},
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: {type : String},
-  fun : {type : String},
-  fitness: {type : String},
-  other : {type : String},
+  interests: { type: String },
+  fun: { type: String },
+  fitness: { type: String },
+  other: { type: String },
   profilePicture: { type: String, required: true },
-  userPhotos: [{type : String}],
-  userPhotosUrl : [{type : String}],
-  profilePictureUrl : {type : String},
-  aboutYourself: {type : String},
+  userPhotos: [{ type: String }],
+  userPhotosUrl: [{ type: String }],
+  profilePictureUrl: { type: String },
+  aboutYourself: { type: String },
 });
 
 const preferenceSchema = mongoose.Schema({
@@ -95,7 +95,7 @@ const createdBySchema = mongoose.Schema({
     },
   },
   phone: { type: Number, required: true },
-  gender: { type : String, enum : ["F", "M"]},
+  gender: { type: String, enum: ["F", "M"] },
 });
 
 const userSchema = mongoose.Schema(

@@ -5,7 +5,9 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 let router = express.Router();
+const UserRoutes = require("./routes/auth.route");
 
+const { initializeRoutes } = require("./routes");
 
 const User = require("./models/Users");
 
@@ -17,7 +19,7 @@ const port = process.env.PORT || 5000;
 async function connectToMongoDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    
+
     // Create indexes on User model
     await User.createIndexes([
       { "basicDetails.age": 1 },
@@ -46,7 +48,6 @@ async function connectToMongoDB() {
   }
 }
 
-
 async function startServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -55,12 +56,15 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
+  //   initializeRoutes(router);
 
-  // Default route
-  app.use('/', (req, res) => {
-    res.status(200).send('API is connected');
-  });
+  //   // Default route
+  //   app.use("/", (req, res) => {
+  //     res.status(200).send("API is connected");
+  //   });
 
+  // routes
+  app.use("/auth", UserRoutes);
   // Start the server
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
