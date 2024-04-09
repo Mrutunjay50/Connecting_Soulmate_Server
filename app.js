@@ -19,26 +19,32 @@ const port = process.env.PORT || 5000;
 async function connectToMongoDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-
-    // Create indexes on User model
-    await User.createIndexes([
-      { "basicDetails.age": 1 },
-      { "additionalDetails.height": 1 },
-      { "carrierDetails.annualIncomeValue": 1 },
-      { "additionalDetails.maritalStatus": 1 },
-      { "familyDetails.community": 1 },
-      { "familyDetails.caste": 1 },
-      { "additionalDetails.currentlyLivingInCountry": 1 },
-      { "additionalDetails.currentlyLivingInState": 1 },
-      { "additionalDetails.currentlyLivingInCity": 1 },
-      { "carrierDetails.highestEducation": 1 },
-      { "carrierDetails.profession": 1 },
-      { "additionalDetails.diet": 1 },
-    ]);
+    // await User.createIndexes(
+    //   { "basicDetails.age": 1,"additionalDetails.height": 1 ,"additionalDetails.height": 1
+    //   ,"careerDetails.annualIncomeValue": 1
+    //   ,"additionalDetails.maritalStatus": 1
+    //   ,"familyDetails.community": 1
+    //   ,"familyDetails.caste": 1
+    //   ,"additionalDetails.currentlyLivingInCountry": 1
+    //   ,"additionalDetails.currentlyLivingInState": 1
+    //   ,"additionalDetails.currentlyLivingInCity": 1
+    //   ,"careerDetails.highestEducation": 1
+    //   ,"careerDetails.profession": 1
+    //   ,"additionalDetails.diet": 1 }
+    // ,(err, result) => {
+    //   console.log(result);
+    // });
+    // Get a reference to the collection
+    // const collectionName = "users";
+    // const userCollection = mongoose.connection.collection(collectionName);
 
     // Displaying indexes on the Users collection
     // const userCollection = mongoose.connection.collection("users");
-    // const indexes = await userCollection.find({}).toArray();
+    // const indexes = await userCollection.indexes();
+
+
+    // // Drop all indexes
+    // await userCollection.dropIndexes();
 
     // console.log("Indexes on Users collection:", indexes);
     console.log("MongoDB connected successfully with indexes");
@@ -65,6 +71,7 @@ async function startServer() {
 
   // routes
   app.use("/auth", UserRoutes);
+  
   // Start the server
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
@@ -73,3 +80,5 @@ async function startServer() {
 
 // Connect to MongoDB and start the server
 connectToMongoDB().then(startServer);
+
+

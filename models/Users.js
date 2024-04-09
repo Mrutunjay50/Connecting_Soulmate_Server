@@ -22,9 +22,9 @@ basicDetailsSchema.pre("save", function (next) {
 
 const additionalDetailsSchema = mongoose.Schema({
   height: { type: Number, required: false },
-  weight: { type: String, required: false }, // Changed to String type
+  weight: { type: String, required: false },
   email: { type: String, required: false },
-  contact: { type: String, required: false }, // Changed to String type
+  contact: { type: String, required: false },
   personalAppearance: { type: String, required: false },
   currentlyLivingInCountry: { type: Number, required: false },
   currentlyLivingInState: { type: Number, required: false },
@@ -102,10 +102,11 @@ const createdBySchema = mongoose.Schema({
       return this.createdFor !== "myself";
     },
   },
-  phone: { type: String, required: false }, // Changed to String type
+  phone: { type: String, required: false },
   gender: { type: String, enum: ["F", "M"] },
 });
 
+// Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
     createdBy: [createdBySchema],
@@ -128,6 +129,20 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: false }
 );
+
+// Define indexes directly in the schema
+userSchema.index({ "basicDetails.age": 1 });
+userSchema.index({ "additionalDetails.height": 1 });
+userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
+userSchema.index({ "additionalDetails.maritalStatus": 1 });
+userSchema.index({ "familyDetails.community": 1 });
+userSchema.index({ "familyDetails.caste": 1 });
+userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
+userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });
+userSchema.index({ "additionalDetails.currentlyLivingInCity": 1 });
+userSchema.index({ "carrierDetails.highestEducation": 1 });
+userSchema.index({ "carrierDetails.profession": 1 });
+userSchema.index({ "additionalDetails.diet": 1 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
