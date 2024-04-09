@@ -7,7 +7,8 @@ const dotenv = require("dotenv");
 let router = express.Router();
 const UserRoutes = require("./routes/authRoute");
 
-const { initializeRoutes } = require("./routes");
+const {initializeRoutes} = require("./routes/index");
+initializeRoutes(router);
 
 const User = require("./models/Users");
 
@@ -62,15 +63,12 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
-    // initializeRoutes(router);
-
+app.use(router)
+    app.use("/auth", UserRoutes);
     // Default route
-    app.use("/", (req, res) => {
-      res.status(200).send("API is connected");
-    });
-
-  // routes
-  app.use("/auth", UserRoutes);
+    // app.use("/", (req, res) => {
+    //   res.status(200).send("API is connected");
+    // });
   
   // Start the server
   app.listen(port, () => {

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const moment = require('moment');
 
 const basicDetailsSchema = mongoose.Schema({
   name: { type: String, required: false },
@@ -11,12 +12,21 @@ const basicDetailsSchema = mongoose.Schema({
   age: { type: String, required: false },
   manglik: { type: String, required: false },
   horoscope: { type: String, required: false },
+  userId: { type: String, unique: true },
 });
 
 basicDetailsSchema.pre("save", function (next) {
   if (this.createdBy && this.createdBy.length > 0) {
     this.gender = this.createdBy[0].gender;
   }
+  const genderPrefix = this.gender // Assuming 'M' for Male and 'F' for Female
+  const namePrefix = this.basicDetails[0].name.slice(0, 3).toUpperCase();
+  const dob = moment(this.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
+  const dobFormatted = dob.format("YYYYMMDD");
+  const timeOfBirth = this.basicDetails[0].timeOfBirth.replace(":", "");
+  const loginTime = moment().format("HHmmss");
+
+  this.userId = `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`;
   next();
 });
 
@@ -94,7 +104,15 @@ const preferenceSchema = mongoose.Schema({
 const createdBySchema = mongoose.Schema({
   createdFor: {
     type: String,
-    enum: ["myself", "myson", "mydaughter", "mybrother", "mysister", "myfriend", "myrelative"],
+    enum: [
+      "myself",
+      "myson",
+      "mydaughter",
+      "mybrother",
+      "mysister",
+      "myfriend",
+      "myrelative",
+    ],
   },
   name: {
     type: String,
@@ -109,6 +127,7 @@ const createdBySchema = mongoose.Schema({
 // Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
+    userId: { type: String, default: "" },
     createdBy: [createdBySchema],
     basicDetails: [basicDetailsSchema],
     additionalDetails: [additionalDetailsSchema],
@@ -129,6 +148,8 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: false }
 );
+
+userSchema.pre("save", () => {});
 
 // Define indexes directly in the schema
 userSchema.index({ "basicDetails.age": 1 });

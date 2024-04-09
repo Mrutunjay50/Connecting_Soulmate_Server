@@ -67,6 +67,7 @@ const signupController = async (req, res) => {
     const savedUser = await newUser.save();
 
     res.status(201).json(savedUser);
+    // res.status(201).json(newUser);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
