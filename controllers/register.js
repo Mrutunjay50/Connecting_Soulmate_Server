@@ -14,6 +14,9 @@ exports.registerUser = async (req, res) => {
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
+    console.log(req.body);
+    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -21,7 +24,8 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        user.basicDetails[0] = {...req.body.basicDetails};
+        const {fname, mname, lname} = req.body.basicDetails;
+        user.basicDetails[0] = {...req.body.basicDetails, name : `${fname} ${mname} ${lname}`};
         break;
       case "2":
         user.additionalDetails.push(req.body.additionalDetails);

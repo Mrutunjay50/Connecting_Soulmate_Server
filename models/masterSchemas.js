@@ -79,8 +79,11 @@ const StateSchema = mongoose.Schema({
     type: String,
     require: true,
   },
-  stateName: { type: String, require: true },
-  stateCode: { type: String, require: true },
+  country_id: {
+    type: String,
+    required: true,
+  },
+  stateName: { type: String, require: true }
 });
 
 const State = mongoose.model("State", StateSchema);

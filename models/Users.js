@@ -16,17 +16,17 @@ const basicDetailsSchema = mongoose.Schema({
 });
 
 basicDetailsSchema.pre("save", function (next) {
-  if (this.createdBy && this.createdBy.length > 0) {
+  if (this.basicDetails && this.basicDetails.length > 0) {
     this.gender = this.createdBy[0].gender;
-  }
-  const genderPrefix = this.gender // Assuming 'M' for Male and 'F' for Female
-  const namePrefix = this.basicDetails[0].name.slice(0, 3).toUpperCase();
-  const dob = moment(this.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-  const dobFormatted = dob.format("YYYYMMDD");
-  const timeOfBirth = this.basicDetails[0].timeOfBirth.replace(":", "");
-  const loginTime = moment().format("HHmmss");
+    const genderPrefix = this.gender; // Assuming 'M' for Male and 'F' for Female
+    const namePrefix = this.basicDetails[0].name?.slice(0, 3).toUpperCase();
+    const dob = moment(this.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
+    const dobFormatted = dob.format("YYYYMMDD");
+    const timeOfBirth = this.basicDetails[0].timeOfBirth.replace(":", "");
+    const loginTime = moment().format("HHmmss");
 
-  this.userId = `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`;
+    this.userId = `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`;
+  }
   next();
 });
 

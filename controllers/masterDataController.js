@@ -1,4 +1,17 @@
-const { State, Religion, Proffesion, Other, Interest, Fitness, Education, Diet, Country, Community, City, FunActivity} = require("../models/masterSchemas");
+const {
+  State,
+  Religion,
+  Proffesion,
+  Other,
+  Interest,
+  Fitness,
+  Education,
+  Diet,
+  Country,
+  Community,
+  City,
+  FunActivity,
+} = require("../models/masterSchemas");
 const csv = require("csvtojson");
 const User = require("../models/Users");
 
@@ -17,12 +30,12 @@ const User = require("../models/Users");
 //         // Skip this iteration if any property has an empty string
 //         continue;
 //       }
-//       //state
-//       //   masterData.push({
-//       //     stateId: response[i]?.state_name ,
-//       //     stateName: response[i]?.country_id ,
-//       //     stateCode: response[i]?.state_id
-//       //   });
+//       // state
+//         // masterData.push({
+//         //   stateId: response[i]?.state_id ,
+//         //   country_id: response[i]?.country_id ,
+//         //   stateName: response[i]?.state_name ,
+//         // });
 //       //city
 //       //   masterData.push({
 //       //     cityId: response[i]?.city_id,
@@ -84,7 +97,7 @@ const User = require("../models/Users");
 //       //   });
 //     }
 
-//     // await Community.insertMany(masterData);
+//     await State.insertMany(masterData);
 //     res.status(201).json({ message: "uploaded", masterData });
 //   } catch (err) {
 //     console.log(err);
@@ -112,8 +125,8 @@ exports.addProffesion = async (req, res) => {
 
 exports.uploadcsv = async (req, res) => {
   try {
-     // Mapping object for numerical values to createdFor options
-     const createdForMapping = {
+    // Mapping object for numerical values to createdFor options
+    const createdForMapping = {
       1: "myself",
       2: "myson",
       3: "mydaughter",
@@ -129,7 +142,12 @@ exports.uploadcsv = async (req, res) => {
       console.log(row["Education Completed"]);
       const newUser = new User({
         basicDetails: {
-          name: row["Bride/Groom - First Name"] + " " + row["Bride/Groom - Middle Name"] + " " + row["Bride/Groom - Last Name"],
+          name:
+            row["Bride/Groom - First Name"] +
+            " " +
+            row["Bride/Groom - Middle Name"] +
+            " " +
+            row["Bride/Groom - Last Name"],
           gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",
           placeOfBirthCountry: row["Place of Birth - Country"],
           placeOfBirthState: row["Place of Birth - State"],
@@ -142,7 +160,7 @@ exports.uploadcsv = async (req, res) => {
         },
         additionalDetails: {
           height: row["Height (Feet)"],
-          weight: row["Weight - Value"] + " " + row["Weight"]  || "60 KGS",
+          weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
           contact: row["Contact Details"] + " " + row["Add Number"],
           personalAppearance: row["Personal  Appearance"],
@@ -158,7 +176,7 @@ exports.uploadcsv = async (req, res) => {
         },
         careerDetails: {
           highestEducation: row["Education Completed"],
-          highestQualification : row["Highest Qualification"],
+          highestQualification: row["Highest Qualification"],
           passingYear: row["Passing Year"],
           "school/university": row["School / University"],
           profession: row["Profession"],
@@ -210,9 +228,12 @@ exports.uploadcsv = async (req, res) => {
         },
         // Populate createdBySchema fields
         createdBy: {
-          createdFor:  createdForMapping[row["This Profile is for"]],
+          createdFor: createdForMapping[row["This Profile is for"]],
           name: row["Your First Name"] + " " + row["Your Last Name"],
-          phone: row["Contact Number - Mobile Number (Country Code)"] + " " + row["Contact Number - Mobile Number "],
+          phone:
+            row["Contact Number - Mobile Number (Country Code)"] +
+            " " +
+            row["Contact Number - Mobile Number "],
           gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",

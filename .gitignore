@@ -1,6 +1,6 @@
 /node_modules
 .env
-
+/csv
 /routes/index.js
 
 /utils/googleAuth.js

@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 let router = express.Router();
 const UserRoutes = require("./routes/authRoute");
 
-const {initializeRoutes} = require("./routes/index");
+const { initializeRoutes } = require("./routes/index");
 initializeRoutes(router);
 
 const User = require("./models/Users");
@@ -43,7 +43,6 @@ async function connectToMongoDB() {
     // const userCollection = mongoose.connection.collection("users");
     // const indexes = await userCollection.indexes();
 
-
     // // Drop all indexes
     // await userCollection.dropIndexes();
 
@@ -63,13 +62,13 @@ async function startServer() {
   app.use(cors());
 
   // Routes setup
-app.use(router)
-    app.use("/auth", UserRoutes);
-    // Default route
-    // app.use("/", (req, res) => {
-    //   res.status(200).send("API is connected");
-    // });
-  
+  app.use(router);
+  app.use("/auth", UserRoutes);
+  // Default route
+  // app.use("/", (req, res) => {
+  //   res.status(200).send("API is connected");
+  // });
+
   // Start the server
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
@@ -78,5 +77,3 @@ app.use(router)
 
 // Connect to MongoDB and start the server
 connectToMongoDB().then(startServer);
-
-
