@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const moment = require('moment');
+
 
 const basicDetailsSchema = mongoose.Schema({
   name: { type: String, required: false },
@@ -12,22 +12,7 @@ const basicDetailsSchema = mongoose.Schema({
   age: { type: String, required: false },
   manglik: { type: String, required: false },
   horoscope: { type: String, required: false },
-  userId: { type: String, unique: true },
-});
-
-basicDetailsSchema.pre("save", function (next) {
-  if (this.basicDetails && this.basicDetails.length > 0) {
-    this.gender = this.createdBy[0].gender;
-    const genderPrefix = this.gender; // Assuming 'M' for Male and 'F' for Female
-    const namePrefix = this.basicDetails[0].name?.slice(0, 3).toUpperCase();
-    const dob = moment(this.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-    const dobFormatted = dob.format("YYYYMMDD");
-    const timeOfBirth = this.basicDetails[0].timeOfBirth.replace(":", "");
-    const loginTime = moment().format("HHmmss");
-
-    this.userId = `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`;
-  }
-  next();
+  userId: { type: String, unique: true, required : true, default : "" },
 });
 
 const additionalDetailsSchema = mongoose.Schema({
@@ -44,7 +29,7 @@ const additionalDetailsSchema = mongoose.Schema({
   diet: { type: String, default: "", required: false },
   alcohol: { type: String, default: "", required: false },
   smoking: { type: String, default: "", required: false },
-  maritalStatus: { type: String, default: "", required: false },
+  maritalStatus: { type: String, default: "", required: true },
 });
 
 const careerDetailsSchema = mongoose.Schema({
@@ -56,6 +41,7 @@ const careerDetailsSchema = mongoose.Schema({
   currentDesignation: { type: String, default: "", required: false },
   previousOccupation: { type: String, default: "", required: false },
   annualIncomeValue: { type: String, default: "", required: false },
+  currencyType: { type: String, default: "", required: false },
 });
 
 const familyDetailsSchema = mongoose.Schema({
@@ -71,7 +57,8 @@ const familyDetailsSchema = mongoose.Schema({
   religion: { type: String, default: "", required: false },
   caste: { type: String, default: "", required: false },
   community: { type: String, default: "", required: false },
-  familyAnnualIncome: { type: String, default: "", required: false },
+  familyAnnualIncomeStart: { type: Number, required: false },
+  familyAnnualIncomeEnd: { type: Number, required: false },
 });
 
 const selfDescriptionSchema = mongoose.Schema({
@@ -127,11 +114,11 @@ const createdBySchema = mongoose.Schema({
 // Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
-    userId: { type: String, default: "" },
+    userId: { type: String, default: "" }, 
     createdBy: [createdBySchema],
     basicDetails: [basicDetailsSchema],
     additionalDetails: [additionalDetailsSchema],
-    carrierDetails: [careerDetailsSchema],
+    careerDetails: [careerDetailsSchema],
     familyDetails: [familyDetailsSchema],
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
@@ -149,7 +136,16 @@ const userSchema = mongoose.Schema(
   { timestamps: false }
 );
 
-userSchema.pre("save", () => {});
+userSchema.pre("save", function (next) {
+  // Check if userId exists in basicDetailsSchema
+  const userIdExists = this.basicDetails && this.basicDetails[0] && this.basicDetails[0].userId;
+  // If userId exists in basicDetailsSchema, include userId field in userSchema
+  if (userIdExists) {
+    this.userId = { type: String, default: "", required : true, unique : true };
+    this.userId = userIdExists;
+  }
+  next();
+});
 
 // Define indexes directly in the schema
 userSchema.index({ "basicDetails.age": 1 });

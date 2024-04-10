@@ -4,8 +4,7 @@ const {
   uploadToS3,
   generateFileName,
 } = require("../utils/s3Utils");
-
-// import User from '../models/Users';
+const moment = require("moment");
 
 exports.registerUser = async (req, res) => {
   try {
@@ -15,7 +14,6 @@ exports.registerUser = async (req, res) => {
     const user = await User.findById(userId);
 
     console.log(req.body);
-    
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -24,17 +22,37 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        const {fname, mname, lname} = req.body.basicDetails;
-        user.basicDetails[0] = {...req.body.basicDetails, name : `${fname} ${mname} ${lname}`};
+        const { fname, mname, lname } = req.body.basicDetails;
+        user.basicDetails[0] = {
+          ...req.body.basicDetails,
+          name: `${fname} ${mname} ${lname}`,
+          gender: user.createdBy[0].gender,
+        };
+
+        // Generate userId and save the updated user document
+        const genderPrefix = user.basicDetails[0].gender;
+        const namePrefix = user.basicDetails[0].name.slice(0, 3).toUpperCase();
+        const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
+        const dobFormatted = dob.format("YYYYMMDD");
+        const timeOfBirth = user.basicDetails[0].timeOfBirth.replace(":", "");
+        const loginTime = moment().format("HHmmss");
+
+        user.basicDetails[0].userId =
+          `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth
+            .split(" ")
+            .join("")}${loginTime}`?.toUpperCase();
         break;
       case "2":
-        user.additionalDetails.push(req.body.additionalDetails);
+        user.additionalDetails[0] = {...req.body.additionalDetails};
         break;
       case "3":
-        user.carrierDetails.push(req.body.carrierDetails);
+        console.log(req.body.careerDetails);
+        user.careerDetails[0] = {...req.body.careerDetails};
         break;
       case "4":
-        user.familyDetails.push(req.body.familyDetails);
+        const {familyAnnualIncome} = req.body.familyDetails;
+
+        user.familyDetails[0] = {...req.body.familyDetails ,familyAnnualIncomeStart : familyAnnualIncome.start, familyAnnualIncomeEnd : familyAnnualIncome.end};
         break;
       case "5":
         const userPhotos = req.files;
@@ -42,6 +60,7 @@ exports.registerUser = async (req, res) => {
           req.body.selfDetails
         );
         // Upload user photos to S3
+        
         if (userPhotos) {
           for (var i = 0; i < userPhotos.length; i++) {
             const { buffer, originalname, mimetype } = userPhotos[i];
@@ -81,19 +100,19 @@ exports.registerUser = async (req, res) => {
 
         break;
       case "6":
-        user.partnerPreference.push(req.body.partnerPreference);
+        user.partnerPreference[0] = {...req.body.partnerPreference};
         break;
       default:
         return res.status(400).json({ error: "Invalid page number" });
     }
 
     // Save the updated user document
-    console.log('====================================');
-    console.log(user);
-    console.log('====================================');
     await user.save();
+    console.log("====================================");
+    console.log(user);
+    console.log("====================================");
 
-    res.status(200).json({ message: "Data added successfully" ,user});
+    res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
