@@ -40,27 +40,33 @@ exports.registerUser = async (req, res) => {
         user.basicDetails[0].userId =
           `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth
             .split(" ")
-            .join("")}${loginTime}`?.toUpperCase();
+            .join("")}${loginTime}`
+            ?.toUpperCase()
+            .replaceAll(" ", "");
         break;
       case "2":
-        user.additionalDetails[0] = {...req.body.additionalDetails};
+        user.additionalDetails[0] = { ...req.body.additionalDetails };
         break;
       case "3":
         console.log(req.body.careerDetails);
-        user.careerDetails[0] = {...req.body.careerDetails};
+        user.careerDetails[0] = { ...req.body.careerDetails };
         break;
       case "4":
-        const {familyAnnualIncome} = req.body.familyDetails;
+        const { familyAnnualIncome } = req.body.familyDetails;
 
-        user.familyDetails[0] = {...req.body.familyDetails ,familyAnnualIncomeStart : familyAnnualIncome.start, familyAnnualIncomeEnd : familyAnnualIncome.end};
+        user.familyDetails[0] = {
+          ...req.body.familyDetails,
+          familyAnnualIncomeStart: familyAnnualIncome.start,
+          familyAnnualIncomeEnd: familyAnnualIncome.end,
+        };
         break;
       case "5":
         const userPhotos = req.files;
-        const { aboutYourself, interest, fun, fitness, other } = JSON.parse(
+        const { aboutYourself, interests, fun, fitness, other } = JSON.parse(
           req.body.selfDetails
         );
         // Upload user photos to S3
-        
+
         if (userPhotos) {
           for (var i = 0; i < userPhotos.length; i++) {
             const { buffer, originalname, mimetype } = userPhotos[i];
@@ -81,6 +87,19 @@ exports.registerUser = async (req, res) => {
           user.selfDetails[0].userPhotos = userPhotos.map(
             (photo) => photo.originalname
           );
+          const newSelfDetails = {
+            userPhotos: userPhotos.map((photo) => photo.originalname),
+            profilePicture:
+              userPhotos.length > 0 ? userPhotos[0].originalname : null,
+            aboutYourself: aboutYourself,
+            interests: interests,
+            fun: fun,
+            fitness: fitness,
+            other: other,
+          };
+
+          user.selfDetails[0] = { ...newSelfDetails };
+          await user.save();
         } else {
           // If 'selfDetails' doesn't exist, create it with 'userPhotos' array
           const newSelfDetails = {
@@ -88,7 +107,7 @@ exports.registerUser = async (req, res) => {
             profilePicture:
               userPhotos.length > 0 ? userPhotos[0].originalname : null,
             aboutYourself: aboutYourself,
-            interests: interest,
+            interests: interests,
             fun: fun,
             fitness: fitness,
             other: other,
@@ -100,7 +119,17 @@ exports.registerUser = async (req, res) => {
 
         break;
       case "6":
-        user.partnerPreference[0] = {...req.body.partnerPreference};
+        const { ageRange, heightrange, annualIncomeRange } =
+          req.body.partnerPreference;
+        user.partnerPreference[0] = {
+          ...req.body.partnerPreference,
+          ageRangeStart: ageRange.start,
+          ageRangeEnd: ageRange.end,
+          heightRangeStart: heightrange.start,
+          heightRangeEnd: heightrange.end,
+          annualIncomeRangeStart: annualIncomeRange.start,
+          annualIncomeRangeEnd: annualIncomeRange.end,
+        };
         break;
       default:
         return res.status(400).json({ error: "Invalid page number" });
@@ -108,9 +137,6 @@ exports.registerUser = async (req, res) => {
 
     // Save the updated user document
     await user.save();
-    console.log("====================================");
-    console.log(user);
-    console.log("====================================");
 
     res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
