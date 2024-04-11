@@ -52,12 +52,15 @@ exports.registerUser = async (req, res) => {
         user.careerDetails[0] = { ...req.body.careerDetails };
         break;
       case "4":
-        const { familyAnnualIncome } = req.body.familyDetails;
+        const { familyAnnualIncome, country, state, city } = req.body.familyDetails;
 
         user.familyDetails[0] = {
           ...req.body.familyDetails,
           familyAnnualIncomeStart: familyAnnualIncome.start,
           familyAnnualIncomeEnd: familyAnnualIncome.end,
+          familyLocationCountry : country,
+          familyLocationState : state,
+          familyLocationCity : city
         };
         break;
       case "5":
