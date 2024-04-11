@@ -152,6 +152,7 @@ userSchema.pre("save", function (next) {
 
 // Define indexes directly in the schema
 userSchema.index({ "basicDetails.age": 1 });
+userSchema.index({ "basicDetails.gender": 1 });
 userSchema.index({ "additionalDetails.height": 1 });
 userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
 userSchema.index({ "additionalDetails.maritalStatus": 1 });
@@ -163,6 +164,7 @@ userSchema.index({ "additionalDetails.currentlyLivingInCity": 1 });
 userSchema.index({ "carrierDetails.highestEducation": 1 });
 userSchema.index({ "carrierDetails.profession": 1 });
 userSchema.index({ "additionalDetails.diet": 1 });
+userSchema.index({ "gender": 1 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

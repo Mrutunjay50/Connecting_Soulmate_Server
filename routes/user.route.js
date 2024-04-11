@@ -4,5 +4,5 @@ const { imageMulter } = require("../multer/multerImg.js");
 
 module.exports = (app) => {
   app.post("/user-data/:userId", imageMulter, registerController.registerUser);
-  app.get("/search-user", searchController.advanceSearch);
+  app.get("/search-user/:gender", searchController.advanceSearch);
 };

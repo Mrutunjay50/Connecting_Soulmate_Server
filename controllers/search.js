@@ -1,63 +1,72 @@
 const User = require("../models/Users");
+const {ListData} = require('../helper/cardListedData');
 
-exports.searchById = async (req, res) => {};
+exports.searchById = async (req, res) => {
+    try {
+        const { userId } = req.params;
+    
+        if (!userId) {
+          return res.status(400).json({ error: "userId is required" });
+        }
+    
+        const user = await User.findOne({ userId }).select(ListData);
+    
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+        return res.status(200).json(user);
+      } catch (error) {
+        console.error("Error searching user by ID:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+};
 
 exports.advanceSearch = async (req, res) => {
-  try {
-    const searchParams = req.body; // Get search parameters from request body
-
-    // console.log(req.body);
-    // const user = await User.find();
-    // console.log(user.map(item => item?.careerDetails[0]?.annualIncomeValue ));
-
-    // Construct MongoDB query based on search parameters
-    const query = {};
-    if (searchParams.marital && searchParams.marital !== "all") {
-      query["additionalDetails.maritalStatus"] = searchParams.marital;
-    }
-    if (searchParams.country) {
-      query["basicDetails.placeOfBirthCountry"] = searchParams.country;
-    }
-    if (searchParams.state) {
-      query["basicDetails.placeOfBirthState"] = searchParams.state;
-    }
-    if (searchParams.city) {
-      query["basicDetails.placeOfBirthCity"] = searchParams.city;
-    }
-    if (searchParams.workingPref) {
-      query["careerDetails.profession"] = searchParams.workingPref;
-    }
-    if (searchParams.education && searchParams.education.length > 0) {
-      query["careerDetails.highestEducation"] = { $in: searchParams.education };
-    }
-    if (searchParams.manglik) {
-      query["basicDetails.manglik"] = searchParams.manglik;
-    }
-    if (searchParams.agerange) {
-      query["basicDetails.age"] = {
-        $gte: searchParams.agerange.start,
-        $lte: searchParams.agerange.end,
+    try {
+      const searchParams = req.body;
+      const query = {};
+      
+      // Define mapping between search parameters and MongoDB fields
+      const fieldMap = {
+        marital: "additionalDetails.maritalStatus",
+        country: "basicDetails.placeOfBirthCountry",
+        state: "basicDetails.placeOfBirthState",
+        city: "basicDetails.placeOfBirthCity",
+        workingPref: "careerDetails.profession",
+        manglik: "basicDetails.manglik",
+        agerange: { field: "basicDetails.age", startField: "start", endField: "end" },
+        heightrange: { field: "additionalDetails.height", startField: "start", endField: "end" },
+        annualincome: { field: "careerDetails.annualIncomeValue", startField: "start", endField: "end" }
       };
-    }
-    if (searchParams.heightrange) {
-      query["additionalDetails.height"] = {
-        $gte: searchParams.heightrange.start,
-        $lte: searchParams.heightrange.end,
-      };
-    }
-    if (searchParams.annualincome) {
-      query["careerDetails.annualIncomeValue"] = {
-        $gte: searchParams.annualincome.start,
-        $lte: searchParams.annualincome.end,
-      };
-    }
+  
+      // Iterate through search parameters and construct the query
+      for (const [param, value] of Object.entries(searchParams)) {
+        const field = fieldMap[param];
+        if (field) {
+          // Exclude empty strings from the query
+          if (typeof value === "string" && value.trim() === "") {
+            continue;
+          }
+          if (typeof field === "string") {
+            query[field] = value;
+          } else {
+            const { field: mainField, startField, endField } = field;
+            query[mainField] = {
+              $gte: value[startField],
+              $lte: value[endField]
+            };
+          }
+        }
+      }
+  
+      console.log(query);
 
-    // Execute query and retrieve matching users
-    const users = await User.find(query);
-
-    return res.status(200).json(users);
-  } catch (error) {
-    console.error("Error searching users:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+      const users = await User.find(query).select(ListData);
+      return res.status(200).json(users);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
+  
+  

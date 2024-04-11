@@ -1,68 +1,54 @@
 const User = require("../models/Users");
-const Matches = require("../models/matches");
-const ShortList = require("../models/ShortlistedUser");
-exports.getMatchesAccordingToPreference = async (req, res) => {
+const {ListData} = require('../helper/cardListedData');
+
+exports.getMatchesAccordingToPreference = async ({ body: {
+  ageRange,
+  heightRange,
+  annualIncomeRange,
+  maritalStatus,
+  community,
+  caste,
+  country,
+  state,
+  city,
+  education,
+  workingpreference,
+  dietType,
+}}, res) => {
   try {
-    const {
-      ageRange,
-      heightRange,
-      annualIncomeRange,
-      maritalStatus,
-      community,
-      caste,
-      country,
-      state,
-      city,
-      education,
-      workingpreference,
-      dietType,
-    } = req.body;
+    const filterConditions = [];
 
-    const [minAge, maxAge] = ageRange.split("-").map(Number);
-    const [minHeight, maxHeight] = heightRange.split("-").map(Number);
-    const [minIncome, maxIncome] = annualIncomeRange.split("-").map(Number);
+    const { gender } = req.params;
+    const queryGender = gender === "F" ? "M" : "F";
 
-    const filterConditions = [
-      { "basicDetails.age": { $gt: minAge, $lte: maxAge } },
-      { "additionalDetails.height": { $gt: minHeight, $lte: maxHeight } },
-      {
-        "carrierDetails.annualIncomeValue": {
-          $gt: minIncome,
-          $lte: maxIncome,
-        },
-      },
-      { "additionalDetails.maritalStatus": maritalStatus },
-      { "familyDetails.community": community },
-      { "familyDetails.caste": caste },
-      { "additionalDetails.currentlyLivingInCountry": country },
-      { "carrierDetails.highestEducation": education },
-      { "carrierDetails.profession": workingpreference },
-      { "additionalDetails.diet": dietType },
-    ];
+    gender && filterConditions.push({ gender : queryGender });
+    ageRange && filterConditions.push({ "basicDetails.age": { $gt: ageRange.start, $lte: ageRange.end } });
+    heightRange && filterConditions.push({ "additionalDetails.height": { $gt: heightRange.start, $lte: heightRange.end } });
+    annualIncomeRange && filterConditions.push({ "careerDetails.annualIncomeValue": { $gt: annualIncomeRange.start, $lte: annualIncomeRange.end } });
+    maritalStatus && filterConditions.push({ "additionalDetails.maritalStatus": maritalStatus });
+    community && filterConditions.push({ "familyDetails.community": community });
+    caste && filterConditions.push({ "familyDetails.caste": caste });
 
-    if (country && state && city) {
-      filterConditions.push({
-        $and: [
-          { "additionalDetails.currentlyLivingInCountry": country },
-          { "additionalDetails.currentlyLivingInState": state },
-          { "additionalDetails.currentlyLivingInCity": city },
-        ],
-      });
-    } else if (country && state) {
-      filterConditions.push({
-        $and: [
-          { "additionalDetails.currentlyLivingInCountry": country },
-          { "additionalDetails.currentlyLivingInState": state },
-        ],
-      });
-    } else if (country) {
-      filterConditions.push({
-        "additionalDetails.currentlyLivingInCountry": country,
-      });
+    // // Dynamically construct the country filter object
+    // country && filterConditions.push(Object.assign({ "additionalDetails.currentlyLivingInCountry": country },
+    //   state && { "additionalDetails.currentlyLivingInState": state },
+    //   city && { "additionalDetails.currentlyLivingInCity": city }
+    // ));
+    if (country) {
+      const countryFilter = { "additionalDetails.currentlyLivingInCountry": country };
+      if (state) {
+        countryFilter["additionalDetails.currentlyLivingInState"] = state;
+        if (city) countryFilter["additionalDetails.currentlyLivingInCity"] = city;
+      }
+      filterConditions.push(countryFilter);
     }
 
-    const filteredUsers = await User.find({ $and: filterConditions });
+    education && filterConditions.push({ "careerDetails.highestEducation": education });
+    workingpreference && filterConditions.push({ "careerDetails.profession": workingpreference });
+    dietType && filterConditions.push({ "additionalDetails.diet": dietType });
 
+    // Selectively project only required fields
+    const filteredUsers = await User.find({ $and: filterConditions }).select(ListData);
     res.status(200).json({ success: true, data: filteredUsers });
   } catch (error) {
     console.error(error);
@@ -70,15 +56,26 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
   }
 };
 
-exports.getMatchesNewlyJoined = async (req, res) => {
+
+exports.getNewlyJoinedProfiles = async (req, res) => {
   try {
+    const { gender } = req.params;
+    const queryGender = gender === "F" ? "M" : "F";
     const page = parseInt(req.query.page) || 1;
     const limit = 2;
     const skip = (page - 1) * limit;
 
-    // Fetch users in descending order of creation date
-    const users = await User.find()
+    // Calculate the date 15 days ago
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    // Fetch users created in the last 15 days
+    const users = await User.find({
+      createdAt: { $gte: fifteenDaysAgo },
+      gender: queryGender,
+    })
       .sort({ createdAt: -1 })
+      .select(ListData)
       .skip(skip)
       .limit(limit);
 
@@ -91,7 +88,9 @@ exports.getMatchesNewlyJoined = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const { gender } = req.params;
+    const queryGender = gender === "F" ? "M" : "F";
+    const users = await User.find({ gender: queryGender }).select(ListData);
     res.status(200).json({ users });
   } catch (error) {
     console.error("Error retrieving users:", error);
@@ -99,93 +98,46 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.sendMatchRequest = async (senderId, recipientId) => {
+exports.updateUserSchema = async (req, res) => {
   try {
-    const matchRequest = new Matches({
-      matchedBy: senderId,
-      matchedTo: recipientId,
-      status: "pending",
-    });
-    await matchRequest.save();
-    return matchRequest;
-  } catch (error) {
-    console.error("Error sending match request:", error);
-    throw new Error("Failed to send match request");
-  }
-};
+    const { userId, schemaName } = req.params;
+    const updates = req.body;
 
-// Function to respond to a match request
-exports.respondToMatchRequest = async (matchRequestId, response) => {
-  try {
-    await Matches.findByIdAndUpdate(matchRequestId, { status: response });
-    console.log("hello");
-  } catch (error) {
-    console.error("Error responding to match request:", error);
-    throw new Error("Failed to respond to match request");
-  }
-};
-
-exports.addToShortlist = async (req, res) => {
-  try {
-    const { user, shortlistedUserId } = req.body;
-    let shortlist = await ShortList.findOne({ user });
-
-    if (!shortlist) {
-      shortlist = new ShortList({ user, shortlistedUser: [] });
+    // Validate if the schemaName is valid
+    if (!User.schema.obj[schemaName]) {
+      return res.status(400).json({ error: "Invalid schema name" });
     }
-    shortlist.shortlistedUser.push(shortlistedUserId);
 
-    await shortlist.save();
+    // Update user data
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { [`${schemaName}.$`]: updates } },
+      { new: true }
+    );
 
-    res.status(201).json({ message: "User added to shortlist successfully" });
-  } catch (error) {
-    console.error("Error adding user to shortlist:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-exports.getShortlistedUser = async (req, res) => {
-  try {
-    const { UserId } = req.params;
-    const user = await ShortList.findOne({ user: UserId });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
     }
-    res.status(200).json(user);
+
+    res.status(200).json({ user: updatedUser });
   } catch (error) {
-    console.error("Error fetching shortlisted user:", error);
+    console.error("Error updating user schema:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-exports.getAllMatches = async (req, res) => {
-  try {
-    // Find all matches
-    const matches = await Matches.find().populate("matchedBy matchedTo");
-
-    res.status(200).json(matches);
-  } catch (error) {
-    console.error("Error retrieving matches:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-exports.getUserMatches = async (req, res) => {
+exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.userId;
+    const user = await User.findById(userId);
 
-    // Find matches where the specified user is either matchedBy or matchedTo
-    const userMatches = await Matches.find({
-      $or: [{ matchedBy: userId }, { matchedTo: userId }],
-    }).populate("matchedBy matchedTo");
-
-    res.status(200).json(userMatches);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
-    console.error("Error retrieving user matches:", error);
+    console.error("Error retrieving user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-// module.exports = {
-//   sendMatchRequest,
-//   respondToMatchRequest
-// };
