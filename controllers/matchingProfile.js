@@ -1,30 +1,20 @@
 const User = require("../models/Users");
 const {ListData} = require('../helper/cardListedData');
 
-exports.getMatchesAccordingToPreference = async ({ body: {
-  ageRange,
-  heightRange,
-  annualIncomeRange,
-  maritalStatus,
-  community,
-  caste,
-  country,
-  state,
-  city,
-  education,
-  workingpreference,
-  dietType,
-}}, res) => {
+exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
+    console.log(req.body);
+    const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType} = req.body
+    console.log(ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType);
     const filterConditions = [];
 
     const { gender } = req.params;
     const queryGender = gender === "F" ? "M" : "F";
 
     gender && filterConditions.push({ gender : queryGender });
-    ageRange && filterConditions.push({ "basicDetails.age": { $gt: ageRange.start, $lte: ageRange.end } });
-    heightRange && filterConditions.push({ "additionalDetails.height": { $gt: heightRange.start, $lte: heightRange.end } });
-    annualIncomeRange && filterConditions.push({ "careerDetails.annualIncomeValue": { $gt: annualIncomeRange.start, $lte: annualIncomeRange.end } });
+    ageRangeStart && ageRangeEnd && filterConditions.push({ "basicDetails.age": { $gt: ageRangeStart, $lte: ageRangeEnd } });
+    heightRangeStart && heightRangeEnd && filterConditions.push({ "additionalDetails.height": { $gt: heightRangeStart, $lte: heightRangeEnd } });
+    annualIncomeRangeStart && annualIncomeRangeEnd && filterConditions.push({ "careerDetails.annualIncomeValue": { $gt: annualIncomeRangeStart, $lte: annualIncomeRangeEnd } });
     maritalStatus && filterConditions.push({ "additionalDetails.maritalStatus": maritalStatus });
     community && filterConditions.push({ "familyDetails.community": community });
     caste && filterConditions.push({ "familyDetails.caste": caste });
@@ -48,7 +38,7 @@ exports.getMatchesAccordingToPreference = async ({ body: {
     dietType && filterConditions.push({ "additionalDetails.diet": dietType });
 
     // Selectively project only required fields
-    const filteredUsers = await User.find({ $and: filterConditions }).select(ListData);
+    const filteredUsers = await User.find({ $or: filterConditions }).select(ListData);
     res.status(200).json({ success: true, data: filteredUsers });
   } catch (error) {
     console.error(error);

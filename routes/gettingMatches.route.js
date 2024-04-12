@@ -4,7 +4,6 @@ const {
   getUserById,
   updateUserSchema,
   getNewlyJoinedProfiles,
-  
   getMatchesAccordingToPreference
 } = require("../controllers/matchingProfile");
 
