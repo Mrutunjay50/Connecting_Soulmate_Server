@@ -169,7 +169,7 @@ exports.uploadcsv = async (req, res) => {
           height: parseInt(row["Height (Feet)"]) || 0,
           weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
-          contact: row["Contact Details"] + " " + row["Add Number"],
+          contact: row["Add Number"],
           personalAppearance: row["Personal  Appearance"],
           currentlyLivingInCountry: parseInt(row["Presently Settled In Country"]) || 0,
           currentlyLivingInState: parseInt(row["Presently Settled in State"]) || 0,
@@ -241,10 +241,8 @@ exports.uploadcsv = async (req, res) => {
         createdBy: {
           createdFor: createdForMapping[row["This Profile is for"]],
           name: row["Your First Name"] + " " + row["Your Last Name"],
-          phone:
-            row["Contact Number - Mobile Number (Country Code)"] +
-            " " +
-            row["Contact Number - Mobile Number "],
+          phone: row["Contact Number - Mobile Number"],
+          countryCode: row["Contact Number - Mobile Number (Country Code)"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
