@@ -32,73 +32,84 @@ const moment = require("moment");
 //         continue;
 //       }
 //       // state
-//         // masterData.push({
-//         //   stateId: response[i]?.state_id ,
-//         //   country_id: response[i]?.country_id ,
-//         //   state_name: response[i]?.state_name ,
-//         // });
+//       // masterData.push({
+//       //   state_id: response[i]?.state_id,
+//       //   country_id: response[i]?.country_id,
+//       //   state_name: response[i]?.state_name,
+//       // });
 //       //city
-//       //   masterData.push({
-//       //     city_id: response[i]?.city_id,
-//       //     city_name: response[i]?.city_name,
-//       //     country_id: response[i]?.country_id,
-//       //     state_id: response[i]?.state_id
-//       //   });
+//         // masterData.push({
+//         //   city_id: response[i]?.city_id,
+//         //   city_name: response[i]?.city_name,
+//         //   country_id: response[i]?.country_id,
+//         //   state_id: response[i]?.state_id
+//         // });
 //       //country
-//       //   masterData.push({
-//       //     countryId: response[i]?.country_id,
-//       //     country_name: response[i]?.country_name,
-//       //     countryCode: response[i]?.country_code
-//       //   });
+//         // masterData.push({
+//         //   country_id: response[i]?.country_id,
+//         //   country_name: response[i]?.country_name,
+//         //   country_code: response[i]?.country_code
+//         // });
 //       //profession
-//       //   masterData.push({
-//       //     ProffesionId: response[i]?.profession_id,
-//       //     Proffesion_name: response[i]?.profession_name,
-//       //     ProffesionType: response[i]?.type,
-//       //   });
+//         // masterData.push({
+//         //   proffesion_id: response[i]?.profession_id,
+//         //   proffesion_name: response[i]?.profession_name,
+//         //   proffesion_type: response[i]?.type,
+//         // });
 //       //Interest
-//       //   masterData.push({
-//       //     IntrestId: response[i]?.interest_id,
-//       //     Intrest_name: response[i]?.interest_name,
-//       //   });
+//         // masterData.push({
+//         //   intrest_id: response[i]?.interest_id,
+//         //   intrest_name: response[i]?.interest_name,
+//         // });
 //       //funactivity
-//       //   masterData.push({
-//       //     FunActivityId: response[i]?.fun_id,
-//       //     FunActivity_name: response[i]?.fun_name,
-//       //   });
+//         // masterData.push({
+//         //   funActivity_id: response[i]?.fun_id,
+//         //   funActivity_name: response[i]?.fun_name,
+//         // });
 //       //otherInterest
-//       //   masterData.push({
-//       //     OtherId: response[i]?.oi_id,
-//       //     Other_name: response[i]?.oi_name,
-//       //   });
+//         // masterData.push({
+//         //   other_id: response[i]?.oi_id,
+//         //   other_name: response[i]?.oi_name,
+//         // });
 //       // fitnessActivity
 //       // masterData.push({
-//       //   FitnessId: response[i]?.fa_id,
-//       //   Fitness_name: response[i]?.fa_name,
+//       //   fitness_id: response[i]?.fa_id,
+//       //   fitness_name: response[i]?.fa_name,
 //       // });
 //       // diet
-//       //   masterData.push({
-//       //     dietId: response[i]?.diet_id,
-//       //     diet_name: response[i]?.diet_name,
-//       //   });
+//         // masterData.push({
+//         //   diet_id: response[i]?.diet_id,
+//         //   diet_name: response[i]?.diet_name,
+//         // });
 //       // education
-//       //   masterData.push({
-//       //     EducationId: response[i]?.education_id,
-//       //     Education_name: response[i]?.education_name,
-//       //   });
+//         // masterData.push({
+//         //   education_id: response[i]?.education_id,
+//         //   education_name: response[i]?.education_name,
+//         // });
 //       // religion
-//       //   masterData.push({
-//       //     ReligionId: response[i]?.religion_id,
-//       //     Religion_name: response[i]?.religion_name,
-//       //   });
+//         // masterData.push({
+//         //   religion_id: response[i]?.religion_id,
+//         //   religion_name: response[i]?.religion_name,
+//         // });
 //       // community
-//       //   masterData.push({
-//       //     communityId: response[i]?.community_id,
-//       //     community_name: response[i]?.community_name,
-//       //   });
+//         // masterData.push({
+//         //   community_id: response[i]?.community_id,
+//         //   community_name: response[i]?.community_name,
+//         // });
 //     }
 
-//     await State.insertMany(masterData);
+//     // await State.insertMany(masterData);
+//     // await City.insertMany(masterData);
+//     // await Country.insertMany(masterData);
+//     // await Proffesion.insertMany(masterData);
+//     // await Interest.insertMany(masterData);
+//     // await FunActivity.insertMany(masterData);
+//     // await Other.insertMany(masterData);
+//     // await Fitness.insertMany(masterData);
+//     // await Diet.insertMany(masterData);
+//     // await Education.insertMany(masterData);
+//     // await Religion.insertMany(masterData);
+//     await Community.insertMany(masterData);
 //     res.status(201).json({ message: "uploaded", masterData });
 //   } catch (err) {
 //     console.log(err);
@@ -142,12 +153,7 @@ exports.uploadcsv = async (req, res) => {
     for (const row of response) {
       const newUser = new User({
         basicDetails: {
-          name:
-            row["Bride/Groom - First Name"] +
-            " " +
-            row["Bride/Groom - Middle Name"] +
-            " " +
-            row["Bride/Groom - Last Name"],
+          name: row["Bride/Groom - First Name"] + " " + row["Bride/Groom - Middle Name"] + " " + row["Bride/Groom - Last Name"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
           placeOfBirthCountry: parseInt(row["Place of Birth - Country"]) || 0,
           placeOfBirthState: parseInt(row["Place of Birth - State"]) || 0,
@@ -263,7 +269,7 @@ exports.uploadcsv = async (req, res) => {
       newUser.userId =
         `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`
           .toUpperCase()
-          .replaceAll(" ", "")
+          .replaceAll(" ", "");
 
       await newUser.save();
     }

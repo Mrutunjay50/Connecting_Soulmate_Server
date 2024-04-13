@@ -66,7 +66,7 @@ const OtherSchema = mongoose.Schema({
 const ProffesionSchema = mongoose.Schema({
   proffesion_id: { type: String, require: true },
   proffesion_name: { type: String, require: true },
-  proffesionType: { type: String, require: true },
+  proffesion_type: { type: String, require: true },
 });
 
 const ReligionSchema = mongoose.Schema({
@@ -88,12 +88,12 @@ const StateSchema = mongoose.Schema({
 
 const State = mongoose.model("State", StateSchema);
 const Religion = mongoose.model("Religion", ReligionSchema);
-const Proffesion = mongoose.model("Proffesion ", ProffesionSchema);
+const Proffesion = mongoose.model("Proffesion", ProffesionSchema);
 const Other = mongoose.model("Other", OtherSchema);
 const Interest = mongoose.model("Interest", InterestSchema);
 const FunActivity = mongoose.model("FunActivity", FunActivitySchema);
 const Fitness = mongoose.model("Fitness", FitnessSchema);
-const Education = mongoose.model("Education ", EducationSchema);
+const Education = mongoose.model("Education", EducationSchema);
 const Diet = mongoose.model("Diet", DietSchema);
 const Country = mongoose.model("Country", CountrySchema);
 const Community = mongoose.model("community", communitySchema);

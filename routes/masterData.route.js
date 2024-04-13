@@ -5,7 +5,7 @@ const getMasterController = require("../controllers/masterDataGetter");
 const countriesController = require("../controllers/countriesController");
 
 const router = (app) => {
-  // app.post("/masterDataUploader", fileMulter, masterController.uploadcsv);
+  // app.post("/masterDataUploader", fileMulter, masterController.masterDataCSV);
   app.get("/getMasterData/:type", getMasterController.getMasterData);
   app.get("/countries", countriesController.getCountries);
   app.get("/states", countriesController.getStatesByCountry);

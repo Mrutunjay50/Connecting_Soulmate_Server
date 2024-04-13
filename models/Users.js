@@ -125,6 +125,7 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String },
+    lastActive : {type : String, deafult : ""},
     regiaterationPhase: {
       type: String,
       enum: ["registering", "notApproved", "Approved"],

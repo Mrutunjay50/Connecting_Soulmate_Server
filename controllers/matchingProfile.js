@@ -3,9 +3,7 @@ const {ListData} = require('../helper/cardListedData');
 
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
-    // console.log(req.query);
     const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType} = req.query
-    // console.log(ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType);
     const filterConditions = [];
 
     const { gender } = req.params;
@@ -61,7 +59,7 @@ exports.getNewlyJoinedProfiles = async (req, res) => {
 
     // Fetch users created in the last 15 days
     const users = await User.find({
-      createdAt: { $gte: fifteenDaysAgo },
+      createdAt : { $gte: fifteenDaysAgo },
       gender: queryGender,
     })
       .sort({ createdAt: -1 })
