@@ -48,6 +48,8 @@ const validateSignupInput = [
 
 // const router = (app) => {
 router.post("/signup", signupController);
+router.post("/signin", signinController);
+router.get("/getUser", getUser);
 
 
 module.exports = router;

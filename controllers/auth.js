@@ -7,35 +7,33 @@ const User = require("../models/Users");
 
 dotenv.config();
 
-// const signinController = async (req, res) => {
-//   const { email, password } = req.body;
-//   if (email === "" || password === "")
-//     return res.status(400).json({ message: "Invalid field!" });
-//   try {
-//     const existingUser = await User.findOne({ email });
+const signinController = async (req, res) => {
+  const { number } = req.body;
+  console.log(number);
+  if (number === "")
+    return res.status(400).json({ message: "Invalid field!" });
+  try {
+    const existingUser = await User.findOne({ "additionalDetails.contact" : number });
+    // const existingUser = await User.findOne({ "createdBy.phone" : phoneNumber });
 
-//     if (!existingUser)
-//       return res.status(404).json({ message: "User don't exist!" });
+    if (!existingUser)
+      return res.status(404).json({ message: "User don't exist!" });
 
-//     const isPasswordOk = await bcrypt.compare(password, existingUser.password);
+    const token = jwt.sign(
+      {
+        email: existingUser.createdBy[0].phone,
+        id: existingUser._id,
+      },
+      process.env.SECRET_KEY,
+      { expiresIn: "48h" }
+    );
 
-//     if (!isPasswordOk)
-//       return res.status(400).json({ message: "Invalid credintials!" });
-
-//     const token = jwt.sign(
-//       {
-//         email: existingUser.email,
-//         id: existingUser._id,
-//       },
-//       process.env.SECRET_KEY,
-//       { expiresIn: "48h" }
-//     );
-
-//     res.status(200).json({ existingUser, token });
-//   } catch (err) {
-//     res.status(500).json({ message: "Something went wrong!" });
-//   }
-// };
+    res.status(200).json({ existingUser, token });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Something went wrong!" });
+  }
+};
 
 const signupController = async (req, res) => {
   try {
@@ -99,8 +97,8 @@ const getUserNo = async (req, res, next) => {
 };
 
 module.exports = {
-  //   signinController,
+    signinController,
   signupController,
   //   getUserNo,
-  //   getUser,
+    getUser,
 };
