@@ -3,9 +3,9 @@ const {ListData} = require('../helper/cardListedData');
 
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
-    console.log(req.body);
-    const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType} = req.body
-    console.log(ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType);
+    // console.log(req.query);
+    const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType} = req.query
+    // console.log(ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType);
     const filterConditions = [];
 
     const { gender } = req.params;

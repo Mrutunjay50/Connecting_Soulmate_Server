@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const basicDetailsSchema = mongoose.Schema({
   name: { type: String, required: false },
   gender: { type: String, required: false },
@@ -12,7 +11,7 @@ const basicDetailsSchema = mongoose.Schema({
   age: { type: String, required: false },
   manglik: { type: String, required: false },
   horoscope: { type: String, required: false },
-  userId: { type: String, unique: true, required : true, default : "" },
+  userId: { type: String, unique: true, required: true, default: "" },
 });
 
 const additionalDetailsSchema = mongoose.Schema({
@@ -29,7 +28,7 @@ const additionalDetailsSchema = mongoose.Schema({
   diet: { type: String, default: "", required: false },
   alcohol: { type: String, default: "", required: false },
   smoking: { type: String, default: "", required: false },
-  maritalStatus: { type: String, default: "", required: true },
+  maritalStatus: { type: String, default: "", required: false },
 });
 
 const careerDetailsSchema = mongoose.Schema({
@@ -62,15 +61,15 @@ const familyDetailsSchema = mongoose.Schema({
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: { type: String, default : "" },
-  fun: { type: String, default : "" },
-  fitness: { type: String, default : "" },
-  other: { type: String, default : "" },
-  profilePicture: { type: String, default : "", required: false },
-  userPhotos: [{ type: String, default : "" }],
-  userPhotosUrl: [{ type: String, default : "" }],
-  profilePictureUrl: { type: String, default : "" },
-  aboutYourself: { type: String, default : "" },
+  interests: { type: String, default: "" },
+  fun: { type: String, default: "" },
+  fitness: { type: String, default: "" },
+  other: { type: String, default: "" },
+  profilePicture: { type: String, default: "", required: false },
+  userPhotos: [{ type: String, default: "" }],
+  userPhotosUrl: [{ type: String, default: "" }],
+  profilePictureUrl: { type: String, default: "" },
+  aboutYourself: { type: String, default: "" },
 });
 
 const preferenceSchema = mongoose.Schema({
@@ -117,7 +116,7 @@ const createdBySchema = mongoose.Schema({
 // Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
-    userId: { type: String, default: "" }, 
+    userId: { type: String, default: "" },
     createdBy: [createdBySchema],
     basicDetails: [basicDetailsSchema],
     additionalDetails: [additionalDetailsSchema],
@@ -141,30 +140,34 @@ const userSchema = mongoose.Schema(
 
 userSchema.pre("save", function (next) {
   // Check if userId exists in basicDetailsSchema
-  const userIdExists = this.basicDetails && this.basicDetails[0] && this.basicDetails[0].userId;
+  const userIdExists =
+    this.basicDetails && this.basicDetails[0] && this.basicDetails[0].userId;
   // If userId exists in basicDetailsSchema, include userId field in userSchema
   if (userIdExists) {
-    this.userId = { type: String, default: "", required : true, unique : true };
+    this.userId = { type: String, default: "", required: true, unique: true };
     this.userId = userIdExists;
   }
   next();
 });
 
 // Define indexes directly in the schema
-userSchema.index({ "basicDetails.age": 1 });
-userSchema.index({ "basicDetails.gender": 1 });
-userSchema.index({ "additionalDetails.height": 1 });
 userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
 userSchema.index({ "additionalDetails.maritalStatus": 1 });
 userSchema.index({ "familyDetails.community": 1 });
 userSchema.index({ "familyDetails.caste": 1 });
+userSchema.index({ "carrierDetails.highestEducation": 1 });
+userSchema.index({ gender: 1 });
+userSchema.index({ "basicDetails.userId": 1 });
+userSchema.index({ "basicDetails.dateOfBirth": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInCity": 1 });
-userSchema.index({ "carrierDetails.highestEducation": 1 });
-userSchema.index({ "carrierDetails.profession": 1 });
+userSchema.index({ "basicDetails.age": 1 });
+userSchema.index({ "basicDetails.gender": 1 });
+userSchema.index({ "additionalDetails.height": 1 });
+userSchema.index({ "careerDetails.profession": 1 });
+userSchema.index({ "careerDetails.currentDesignation": 1 });
 userSchema.index({ "additionalDetails.diet": 1 });
-userSchema.index({ "gender": 1 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

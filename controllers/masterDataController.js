@@ -14,6 +14,7 @@ const {
 } = require("../models/masterSchemas");
 const csv = require("csvtojson");
 const User = require("../models/Users");
+const moment = require("moment");
 
 // exports.masterDataCSV = async (req, res) => {
 //   let masterData = [];
@@ -34,66 +35,66 @@ const User = require("../models/Users");
 //         // masterData.push({
 //         //   stateId: response[i]?.state_id ,
 //         //   country_id: response[i]?.country_id ,
-//         //   stateName: response[i]?.state_name ,
+//         //   state_name: response[i]?.state_name ,
 //         // });
 //       //city
 //       //   masterData.push({
-//       //     cityId: response[i]?.city_id,
-//       //     cityName: response[i]?.city_name,
+//       //     city_id: response[i]?.city_id,
+//       //     city_name: response[i]?.city_name,
 //       //     country_id: response[i]?.country_id,
 //       //     state_id: response[i]?.state_id
 //       //   });
 //       //country
 //       //   masterData.push({
 //       //     countryId: response[i]?.country_id,
-//       //     countryName: response[i]?.country_name,
+//       //     country_name: response[i]?.country_name,
 //       //     countryCode: response[i]?.country_code
 //       //   });
 //       //profession
 //       //   masterData.push({
 //       //     ProffesionId: response[i]?.profession_id,
-//       //     ProffesionName: response[i]?.profession_name,
+//       //     Proffesion_name: response[i]?.profession_name,
 //       //     ProffesionType: response[i]?.type,
 //       //   });
 //       //Interest
 //       //   masterData.push({
 //       //     IntrestId: response[i]?.interest_id,
-//       //     IntrestName: response[i]?.interest_name,
+//       //     Intrest_name: response[i]?.interest_name,
 //       //   });
 //       //funactivity
 //       //   masterData.push({
 //       //     FunActivityId: response[i]?.fun_id,
-//       //     FunActivityName: response[i]?.fun_name,
+//       //     FunActivity_name: response[i]?.fun_name,
 //       //   });
 //       //otherInterest
 //       //   masterData.push({
 //       //     OtherId: response[i]?.oi_id,
-//       //     OtherName: response[i]?.oi_name,
+//       //     Other_name: response[i]?.oi_name,
 //       //   });
 //       // fitnessActivity
 //       // masterData.push({
 //       //   FitnessId: response[i]?.fa_id,
-//       //   FitnessName: response[i]?.fa_name,
+//       //   Fitness_name: response[i]?.fa_name,
 //       // });
 //       // diet
 //       //   masterData.push({
 //       //     dietId: response[i]?.diet_id,
-//       //     dietName: response[i]?.diet_name,
+//       //     diet_name: response[i]?.diet_name,
 //       //   });
 //       // education
 //       //   masterData.push({
 //       //     EducationId: response[i]?.education_id,
-//       //     EducationName: response[i]?.education_name,
+//       //     Education_name: response[i]?.education_name,
 //       //   });
 //       // religion
 //       //   masterData.push({
 //       //     ReligionId: response[i]?.religion_id,
-//       //     ReligionName: response[i]?.religion_name,
+//       //     Religion_name: response[i]?.religion_name,
 //       //   });
 //       // community
 //       //   masterData.push({
 //       //     communityId: response[i]?.community_id,
-//       //     communityName: response[i]?.community_name,
+//       //     community_name: response[i]?.community_name,
 //       //   });
 //     }
 
@@ -107,11 +108,11 @@ const User = require("../models/Users");
 
 exports.addProffesion = async (req, res) => {
   try {
-    const { ProffesionId, ProffesionName } = req.body;
+    const { proffesion_id, proffesion_name } = req.body;
 
     const newProffesion = new Proffesion({
-      ProffesionId,
-      ProffesionName,
+      proffesion_id,
+      proffesion_name,
     });
 
     const savedProffesion = await newProffesion.save();
@@ -139,7 +140,6 @@ exports.uploadcsv = async (req, res) => {
     const response = await csv().fromFile(req.file.path);
 
     for (const row of response) {
-      console.log(row["Education Completed"]);
       const newUser = new User({
         basicDetails: {
           name:
@@ -148,25 +148,26 @@ exports.uploadcsv = async (req, res) => {
             row["Bride/Groom - Middle Name"] +
             " " +
             row["Bride/Groom - Last Name"],
-          gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",
-          placeOfBirthCountry: row["Place of Birth - Country"],
-          placeOfBirthState: row["Place of Birth - State"],
-          placeOfBirthCity: row["Place of Birth - City"],
-          dateOfBirth: row["Date of birth"].split(" ")[0],
-          timeOfBirth: row["Date of birth"].split(" ")[1] + " " + row["AM/PM"],
-          age: row["Age"],
+          gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
+          placeOfBirthCountry: parseInt(row["Place of Birth - Country"]) || 0,
+          placeOfBirthState: parseInt(row["Place of Birth - State"]) || 0,
+          placeOfBirthCity: parseInt(row["Place of Birth - City"]) || 0,
+          dateOfBirth: row["Date of birth"]?.split(" ")[0],
+          timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
+          age: parseInt(row["Age"]) || 0,
           manglik: row["Manglik Status"],
           horoscope: row[""],
+          userId: "",
         },
         additionalDetails: {
-          height: row["Height (Feet)"],
+          height: parseInt(row["Height (Feet)"]) || 0,
           weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
           contact: row["Contact Details"] + " " + row["Add Number"],
           personalAppearance: row["Personal  Appearance"],
-          currentlyLivingInCountry: row["Presently Settled In Country"],
-          currentlyLivingInState: row["Presently Settled in State"],
-          currentlyLivingInCity: row["Presently Settled in City"],
+          currentlyLivingInCountry: parseInt(row["Presently Settled In Country"]) || 0,
+          currentlyLivingInState: parseInt(row["Presently Settled in State"]) || 0,
+          currentlyLivingInCity: parseInt(row["Presently Settled in City"]) || 0,
           countryCode: row["Contact Details"],
           relocationInFuture: row["Open to Relocate in Future"],
           diet: row["Diet Type"],
@@ -191,13 +192,14 @@ exports.uploadcsv = async (req, res) => {
           motherOccupation: row["Mother's Occupation"],
           siblings: row["Siblings [Brother 1]"],
           withFamilyStatus: row["Bride / Groom Lives with Family"],
-          familyLocationCountry: row["Family Settled - Country"],
-          familyLocationState: row["Family Settled - State"],
-          familyLocationCity: row["Family Settled - City"],
+          familyLocationCountry: parseInt(row["Family Settled - Country"]) || 0,
+          familyLocationState: parseInt(row["Family Settled - State"]) || 0,
+          familyLocationCity: parseInt(row["Family Settled - City"]) || 0,
           religion: row["Religion"],
           caste: row["Caste"],
           community: row["Community"],
-          familyAnnualIncome: row["Family Annual Income Range"],
+          familyAnnualIncomeStart: parseInt(row["Family Annual Income Range"]?.split("-")[0]?.trim()) || 0,
+          familyAnnualIncomeEnd: parseInt(row["Family Annual Income Range"]?.split("-")[1]?.trim()) || 0,
         },
         // Populate selfDescriptionSchema fields
         selfDetails: {
@@ -213,17 +215,20 @@ exports.uploadcsv = async (req, res) => {
         },
         // Populate preferenceSchema fields
         partnerPreference: {
-          ageRange: row["Age Range"] + "-" + row["To"],
-          heightRange: row["Height (Feet) Range"] + "-" + row["To Range"],
+          ageRangeStart: parseInt(row["Age Range"]) || 0,
+          ageRangeEnd: parseInt(row["To"]) || 0,
+          heightRangeStart: parseInt(row["Height (Feet) Range"]) || 0,
+          heightRangeEnd: parseInt(row["To Range"]) || 0,
           maritalStatus: row["Martial Status"],
-          community: row["Community Of"],
-          caste: row[""],
-          Country: row["Country"],
-          State: row["State"],
-          City: row["City"],
+          community: parseInt(row["Community Of"]) || 0,
+          caste: parseInt(row[""]) || 0,
+          country: parseInt(row["Country"]) || 0,
+          state: parseInt(row["State"]) || 0,
+          city: parseInt(row["City"]) || 0,
           education: row["Qualification"],
           workingpreference: row["Working Preference"],
-          annualIncomeRange: row["Annual Income Range"],
+          annualIncomeRangeStart: parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
+          annualIncomeRangeEnd: parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
           dietType: row["Other Details - Diet"],
         },
         // Populate createdBySchema fields
@@ -234,13 +239,31 @@ exports.uploadcsv = async (req, res) => {
             row["Contact Number - Mobile Number (Country Code)"] +
             " " +
             row["Contact Number - Mobile Number "],
-          gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",
+          gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
-        gender: row["Bride/Groom Gender"] === 2 ? "F" : "M",
+        gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         regiaterationPhase: row["notApproved"],
         registerationPage: row[""],
         annualIncomeType: row["Approximate Annual Income"],
+        userId: "",
       });
+
+      // Generate userId based on the data
+      const genderPrefix = newUser.basicDetails[0].gender;
+      const namePrefix = newUser.basicDetails[0].name.slice(0, 3).toUpperCase();
+      const dob = moment(newUser.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
+      const dobFormatted = dob.format("YYYYMMDD");
+      const timeOfBirth = newUser.basicDetails[0].timeOfBirth.replace(":", "");
+      const loginTime = moment().format("HHmmss");
+
+      newUser.basicDetails[0].userId =
+        `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`
+          .toUpperCase()
+          .replaceAll(" ", "");
+      newUser.userId =
+        `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`
+          .toUpperCase()
+          .replaceAll(" ", "")
 
       await newUser.save();
     }
