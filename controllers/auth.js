@@ -9,19 +9,18 @@ dotenv.config();
 
 const signinController = async (req, res) => {
   const { number } = req.body;
-  console.log(number);
   if (number === "")
     return res.status(400).json({ message: "Invalid field!" });
   try {
-    const existingUser = await User.findOne({ "additionalDetails.contact" : number });
-    // const existingUser = await User.findOne({ "createdBy.phone" : phoneNumber });
+    // const existingUser = await User.findOne({ "additionalDetails.contact" : number });
+    const existingUser = await User.findOne({ "createdBy.phone" : number });
 
     if (!existingUser)
       return res.status(404).json({ message: "User don't exist!" });
 
     const token = jwt.sign(
       {
-        email: existingUser.createdBy[0].phone,
+        number: existingUser.createdBy[0].phone,
         id: existingUser._id,
       },
       process.env.SECRET_KEY,
@@ -38,7 +37,7 @@ const signinController = async (req, res) => {
 const signupController = async (req, res) => {
   try {
     let { name, createdFor, gender, phone } = req.body;
-    
+    phone = phone?.trim()
     const mapFrontendToEnum = {
       1: "myself",
       2: "myson",
@@ -64,6 +63,8 @@ const signupController = async (req, res) => {
     // Save the user to the database
     const savedUser = await newUser.save();
 
+    console.log(savedUser);
+
     res.status(201).json(savedUser);
     // res.status(201).json(newUser);
   } catch (error) {
@@ -74,7 +75,7 @@ const signupController = async (req, res) => {
 
 const getUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.query.userId);
+    const user = await User.findById(req.params.userId);
     if (!user) {
       const error = new Error("User not found.");
       error.statusCode = 404;

@@ -1,5 +1,6 @@
 const Matches = require("../models/matches");
 const ShortList = require("../models/shortlistUsers");
+const {ListData} = require('../helper/cardListedData');
 
 exports.sendMatchRequest = async (senderId, recipientId) => {
   try {
@@ -29,12 +30,11 @@ exports.respondToMatchRequest = async (matchRequestId, response) => {
 exports.addToShortlist = async (req, res) => {
   try {
     const { user, shortlistedUserId } = req.body;
-    let shortlist = await ShortList.findOne({ user });
 
-    if (!shortlist) {
-      shortlist = new ShortList({ user, shortlistedUser: [] });
-    }
-    shortlist.shortlistedUser.push(shortlistedUserId);
+    const shortlist = new ShortList({
+      user: user,
+      shortlistedUser: shortlistedUserId
+    });
 
     await shortlist.save();
 
@@ -48,7 +48,11 @@ exports.addToShortlist = async (req, res) => {
 exports.getShortlistedUser = async (req, res) => {
   try {
     const { UserId } = req.params;
-    const user = await ShortList.findOne({ user: UserId });
+    const user = await ShortList.find({ user : UserId }).populate({
+      path: 'shortlistedUser',
+      select: ListData
+    });
+    console.log(user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

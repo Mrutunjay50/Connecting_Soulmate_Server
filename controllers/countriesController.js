@@ -36,3 +36,42 @@ exports.getCitiesByState = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+const fetchDataById = async (Model, type, id) => {
+  try {
+    const query = {};
+    query[type] = id;
+    const data = await Model.find(query);
+    return data;
+  } catch (error) {
+    throw new Error(`Error fetching data from ${Model.modelName}: ${error.message}`);
+  }
+};
+
+
+// Controller function to fetch countries, states, or cities based on type
+exports.getDataById = async (req, res) => {
+  const { type, id } = req.query; // type can be 'country', 'state', or 'city'
+  
+  try {
+      let data;
+      switch (type) {
+          case 'country':
+              data = await fetchDataById(Country,  "country_id" , id);
+              break;
+          case 'state':
+              data = await fetchDataById(State, "state_id" , id);
+              break;
+          case 'city':
+              data = await fetchDataById(City, "city_id" , id);
+              break;
+          default:
+              throw new Error(`Invalid type: ${type}`);
+      }
+      
+      res.status(200).json(data);
+  } catch (error) {
+      console.error('Error fetching data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+};

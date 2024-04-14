@@ -22,11 +22,25 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        const { fname, mname, lname } = req.body.basicDetails;
+        const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
+        const currentDate = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = currentDate.getFullYear() - birthDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        const birthMonth = birthDate.getMonth();
+
+        if (
+          currentMonth < birthMonth ||
+          (currentMonth === birthMonth &&
+            currentDate.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
         user.basicDetails[0] = {
           ...req.body.basicDetails,
           name: `${fname} ${mname} ${lname}`,
           gender: user.createdBy[0].gender,
+          age: age.toString(),
         };
 
         // Generate userId and save the updated user document
@@ -52,15 +66,16 @@ exports.registerUser = async (req, res) => {
         user.careerDetails[0] = { ...req.body.careerDetails };
         break;
       case "4":
-        const { familyAnnualIncome, country, state, city } = req.body.familyDetails;
+        const { familyAnnualIncome, country, state, city } =
+          req.body.familyDetails;
 
         user.familyDetails[0] = {
           ...req.body.familyDetails,
           familyAnnualIncomeStart: familyAnnualIncome.start,
           familyAnnualIncomeEnd: familyAnnualIncome.end,
-          familyLocationCountry : country,
-          familyLocationState : state,
-          familyLocationCity : city
+          familyLocationCountry: country,
+          familyLocationState: state,
+          familyLocationCity: city,
         };
         break;
       case "5":
@@ -149,8 +164,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-
-
 exports.getPageData = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -188,7 +201,7 @@ exports.getPageData = async (req, res) => {
         return res.status(400).json({ error: "Invalid page number" });
     }
 
-    res.status(200).json({message: "Data fetched successfully", pageData });
+    res.status(200).json({ message: "Data fetched successfully", pageData });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

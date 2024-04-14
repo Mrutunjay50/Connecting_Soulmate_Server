@@ -10,7 +10,7 @@ const basicDetailsSchema = mongoose.Schema({
   timeOfBirth: { type: String, required: false },
   age: { type: String, required: false },
   manglik: { type: String, required: false },
-  horoscope: { type: String, required: false },
+  horoscope: { type: String, required: false, default : "" },
   userId: { type: String, unique: true, required: true, default: "" },
 });
 
@@ -127,6 +127,11 @@ const userSchema = mongoose.Schema(
     partnerPreference: [preferenceSchema],
     gender: { type: String },
     lastActive : {type : String, deafult : ""},
+    isDeleted : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
     regiaterationPhase: {
       type: String,
       enum: ["registering", "notApproved", "Approved"],

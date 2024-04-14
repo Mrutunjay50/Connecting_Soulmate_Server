@@ -3,46 +3,53 @@ const {ListData} = require('../helper/cardListedData');
 
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
-    const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType} = req.query
+    const { gender } = req.params;
+    const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community, caste, country, state, city, education, workingpreference, dietType } = req.query;
     const filterConditions = [];
 
-    const { gender } = req.params;
     const queryGender = gender === "F" ? "M" : "F";
 
-    gender && filterConditions.push({ gender : queryGender });
-    ageRangeStart && ageRangeEnd && filterConditions.push({ "basicDetails.age": { $gt: ageRangeStart, $lte: ageRangeEnd } });
-    heightRangeStart && heightRangeEnd && filterConditions.push({ "additionalDetails.height": { $gt: heightRangeStart, $lte: heightRangeEnd } });
-    annualIncomeRangeStart && annualIncomeRangeEnd && filterConditions.push({ "careerDetails.annualIncomeValue": { $gt: annualIncomeRangeStart, $lte: annualIncomeRangeEnd } });
-    maritalStatus && filterConditions.push({ "additionalDetails.maritalStatus": maritalStatus });
-    community && filterConditions.push({ "familyDetails.community": community });
-    caste && filterConditions.push({ "familyDetails.caste": caste });
+    // Gender condition is AND
+    filterConditions.push({ gender: queryGender });
 
-    // // Dynamically construct the country filter object
-    // country && filterConditions.push(Object.assign({ "additionalDetails.currentlyLivingInCountry": country },
-    //   state && { "additionalDetails.currentlyLivingInState": state },
-    //   city && { "additionalDetails.currentlyLivingInCity": city }
-    // ));
+    // Other conditions are OR
+    const orConditions = [];
+
+    ageRangeStart && ageRangeEnd && orConditions.push({ "basicDetails.age": { $gt: ageRangeStart, $lte: ageRangeEnd } });
+    heightRangeStart && heightRangeEnd && orConditions.push({ "additionalDetails.height": { $gt: heightRangeStart, $lte: heightRangeEnd } });
+    annualIncomeRangeStart && annualIncomeRangeEnd && orConditions.push({ "careerDetails.annualIncomeValue": { $gt: annualIncomeRangeStart, $lte: annualIncomeRangeEnd } });
+    maritalStatus && orConditions.push({ "additionalDetails.maritalStatus": maritalStatus });
+    community && orConditions.push({ "familyDetails.community": community });
+    caste && orConditions.push({ "familyDetails.caste": caste });
+
+    // Dynamically construct the country filter object
     if (country) {
       const countryFilter = { "additionalDetails.currentlyLivingInCountry": country };
       if (state) {
         countryFilter["additionalDetails.currentlyLivingInState"] = state;
         if (city) countryFilter["additionalDetails.currentlyLivingInCity"] = city;
       }
-      filterConditions.push(countryFilter);
+      orConditions.push(countryFilter);
     }
 
-    education && filterConditions.push({ "careerDetails.highestEducation": education });
-    workingpreference && filterConditions.push({ "careerDetails.profession": workingpreference });
-    dietType && filterConditions.push({ "additionalDetails.diet": dietType });
+    education && orConditions.push({ "careerDetails.highestEducation": education });
+    workingpreference && orConditions.push({ "careerDetails.profession": workingpreference });
+    dietType && orConditions.push({ "additionalDetails.diet": dietType });
+
+    // Combine OR conditions with $or operator
+    if (orConditions.length > 0) {
+      filterConditions.push({ $or: orConditions });
+    }
 
     // Selectively project only required fields
-    const filteredUsers = await User.find({ $or: filterConditions }).select(ListData);
+    const filteredUsers = await User.find({ $and: filterConditions }).select(ListData);
     res.status(200).json({ success: true, data: filteredUsers });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
+
 
 
 exports.getNewlyJoinedProfiles = async (req, res) => {
@@ -129,3 +136,5 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
