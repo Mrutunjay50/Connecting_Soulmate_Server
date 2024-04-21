@@ -39,8 +39,9 @@ const careerDetailsSchema = mongoose.Schema({
   profession: { type: String, default: "", required: false },
   currentDesignation: { type: String, default: "", required: false },
   previousOccupation: { type: String, default: "", required: false },
+  annualIncomeUSD : { type: String, default: "", required: false },
   annualIncomeValue: { type: String, default: "", required: false },
-  currencyType: { type: String, default: "", required: false },
+  currencyType: { type: String, default: "", required: true },
 });
 
 const familyDetailsSchema = mongoose.Schema({
@@ -126,7 +127,6 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String },
-    lastActive : {type : String, deafult : ""},
     isDeleted : {
       type: String,
       enum: [true, false],
@@ -135,10 +135,20 @@ const userSchema = mongoose.Schema(
     regiaterationPhase: {
       type: String,
       enum: ["registering", "notApproved", "Approved"],
+      default : "registering"
+    },
+    lastLogin : {
+      type: Date,
+      default : new Date().toISOString()
     },
     registerationPage: {
       type: String,
       enum: ["", "1", "2", "3", "4", "5", "6"],
+    },
+    category: {
+      type: String,
+      enum: ["", "A", "B", "C", "AB", "AC", "BC", "ABC"],
+      default : ""
     },
     annualIncomeType: { type: String },
   },

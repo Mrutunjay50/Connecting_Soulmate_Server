@@ -1,10 +1,13 @@
 const User = require("../models/Users");
+const ExchangeRate = require("../models/exchangeRate");
 const {
   resizeImage,
   uploadToS3,
   generateFileName,
 } = require("../utils/s3Utils");
 const moment = require("moment");
+const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 
 exports.registerUser = async (req, res) => {
   try {
@@ -62,8 +65,13 @@ exports.registerUser = async (req, res) => {
         user.additionalDetails[0] = { ...req.body.additionalDetails };
         break;
       case "3":
-        console.log(req.body.careerDetails);
-        user.careerDetails[0] = { ...req.body.careerDetails };
+        const {annualIncomeValue, currencyType} = req.body.careerDetails;
+        // Fetch exchange rates from the database
+        const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
+
+        // Convert annualIncomeValue to USD
+        let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
+        user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
         break;
       case "4":
         const { familyAnnualIncome, country, state, city } =
@@ -164,6 +172,9 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+
+
+
 exports.getPageData = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -180,7 +191,54 @@ exports.getPageData = async (req, res) => {
 
     switch (page) {
       case "1":
-        pageData = user.basicDetails[0];
+        pageData = await User.aggregate([
+          {
+            $match: { _id: new ObjectId(userId) }
+          },
+          {
+            $lookup: {
+              from: "cities", // name of the City collection
+              localField: "basicDetails.placeOfBirthCity",
+              foreignField: "city_id",
+              as: "city"
+            }
+          },
+          {
+            $lookup: {
+              from: "states", // name of the State collection
+              localField: "basicDetails.placeOfBirthState",
+              foreignField: "state_id",
+              as: "state"
+            }
+          },
+          {
+            $lookup: {
+              from: "countries", // name of the Country collection
+              localField: "basicDetails.placeOfBirthCountry",
+              foreignField: "country_id",
+              as: "country"
+            }
+          },
+          {
+            $project: {
+              _id: 1,
+              userId: 1,
+              basicDetails: {
+                $mergeObjects: [
+                  { $arrayElemAt: ["$basicDetails", 0] }, // Convert basicDetails array to object
+                  {
+                    "country": { $arrayElemAt: ["$country.country_name", 0] },
+                    "state": { $arrayElemAt: ["$state.state_name", 0] },
+                    "city": { $arrayElemAt: ["$city.city_name", 0] }
+                  }
+                ]
+              }
+            }
+          }
+        ]);
+        
+        
+        console.log(pageData);
         break;
       case "2":
         pageData = user.additionalDetails[0];
