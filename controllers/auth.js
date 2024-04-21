@@ -1,6 +1,4 @@
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const axios = require("axios");
 const dotenv = require("dotenv");
 
 const User = require("../models/Users");
@@ -9,14 +7,17 @@ dotenv.config();
 
 const signinController = async (req, res) => {
   const { number } = req.body;
-  if (number === "")
+  if (!number.trim())
     return res.status(400).json({ message: "Invalid field!" });
   try {
-    // const existingUser = await User.findOne({ "additionalDetails.contact" : number });
-    const existingUser = await User.findOne({ "createdBy.phone" : number });
+    const num = number.split("-")[1].trim();
+    const countryCode = number.split("-")[0].trim();
+    const existingUser = await User.findOne({ "createdBy.countryCode": countryCode, "createdBy.phone": num });
 
     if (!existingUser)
-      return res.status(404).json({ message: "User don't exist!" });
+      return res.status(404).json({ message: "User doesn't exist!" });
+
+    // console.log("Existing User:", existingUser);
 
     const token = jwt.sign(
       {
@@ -29,10 +30,11 @@ const signinController = async (req, res) => {
 
     res.status(200).json({ existingUser, token });
   } catch (err) {
-    console.log(err);
+    console.error("Error:", err);
     res.status(500).json({ message: "Something went wrong!" });
   }
 };
+
 
 const signupController = async (req, res) => {
   try {

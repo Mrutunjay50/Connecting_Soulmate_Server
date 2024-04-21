@@ -14,7 +14,7 @@ exports.searchById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.status(200).json(user);
+    return res.status(200).json({user});
   } catch (error) {
     console.error("Error searching user by ID:", error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -83,7 +83,7 @@ exports.advanceSearch = async (req, res) => {
     // Execute the query
     const users = await User.find(query).select(ListData);
 
-    return res.status(200).json(users);
+    return res.status(200).json({users});
   } catch (error) {
     console.error("Error searching users:", error);
     return res.status(500).json({ error: "Internal Server Error" });

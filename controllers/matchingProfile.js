@@ -56,30 +56,36 @@ exports.getNewlyJoinedProfiles = async (req, res) => {
   try {
     const { gender } = req.params;
     const queryGender = gender === "F" ? "M" : "F";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 2;
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1;
+    // const limit = 2;
+    // const skip = (page - 1) * limit;
 
-    // Calculate the date 15 days ago
+    // Calculate the date 15 days ago in MongoDB date format
     const fifteenDaysAgo = new Date();
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+    const mongoDbDate = fifteenDaysAgo.toISOString();
 
+    // console.log("Fifteen days ago:", mongoDbDate);
+    
     // Fetch users created in the last 15 days
     const users = await User.find({
-      createdAt : { $gte: fifteenDaysAgo },
+      createdAt: { $gte: mongoDbDate},
       gender: queryGender,
     })
       .sort({ createdAt: -1 })
       .select(ListData)
-      .skip(skip)
-      .limit(limit);
+      // .skip(skip)
+      // .limit(limit);
 
+    // console.log("Found users:", users);
+    console.log(users.length);
     res.status(200).json({ users });
   } catch (error) {
     console.error("Error retrieving newly joined users:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 exports.getAllUsers = async (req, res) => {
   try {
