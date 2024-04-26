@@ -4,6 +4,8 @@ const {
   resizeImage,
   uploadToS3,
   generateFileName,
+  getSignedUrlFromS3,
+  deleteFromS3,
 } = require("../utils/s3Utils");
 const moment = require("moment");
 const mongoose = require("mongoose");
@@ -65,9 +67,11 @@ exports.registerUser = async (req, res) => {
         user.additionalDetails[0] = { ...req.body.additionalDetails };
         break;
       case "3":
-        const {annualIncomeValue, currencyType} = req.body.careerDetails;
+        const { annualIncomeValue, currencyType } = req.body.careerDetails;
         // Fetch exchange rates from the database
-        const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
+        const exchangeRate = await ExchangeRate.findOne({
+          currency: currencyType,
+        });
 
         // Convert annualIncomeValue to USD
         let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
@@ -91,59 +95,70 @@ exports.registerUser = async (req, res) => {
         const { aboutYourself, interests, fun, fitness, other } = JSON.parse(
           req.body.selfDetails
         );
-        // Upload user photos to S3
 
-        if (userPhotos) {
+        if (
+          user.selfDetails.length > 0 &&
+          userPhotos &&
+          userPhotos.length > 0
+        ) {
+          // If 'selfDetails' and 'userPhotos' exist, delete existing images from S3
+          const existingPhotos = user.selfDetails[0].userPhotos;
+          if (existingPhotos && existingPhotos.length > 0) {
+            try {
+              // Delete existing images from S3
+              await Promise.all(existingPhotos.map(deleteFromS3));
+            } catch (error) {
+              console.error("Error deleting existing images:", error);
+            }
+          }
+        }
+
+        // Upload new user photos to S3
+        if (userPhotos && userPhotos.length > 0) {
           for (var i = 0; i < userPhotos.length; i++) {
             const { buffer, originalname, mimetype } = userPhotos[i];
 
-            // a function for resizing images
+            // Resize images if needed
             const resizedImageBuffer = await resizeImage(buffer);
             const fileName = generateFileName(originalname);
 
-            // a function for uploading to S3
-            await uploadToS3(resizedImageBuffer, fileName, mimetype);
-
-            // Update userPhotos array with the generated file name
-            userPhotos[i].originalname = fileName;
+            // Upload resized images to S3
+            try {
+              await uploadToS3(resizedImageBuffer, fileName, mimetype);
+              // Update userPhotos array with the generated file name
+              userPhotos[i].originalname = fileName;
+            } catch (error) {
+              console.error("Error uploading image to S3:", error);
+            }
           }
         }
-        if (userPhotos && user.selfDetails.length > 0) {
-          // If 'selfDetails' already exists, update 'userPhotos' array
-          user.selfDetails[0].userPhotos = userPhotos.map(
-            (photo) => photo.originalname
-          );
-          const newSelfDetails = {
-            userPhotos: userPhotos.map((photo) => photo.originalname),
-            profilePicture:
-              userPhotos.length > 0 ? userPhotos[0].originalname : null,
-            aboutYourself: aboutYourself,
-            interests: interests,
-            fun: fun,
-            fitness: fitness,
-            other: other,
-          };
 
+        const newSelfDetails = {
+          userPhotos: userPhotos
+            ? userPhotos.map((photo) => photo.originalname)
+            : [],
+          profilePicture:
+            userPhotos && userPhotos.length > 0
+              ? userPhotos[0].originalname
+              : null,
+          aboutYourself: aboutYourself,
+          interests: interests,
+          fun: fun,
+          fitness: fitness,
+          other: other,
+        };
+
+        if (user.selfDetails.length > 0) {
+          // If 'selfDetails' already exist, update it with new details
           user.selfDetails[0] = { ...newSelfDetails };
-          await user.save();
         } else {
-          // If 'selfDetails' doesn't exist, create it with 'userPhotos' array
-          const newSelfDetails = {
-            userPhotos: userPhotos.map((photo) => photo.originalname),
-            profilePicture:
-              userPhotos.length > 0 ? userPhotos[0].originalname : null,
-            aboutYourself: aboutYourself,
-            interests: interests,
-            fun: fun,
-            fitness: fitness,
-            other: other,
-          };
-
+          // If 'selfDetails' doesn't exist, create it with new details
           user.selfDetails = [newSelfDetails];
-          await user.save();
         }
 
+        await user.save();
         break;
+
       case "6":
         const { ageRange, heightrange, annualIncomeRange } =
           req.body.partnerPreference;
@@ -172,9 +187,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-
-
-
 exports.getPageData = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -193,31 +205,31 @@ exports.getPageData = async (req, res) => {
       case "1":
         pageData = await User.aggregate([
           {
-            $match: { _id: new ObjectId(userId) }
+            $match: { _id: new ObjectId(userId) },
           },
           {
             $lookup: {
               from: "cities", // name of the City collection
               localField: "basicDetails.placeOfBirthCity",
               foreignField: "city_id",
-              as: "city"
-            }
+              as: "city",
+            },
           },
           {
             $lookup: {
               from: "states", // name of the State collection
               localField: "basicDetails.placeOfBirthState",
               foreignField: "state_id",
-              as: "state"
-            }
+              as: "state",
+            },
           },
           {
             $lookup: {
               from: "countries", // name of the Country collection
               localField: "basicDetails.placeOfBirthCountry",
               foreignField: "country_id",
-              as: "country"
-            }
+              as: "country",
+            },
           },
           {
             $project: {
@@ -225,20 +237,17 @@ exports.getPageData = async (req, res) => {
               userId: 1,
               basicDetails: {
                 $mergeObjects: [
-                  { $arrayElemAt: ["$basicDetails", 0] }, // Convert basicDetails array to object
+                  { $arrayElemAt: ["$basicDetails", 0] },
                   {
-                    "country": { $arrayElemAt: ["$country.country_name", 0] },
-                    "state": { $arrayElemAt: ["$state.state_name", 0] },
-                    "city": { $arrayElemAt: ["$city.city_name", 0] }
-                  }
-                ]
-              }
-            }
-          }
+                    country: { $arrayElemAt: ["$country.country_name", 0] },
+                    state: { $arrayElemAt: ["$state.state_name", 0] },
+                    city: { $arrayElemAt: ["$city.city_name", 0] },
+                  },
+                ],
+              },
+            },
+          },
         ]);
-        
-        
-        console.log(pageData);
         break;
       case "2":
         pageData = user.additionalDetails[0];
@@ -250,6 +259,20 @@ exports.getPageData = async (req, res) => {
         pageData = user.familyDetails[0];
         break;
       case "5":
+        const signedUrlsPromises = user.selfDetails[0].userPhotos.map((item) =>
+          getSignedUrlFromS3(item)
+        );
+        try {
+          // Use Promise.all() to wait for all promises to resolve
+          const signedUrls = await Promise.all(signedUrlsPromises);
+          user.selfDetails[0].userPhotosUrl = signedUrls;
+        } catch (error) {
+          // Handle any errors that occurred during promise resolution
+          console.error("Error:", error);
+        }
+        user.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(
+          user.selfDetails[0].profilePicture
+        );
         pageData = user.selfDetails[0];
         break;
       case "6":

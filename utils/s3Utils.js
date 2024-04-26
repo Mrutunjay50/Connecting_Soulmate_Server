@@ -19,7 +19,7 @@ const S3 = new S3Client({
 const resizeImage = async (buffer) => {
   try {
     return await sharp(buffer)
-      .resize({ height: 400, width: 800, fit: 'contain' })
+      .resize({ height: 216, width: 216, fit: 'cover' })
       .toBuffer();
   } catch (error) {
     throw new Error('Error resizing image: ' + error.message);
