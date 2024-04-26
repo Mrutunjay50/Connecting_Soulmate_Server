@@ -99,34 +99,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.updateUserSchema = async (req, res) => {
-  try {
-    const { userId, schemaName } = req.params;
-    const updates = req.body;
-
-    // Validate if the schemaName is valid
-    if (!User.schema.obj[schemaName]) {
-      return res.status(400).json({ error: "Invalid schema name" });
-    }
-
-    // Update user data
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: { [`${schemaName}.$`]: updates } },
-      { new: true }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.status(200).json({ user: updatedUser });
-  } catch (error) {
-    console.error("Error updating user schema:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.userId;
