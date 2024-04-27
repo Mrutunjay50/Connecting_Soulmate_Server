@@ -3,7 +3,7 @@ const {
   signinController,
   signupController,
   getUser,
-  getUserNo,
+  magicLinkController,
 } = require("../controllers/auth");
 const express = require("express");
 const router = express.Router();
@@ -47,9 +47,9 @@ const validateSignupInput = [
 ];
 
 // const router = (app) => {
+  router.post("/createMagicLink", magicLinkController);
 router.post("/signup", signupController);
 router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
-
 
 module.exports = router;

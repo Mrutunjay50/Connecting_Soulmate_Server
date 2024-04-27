@@ -1,6 +1,7 @@
 const { InterestRequests, ProfileRequests } = require("../models/interests");
 const ShortList = require("../models/shortlistUsers");
 const { ListData } = require("../helper/cardListedData");
+const io = require("../socket");
 
 exports.addToShortlist = async (req, res) => {
   try {
@@ -50,6 +51,18 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
+
+    // Emit notification to profileRequestBy
+    io.getIO().to(profileRequestBy).emit("notification", {
+      message: `You have sent a profile request to ${profileRequestTo.username}`
+    });
+
+    // Emit notification to profileRequestTo
+    io.getIO().to(profileRequestTo).emit("notification", {
+      message: `${profileRequestBy.username} has sent a request to you`
+    });
+
+    res.status(200).json({ message: "Profile request sent successfully" });
   } catch (error) {
     console.error("Error sending profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -66,6 +79,18 @@ exports.acceptProfileRequest = async (req, res) => {
       "accepted",
       res
     );
+
+    // Emit notification to profileRequestBy
+    io.getIO().to(profileRequestBy).emit("notification", {
+      message: `${profileRequestTo.username} has accepted your profile request`
+    });
+
+    // Emit notification to profileRequestTo
+    io.getIO().to(profileRequestTo).emit("notification", {
+      message: `You have accepted the profile request from ${profileRequestBy.username}`
+    });
+
+    res.status(200).json({ message: "Profile request accepted successfully" });
   } catch (error) {
     console.error("Error accepting profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -82,11 +107,24 @@ exports.declineProfileRequest = async (req, res) => {
       "declined",
       res
     );
+
+    // Emit notification to profileRequestBy
+    io.getIO().to(profileRequestBy).emit("notification", {
+      message: `${profileRequestTo.username} has declined your profile request`
+    });
+
+    // Emit notification to profileRequestTo
+    io.getIO().to(profileRequestTo).emit("notification", {
+      message: `You have declined the profile request from ${profileRequestBy.username}`
+    });
+
+    res.status(200).json({ message: "Profile request declined successfully" });
   } catch (error) {
     console.error("Error declining profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 exports.getProfileRequestsAccepted = async (req, res) => {
   try {
@@ -141,6 +179,7 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
+    io.getIO().on("interestRequestSent");
   } catch (error) {
     console.error("Error sending interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -157,6 +196,7 @@ exports.acceptInterestRequest = async (req, res) => {
       "accepted",
       res
     );
+    io.getIO().on("interestRequestAccept");
   } catch (error) {
     console.error("Error accepting interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -173,6 +213,7 @@ exports.declineInterestRequest = async (req, res) => {
       "declined",
       res
     );
+    io.getIO().on("interestRequestDeclined");
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
