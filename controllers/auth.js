@@ -34,10 +34,11 @@ const signinController = async (req, res) => {
         id: existingUser._id,
       },
       process.env.SECRET_KEY,
-      // { expiresIn: user.authTime }
-      { expiresIn: "7884000s" }
+      { expiresIn: "30d" }
     );
-    return res.status(200).json({ existingUser, token, message : "Can Now Login" });
+    return res
+      .status(200)
+      .json({ existingUser, token, message: "Can Now Login" });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ message: "Something went wrong!" });
@@ -56,7 +57,7 @@ const magicLinkController = async (req, res) => {
       return res.status(400).json({ message: "Invalid field!" });
 
     const mobile = number.split("-")[1].trim();
-    const countryCode = "+"+ number.split("-")[0].trim();
+    const countryCode = "+" + number.split("-")[0].trim();
     const existingUser = await User.findOne({
       "createdBy.countryCode": countryCode,
       "createdBy.phone": mobile,
@@ -98,7 +99,6 @@ const magicLinkController = async (req, res) => {
   }
 };
 
-
 const signupController = async (req, res) => {
   try {
     let { name, createdFor, gender, phone } = req.body;
@@ -123,18 +123,18 @@ const signupController = async (req, res) => {
       partnerPreference: [],
       gender: gender,
       registrationPhase: "registering",
-      registrationPage: "1"
+      registrationPage: "1",
     });
 
     const savedUser = await newUser.save();
 
     const token = jwt.sign(
       {
-        number: savedUser.createdBy[0].phone,
-        id: savedUser._id,
+        number: existingUser.createdBy[0].phone,
+        id: existingUser._id,
       },
       process.env.SECRET_KEY,
-      { expiresIn: "7884000s" }
+      { expiresIn: "30d" }
     );
 
     res.status(201).json({ savedUser, token });
