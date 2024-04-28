@@ -247,7 +247,7 @@ exports.uploadcsv = async (req, res) => {
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         regiaterationPhase: row["notApproved"],
-        registerationPage: row[""],
+        registrationPage: row[""],
         annualIncomeType: row["Approximate Annual Income"],
         userId: "",
       });

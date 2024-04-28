@@ -132,16 +132,16 @@ const userSchema = mongoose.Schema(
       enum: [true, false],
       default : false
     },
-    regiaterationPhase: {
+    registrationPhase: {
       type: String,
-      enum: ["registering", "notApproved", "Approved"],
+      enum: ["registering", "notapproved", "approved"],
       default : "registering"
     },
     lastLogin : {
       type: Date,
       default : new Date().toISOString()
     },
-    registerationPage: {
+    registrationPage: {
       type: String,
       enum: ["", "1", "2", "3", "4", "5", "6"],
     },

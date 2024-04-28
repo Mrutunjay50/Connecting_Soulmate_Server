@@ -60,19 +60,20 @@ const magicLinkController = async (req, res) => {
       "createdBy.countryCode": countryCode,
       "createdBy.phone": mobile,
     });
+    console.log(existingUser);
 
     if (!existingUser) {
-      redirectURI = "http://localhost:5173/signup";
+      redirectURI = `http://localhost:5173/signup/${parseInt(number.split("-").join(""))}`;
       notFound = { notFound: "User doesn't exist!" };
     } else {
       if (existingUser.registrationPhase === "approved") {
-        redirectURI = "http://localhost:5173/login";
+        redirectURI = `http://localhost:5173/login/${parseInt(number.split("-").join(""))}`;
         message = "Already A User, Redirecting to login page...";
       } else if (existingUser.registrationPhase === "registering") {
         redirectURI = `http://localhost:5173/registration-form/${existingUser.registrationPage}`; // Change this to your registration form page
         message = "You are Currently in registration process Redirecting to registration form...";
       } else {
-        redirectURI = "http://localhost:5173/signup";
+        redirectURI = `http://localhost:5173/signup/${parseInt(number.split("-").join(""))}`;
         message = "You are New to our Website Please Signup, Redirecting to signup page...";
       }
     }
@@ -120,7 +121,7 @@ const signupController = async (req, res) => {
       selfDetails: [],
       partnerPreference: [],
       gender: gender,
-      registerationPhase: "registering"
+      registrationPhase: "registering"
     });
 
     const savedUser = await newUser.save();
