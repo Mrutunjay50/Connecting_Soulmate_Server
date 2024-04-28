@@ -145,6 +145,7 @@ const userSchema = mongoose.Schema(
     registrationPage: {
       type: String,
       enum: ["", "1", "2", "3", "4", "5", "6"],
+      default : ""
     },
     category: {
       type: String,
@@ -152,7 +153,7 @@ const userSchema = mongoose.Schema(
       default : ""
     },
     annualIncomeType: { type: String },
-    type : { type: String, required: false,enum :["users", "admin"], default : "users"}
+    type : { type: String, required: false, enum :["users", "admin"], default : "users"}
   },
   { timestamps: true }
 );

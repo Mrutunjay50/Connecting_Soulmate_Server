@@ -5,4 +5,6 @@ const notificationSchema = mongoose.Schema({
     notificationText: { type: String },
 });
 
-const ProfileRequests = mongoose.model("notifications", notificationSchema);
+const Notifications = mongoose.model("notifications", notificationSchema);
+
+module.exports = Notifications

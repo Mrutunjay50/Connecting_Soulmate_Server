@@ -52,17 +52,15 @@ exports.sendProfileRequest = async (req, res) => {
       res
     );
 
-    // // Emit notification to profileRequestBy
-    // io.getIO().to(profileRequestBy).emit("notification", {
-    //   message: `You have sent a profile request to ${profileRequestTo.username}`
-    // });
+    // Create and save notification for profile request sent
+    const notification = new Notification({
+      notificationTo: profileRequestTo,
+      notificationText: `You (${profileRequestBy}) have received a profile request from ${profileRequestBy}`,
+    });
+    await notification.save();
 
-    // // Emit notification to profileRequestTo
-    // io.getIO().to(profileRequestTo).emit("notification", {
-    //   message: `${profileRequestBy.username} has sent a request to you`
-    // });
-
-    // res.status(200).json({ message: "Profile request sent successfully" });
+    // Emit notification event
+    io.getIO().to(profileRequestTo).emit("notification", notification);
   } catch (error) {
     console.error("Error sending profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -80,17 +78,17 @@ exports.acceptProfileRequest = async (req, res) => {
       res
     );
 
-    // Emit notification to profileRequestBy
-    // io.getIO().to(profileRequestBy).emit("notification", {
-    //   message: `${profileRequestTo.username} has accepted your profile request`
-    // });
+    const request = await ProfileRequests.findById(requestId);
+    // Create and save notification for profile request sent
+    const notification = new Notification({
+      notificationTo: request.profileRequestTo,
+      notificationText: `${request.profileRequestTo} have accepted the profile request from ${request.profileRequestBy}`,
+    });
+    await notification.save();
 
-    // // Emit notification to profileRequestTo
-    // io.getIO().to(profileRequestTo).emit("notification", {
-    //   message: `You have accepted the profile request from ${profileRequestBy.username}`
-    // });
-
-    // res.status(200).json({ message: "Profile request accepted successfully" });
+    // Emit notification event
+    io.getIO().to(request.profileRequestBy).emit("notification", notification);
+    // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -108,23 +106,22 @@ exports.declineProfileRequest = async (req, res) => {
       res
     );
 
-    // Emit notification to profileRequestBy
-    // io.getIO().to(profileRequestBy).emit("notification", {
-    //   message: `${profileRequestTo.username} has declined your profile request`
-    // });
+    const request = await ProfileRequests.findById(requestId);
+    // Create and save notification for profile request sent
+    const notification = new Notification({
+      notificationTo: request.profileRequestTo,
+      notificationText: `${request.profileRequestTo} have declined the profile request from ${request.profileRequestBy}`,
+    });
+    await notification.save();
 
-    // // Emit notification to profileRequestTo
-    // io.getIO().to(profileRequestTo).emit("notification", {
-    //   message: `You have declined the profile request from ${profileRequestBy.username}`
-    // });
-
-    // res.status(200).json({ message: "Profile request declined successfully" });
+    // Emit notification event
+    io.getIO().to(request.profileRequestBy).emit("notification", notification);
+    // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 exports.getProfileRequestsAccepted = async (req, res) => {
   try {
@@ -166,6 +163,9 @@ exports.getProfileRequestsReceived = async (req, res) => {
   }
 };
 
+
+
+
 // Interest Request Section
 
 exports.sendInterestRequest = async (req, res) => {
@@ -179,7 +179,15 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-    // io.getIO().on("interestRequestSent");
+        // Create and save notification for profile request sent
+        const notification = new Notification({
+          notificationTo: interestRequestTo,
+          notificationText: `You (${interestRequestBy}) have received a profile request from ${interestRequestTo}`,
+        });
+        await notification.save();
+    
+        // Emit notification event
+        io.getIO().to(interestRequestTo).emit("notification", notification);
   } catch (error) {
     console.error("Error sending interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -196,7 +204,17 @@ exports.acceptInterestRequest = async (req, res) => {
       "accepted",
       res
     );
-    // io.getIO().on("interestRequestAccept");
+    const request = await InterestRequests.findById(requestId);
+    // Create and save notification for profile request sent
+    const notification = new Notification({
+      notificationTo: request.interestRequestTo,
+      notificationText: `${request.interestRequestTo} have accepted the profile request from ${request.interestRequestBy}`,
+    });
+    await notification.save();
+
+    // Emit notification event
+    io.getIO().to(request.interestRequestBy).emit("notification", notification);
+    // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -213,7 +231,17 @@ exports.declineInterestRequest = async (req, res) => {
       "declined",
       res
     );
-    // io.getIO().on("interestRequestDeclined");
+    const request = await InterestRequests.findById(requestId);
+    // Create and save notification for profile request sent
+    const notification = new Notification({
+      notificationTo: request.interestRequestTo,
+      notificationText: `${request.interestRequestTo} have declined the profile request from ${request.interestRequestBy}`,
+    });
+    await notification.save();
+
+    // Emit notification event
+    io.getIO().to(request.interestRequestBy).emit("notification", notification);
+    // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -276,7 +304,6 @@ async function sendRequest(Model, requestBy, requestTo, type, action, res) {
     await newRequest.save();
     res.status(201).json({ message: `${type} request sent successfully` });
   }
-  
 }
 
 async function updateRequestStatus(Model, requestId, type, status, res) {

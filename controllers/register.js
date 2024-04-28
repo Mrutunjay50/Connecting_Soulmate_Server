@@ -178,7 +178,6 @@ exports.registerUser = async (req, res) => {
         return res.status(400).json({ error: "Invalid page number" });
     }
     user.registrationPage = page;
-    console.log(user);
     // Save the updated user document
     await user.save();
 
