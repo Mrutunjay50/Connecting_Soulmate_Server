@@ -75,3 +75,39 @@ exports.getDataById = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+exports.getCountriesById = async (req, res) => {
+  const { country } = req.query;
+  try {
+    const countries = await Country.findOne({country_id: country});
+    res.status(200).json(countries);
+  } catch (error) {
+    console.error('Error fetching countries:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Fetch states by country
+exports.getStatesById = async (req, res) => {
+  const { state } = req.query;
+  try {
+    const states = await State.findOne({ state_id: state });
+    res.status(200).json(states);
+  } catch (error) {
+    console.error('Error fetching states:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Fetch cities by country and state
+exports.getCitiesById = async (req, res) => {
+  const { city } = req.query;
+  try {
+    const cities = await City.findOne({ city_id: city });
+    res.status(200).json(cities);
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
