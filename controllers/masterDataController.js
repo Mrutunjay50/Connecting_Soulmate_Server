@@ -117,6 +117,33 @@ const moment = require("moment");
 //   }
 // };
 
+function calculateAge(birthDateStr) {
+  // Parse the birth date string
+  const [datePart, timePart] = birthDateStr.split(" ");
+  const [month, day, year] = datePart.split("/");
+  
+  // Create a new Date object with the parsed components
+  const birthDate = new Date(`${year}-${month}-${day}T${timePart}`);
+
+  // Get today's date
+  const today = new Date();
+  
+  // Calculate the difference in years
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  // Check if the birthday hasn't occurred yet this year
+  const hasBirthdayPassed = 
+    today.getMonth() > birthDate.getMonth() || 
+    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+
+  // If the birthday hasn't occurred yet this year, subtract 1 from the age
+  if (!hasBirthdayPassed) {
+    age--;
+  }
+
+  return age;
+}
+
 exports.addProffesion = async (req, res) => {
   try {
     const { proffesion_id, proffesion_name } = req.body;
@@ -147,6 +174,18 @@ exports.uploadcsv = async (req, res) => {
       6: "myfriend",
       7: "myrelative",
     };
+    const manglik = {
+      1: "yes",
+      2: "no",
+      3: "partial",
+      4: "notsure",
+    };
+    const maritalstatus = {
+      1: "single",
+      2: "divorcee",
+      3: "awaitingdivorce",
+      4: "widoworwidower",
+    };
     // Parse CSV file into JSON format
     const response = await csv().fromFile(req.file.path);
 
@@ -160,8 +199,8 @@ exports.uploadcsv = async (req, res) => {
           placeOfBirthCity: parseInt(row["Place of Birth - City"]) || 0,
           dateOfBirth: row["Date of birth"]?.split(" ")[0],
           timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
-          age: parseInt(row["Age"]) || 0,
-          manglik: row["Manglik Status"],
+          age: calculateAge(row["Date of birth"]) || 0,
+          manglik: manglik[row["Manglik Status"]],
           horoscope: row[""],
           userId: "",
         },
@@ -176,20 +215,21 @@ exports.uploadcsv = async (req, res) => {
           currentlyLivingInCity: parseInt(row["Presently Settled in City"]) || 0,
           countryCode: row["Contact Details"],
           relocationInFuture: row["Open to Relocate in Future"],
-          diet: row["Diet Type"],
+          diet: parseInt(row["Diet Type"]) || 0,
           alcohol: row["Alcohol Consumption Preference"],
           smoking: row["Smoking Preference"],
-          maritalStatus: row["Martial Status"],
+          maritalStatus: maritalstatus[row["Martial Status"]],
         },
         careerDetails: {
           highestEducation: row["Education Completed"],
           highestQualification: row["Highest Qualification"],
           passingYear: row["Passing Year"],
           "school/university": row["School / University"],
-          profession: row["Profession"],
+          profession: parseInt(row["Profession"]) || 0,
           currentDesignation: row["Current Designation"],
           previousOccupation: row["Previous Occupation"],
-          annualIncomeValue: row["Approximate Annual Income value"],
+          annualIncomeValue: parseInt(row["Approximate Annual Income value"]?.split("-")[1]?.trim()) || 0,
+          currencyType: row["Approximate Annual Income"].split("(")[1]?.replace(")","") || "INR"
         },
         familyDetails: {
           fatherName: row["Father's Name (First Name, Middle Name, Last Name)"],
@@ -201,9 +241,9 @@ exports.uploadcsv = async (req, res) => {
           familyLocationCountry: parseInt(row["Family Settled - Country"]) || 0,
           familyLocationState: parseInt(row["Family Settled - State"]) || 0,
           familyLocationCity: parseInt(row["Family Settled - City"]) || 0,
-          religion: row["Religion"],
+          religion: parseInt(row["Religion"]) || 0,
           caste: row["Caste"],
-          community: row["Community"],
+          community: parseInt(row["Community"]) || 0,
           familyAnnualIncomeStart: parseInt(row["Family Annual Income Range"]?.split("-")[0]?.trim()) || 0,
           familyAnnualIncomeEnd: parseInt(row["Family Annual Income Range"]?.split("-")[1]?.trim()) || 0,
         },
@@ -213,8 +253,8 @@ exports.uploadcsv = async (req, res) => {
           fun: row["Fun"],
           fitness: row["Fitness"],
           other: row["Other Interests"],
-          profilePicture: row[""],
-          userPhotos: row[""],
+          profilePicture: row["Images"].split(",").join(".jpg,").split(",")[0] || "",
+          userPhotos: row["Images"].split(",").join(".jpg,").split(",") || [],
           userPhotosUrl: row[""],
           profilePictureUrl: row[""],
           aboutYourself: row["About Yourself"],
@@ -235,7 +275,7 @@ exports.uploadcsv = async (req, res) => {
           workingpreference: row["Working Preference"],
           annualIncomeRangeStart: parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
           annualIncomeRangeEnd: parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
-          dietType: row["Other Details - Diet"],
+          dietType: parseInt(row["Other Details - Diet"]) || 0,
         },
         // Populate createdBySchema fields
         createdBy: {
@@ -246,10 +286,11 @@ exports.uploadcsv = async (req, res) => {
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
-        regiaterationPhase: row["notApproved"],
+        regiaterationPhase: row["notapproved"],
         registrationPage: row[""],
-        annualIncomeType: row["Approximate Annual Income"],
+        annualIncomeType: row["Approximate Annual Income"].split("(")[1]?.replace(")","") || "INR",
         userId: "",
+        type : "users",
       });
 
       // Generate userId based on the data

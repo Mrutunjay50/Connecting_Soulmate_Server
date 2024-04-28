@@ -33,7 +33,7 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
     }
 
     education && orConditions.push({ "careerDetails.highestEducation": education });
-    workingpreference && orConditions.push({ "careerDetails.profession": workingpreference });
+    workingpreference && orConditions.push({ "careerDetails.profession": parseInt(workingpreference) || 1 });
     dietType && orConditions.push({ "additionalDetails.diet": dietType });
 
     // Combine OR conditions with $or operator
