@@ -25,7 +25,7 @@ const additionalDetailsSchema = mongoose.Schema({
   currentlyLivingInCity: { type: Number, required: false },
   countryCode: { type: String, default: "" },
   relocationInFuture: { type: String, default: "", required: false },
-  diet: { type: String, default: "", required: false },
+  diet: { type: Number, default: "", required: false },
   alcohol: { type: String, default: "", required: false },
   smoking: { type: String, default: "", required: false },
   maritalStatus: { type: String, default: "", required: false },
@@ -36,7 +36,7 @@ const careerDetailsSchema = mongoose.Schema({
   highestQualification: { type: String, default: "", required: false },
   "school/university": { type: String, default: "", required: false },
   passingYear: { type: String, default: "", required: false },
-  profession: { type: String, default: "", required: false },
+  profession: { type: Number, default: "", required: false },
   currentDesignation: { type: String, default: "", required: false },
   previousOccupation: { type: String, default: "", required: false },
   annualIncomeUSD : { type: String, default: "", required: false },
@@ -54,9 +54,9 @@ const familyDetailsSchema = mongoose.Schema({
   familyLocationCountry: { type: Number, required: false },
   familyLocationState: { type: Number, required: false },
   familyLocationCity: { type: Number, required: false },
-  religion: { type: String, default: "", required: false },
+  religion: { type: Number, default: "", required: false },
   caste: { type: String, default: "", required: false },
-  community: { type: String, default: "", required: false },
+  community: { type: Number, default: "", required: false },
   familyAnnualIncomeStart: { type: Number, required: false },
   familyAnnualIncomeEnd: { type: Number, required: false },
 });
@@ -85,10 +85,11 @@ const preferenceSchema = mongoose.Schema({
   state: { type: Number, default: 0, required: false },
   city: { type: Number, default: 0, required: false },
   education: { type: String, default: "", required: false },
+  profession: { type: Number, default: 0, required: false },
   workingpreference: { type: String, default: "", required: false },
   annualIncomeRangeStart: { type: Number, default: 0, required: false },
   annualIncomeRangeEnd: { type: Number, default: 0, required: false },
-  dietType: { type: String, default: "", required: false },
+  dietType: { type: Number, default: 0, required: false },
 });
 
 const createdBySchema = mongoose.Schema({

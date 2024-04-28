@@ -1,3 +1,6 @@
+const {
+  getUserAggregationPipeline,
+} = require("../helper/getUserAggregationPipeline");
 const User = require("../models/Users");
 const ExchangeRate = require("../models/exchangeRate");
 const {
@@ -8,8 +11,6 @@ const {
   deleteFromS3,
 } = require("../utils/s3Utils");
 const moment = require("moment");
-const mongoose = require("mongoose");
-const { ObjectId } = mongoose.Types;
 
 exports.registerUser = async (req, res) => {
   try {
@@ -188,8 +189,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-
-
 exports.getPageData = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -202,90 +201,36 @@ exports.getPageData = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    let pageData;
+    // Get the aggregation pipeline based on the page
+    const aggregationPipeline = getUserAggregationPipeline(userId, page);
 
-    switch (page) {
-      case "1":
-        pageData = await User.aggregate([
-          {
-            $match: { _id: new ObjectId(userId) },
-          },
-          {
-            $lookup: {
-              from: "cities", // name of the City collection
-              localField: "basicDetails.placeOfBirthCity",
-              foreignField: "city_id",
-              as: "city",
-            },
-          },
-          {
-            $lookup: {
-              from: "states", // name of the State collection
-              localField: "basicDetails.placeOfBirthState",
-              foreignField: "state_id",
-              as: "state",
-            },
-          },
-          {
-            $lookup: {
-              from: "countries", // name of the Country collection
-              localField: "basicDetails.placeOfBirthCountry",
-              foreignField: "country_id",
-              as: "country",
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              userId: 1,
-              basicDetails: {
-                $mergeObjects: [
-                  { $arrayElemAt: ["$basicDetails", 0] },
-                  {
-                    country: { $arrayElemAt: ["$country.country_name", 0] },
-                    state: { $arrayElemAt: ["$state.state_name", 0] },
-                    city: { $arrayElemAt: ["$city.city_name", 0] },
-                  },
-                ],
-              },
-            },
-          },
-        ]);
-        break;
-      case "2":
-        pageData = user.additionalDetails[0];
-        break;
-      case "3":
-        pageData = user.careerDetails[0];
-        break;
-      case "4":
-        pageData = user.familyDetails[0];
-        break;
-      case "5":
-        const signedUrlsPromises = user.selfDetails[0].userPhotos.map((item) =>
-          getSignedUrlFromS3(item)
-        );
-        try {
-          // Use Promise.all() to wait for all promises to resolve
-          const signedUrls = await Promise.all(signedUrlsPromises);
-          user.selfDetails[0].userPhotosUrl = signedUrls;
-        } catch (error) {
-          // Handle any errors that occurred during promise resolution
-          console.error("Error:", error);
-        }
-        user.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(
-          user.selfDetails[0].profilePicture
-        );
-        pageData = user.selfDetails[0];
-        break;
-      case "6":
-        pageData = user.partnerPreference[0];
-        break;
-      default:
-        return res.status(400).json({ error: "Invalid page number" });
+    if (!aggregationPipeline) {
+      return res.status(400).json({ error: "Invalid page number" });
     }
 
-    res.status(200).json({ message: "Data fetched successfully", pageData });
+    let pageData = await User.aggregate(aggregationPipeline);
+
+    // Add image URL setup for page 5
+    if (page === "5" && pageData.length > 0) {
+      const signedUrlsPromises = pageData[0].selfDetails.userPhotos.map(
+        (item) => getSignedUrlFromS3(item)
+      );
+      try {
+        // Use Promise.all() to wait for all promises to resolve
+        const signedUrls = await Promise.all(signedUrlsPromises);
+        pageData[0].selfDetails.userPhotosUrl = signedUrls;
+      } catch (error) {
+        // Handle any errors that occurred during promise resolution
+        console.error("Error:", error);
+      }
+      pageData[0].selfDetails.profilePictureUrl = await getSignedUrlFromS3(
+        pageData[0].selfDetails.profilePicture
+      );
+    }
+
+    res
+      .status(200)
+      .json({ message: "Data fetched successfully", pageData: pageData[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
