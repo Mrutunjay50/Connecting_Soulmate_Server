@@ -47,6 +47,7 @@ exports.registerUser = async (req, res) => {
           gender: user.createdBy[0].gender,
           age: age.toString(),
         };
+        user.registerationPhase = "registering";
 
         // Generate userId and save the updated user document
         const genderPrefix = user.basicDetails[0].gender;
@@ -175,7 +176,7 @@ exports.registerUser = async (req, res) => {
       default:
         return res.status(400).json({ error: "Invalid page number" });
     }
-
+    user.registerationPage = page;
     console.log(user);
     // Save the updated user document
     await user.save();

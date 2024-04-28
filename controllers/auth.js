@@ -48,6 +48,9 @@ const magicLinkController = async (req, res) => {
     const { number, email } = req.body;
 
     let redirectURI;
+    let message;
+    let notFound;
+
     if (!number.trim())
       return res.status(400).json({ message: "Invalid field!" });
 
@@ -56,16 +59,24 @@ const magicLinkController = async (req, res) => {
     const existingUser = await User.findOne({
       "createdBy.countryCode": countryCode,
       "createdBy.phone": mobile,
-      // "regiaterationPhase": "Approved",
-      // "isDeleted": false,
     });
 
     if (!existingUser) {
       redirectURI = "http://localhost:5173/signup";
-      return res.status(404).json({ message: "User doesn't exist!" });
+      notFound = { notFound: "User doesn't exist!" };
     } else {
-      redirectURI = "http://localhost:5173/login";
+      if (existingUser.registrationPhase === "approved") {
+        redirectURI = "http://localhost:5173/login";
+        message = "Already A User, Redirecting to login page...";
+      } else if (existingUser.registrationPhase === "registering") {
+        redirectURI = `http://localhost:5173/registration-form/${existingUser.registrationPage}`; // Change this to your registration form page
+        message = "You are Currently in registration process Redirecting to registration form...";
+      } else {
+        redirectURI = "http://localhost:5173/signup";
+        message = "You are New to our Website Please Signup, Redirecting to signup page...";
+      }
     }
+
     const magicLinkTokens = await UserDetail.magicLink(
       parseInt(number.split("-").join("")),
       email,
@@ -75,13 +86,16 @@ const magicLinkController = async (req, res) => {
       client_secret,
       channel
     );
+
     if (magicLinkTokens) {
-      res.send("Link has been send to whatsapp");
+      res.status(200).json({ message, notFound });
     }
   } catch (err) {
     console.error("Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const signupController = async (req, res) => {
   try {
@@ -106,90 +120,17 @@ const signupController = async (req, res) => {
       selfDetails: [],
       partnerPreference: [],
       gender: gender,
+      registerationPhase: "registering"
     });
 
     const savedUser = await newUser.save();
 
-    const magicLink = await magicLinkController(phone, null, null); // Pass appropriate email and redirectURI if needed
-
-    console.log(savedUser);
-
-    res.status(201).json({ savedUser, magicLink });
+    res.status(201).json({ savedUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// const signinController = async (req, res) => {
-//   const { number } = req.body;
-//   if (!number.trim())
-//     return res.status(400).json({ message: "Invalid field!" });
-//   try {
-//     const num = number.split("-")[1].trim();
-//     const countryCode = number.split("-")[0].trim();
-//     const existingUser = await User.findOne({
-//       "createdBy.countryCode": countryCode,
-//       "createdBy.phone": num,
-//     });
-
-//     if (!existingUser)
-//       return res.status(404).json({ message: "User doesn't exist!" });
-
-//     const token = jwt.sign(
-//       {
-//         number: existingUser.createdBy[0].phone,
-//         id: existingUser._id,
-//       },
-//       process.env.SECRET_KEY,
-//       { expiresIn: "48h" }
-//     );
-
-//     res.status(200).json({ existingUser, token });
-//   } catch (err) {
-//     console.error("Error:", err);
-//     res.status(500).json({ message: "Something went wrong!" });
-//   }
-// };
-
-// const signupController = async (req, res) => {
-//   try {
-//     let { name, createdFor, gender, phone } = req.body;
-//     phone = phone?.trim();
-//     const mapFrontendToEnum = {
-//       1: "myself",
-//       2: "myson",
-//       3: "mydaughter",
-//       4: "myrelative",
-//       5: "myfriend",
-//     };
-
-//     createdFor = mapFrontendToEnum[createdFor] || null;
-
-//     // Create a new user instance
-//     const newUser = new User({
-//       createdBy: [{ name, createdFor, gender, phone }],
-//       basicDetails: [],
-//       additionalDetails: [],
-//       carrierDetails: [],
-//       familyDetails: [],
-//       selfDetails: [],
-//       partnerPreference: [],
-//       gender: gender,
-//     });
-
-//     // Save the user to the database
-//     const savedUser = await newUser.save();
-
-//     console.log(savedUser);
-
-//     res.status(201).json(savedUser);
-//     // res.status(201).json(newUser);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
 
 const getUser = async (req, res, next) => {
   try {
