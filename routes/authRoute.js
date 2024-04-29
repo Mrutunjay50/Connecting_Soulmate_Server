@@ -9,7 +9,7 @@ const express = require("express");
 const router = express.Router();
 const validateSignupInput = [
   body("email")
-    .if((value, { req }) => !req.body.googleAccessToken) // Skip validation for Google signup
+    .if((value, { req }) => !req.body.googleAccessToken)
     .isEmail()
     .withMessage("Invalid email address")
     .bail(),

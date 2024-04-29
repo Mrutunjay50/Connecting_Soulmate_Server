@@ -1,5 +1,6 @@
 const User = require("../models/Users");
 const {ListData} = require('../helper/cardListedData');
+const { getSignedUrlFromS3 } = require('../utils/s3Utils');
 
 exports.getMatchesAccordingToPreference = async (req, res) => {
   try {
@@ -43,6 +44,10 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
 
     // Selectively project only required fields
     const filteredUsers = await User.find({ $and: filterConditions }).select(ListData);
+    for (const user of filteredUsers) {
+      const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0] || "");
+      user.selfDetails[0].profilePictureUrl = profileUrl || "";
+    }
     res.status(200).json({ success: true, data: filteredUsers });
   } catch (error) {
     console.error(error);
@@ -77,9 +82,11 @@ exports.getNewlyJoinedProfiles = async (req, res) => {
       // .skip(skip)
       // .limit(limit);
 
-    // console.log("Found users:", users);
-    console.log(users.length);
-    res.status(200).json({ users });
+      for (const user of users) {
+        const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0]);
+        user.selfDetails[0].profilePictureUrl = profileUrl;
+      }
+      res.status(200).json({ users });
   } catch (error) {
     console.error("Error retrieving newly joined users:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -92,6 +99,10 @@ exports.getAllUsers = async (req, res) => {
     const { gender } = req.params;
     const queryGender = gender === "F" ? "M" : "F";
     const users = await User.find({ gender: queryGender }).select(ListData);
+    for (const user of users) {
+      const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0]);
+      user.selfDetails[0].profilePictureUrl = profileUrl;
+    }
     res.status(200).json({ users });
   } catch (error) {
     console.error("Error retrieving users:", error);
@@ -103,12 +114,13 @@ exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.userId;
     const user = await User.findById(userId);
-
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
+if (user) {
+  const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0]);
+  user.selfDetails[0].profilePictureUrl = profileUrl;
+  res.status(200).json(user);
+} else {
+  res.status(404).json({ message: "User not found" });
+}
   } catch (error) {
     console.error("Error retrieving user:", error);
     res.status(500).json({ error: "Internal server error" });

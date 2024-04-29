@@ -68,7 +68,6 @@ exports.getDataById = async (req, res) => {
           default:
               throw new Error(`Invalid type: ${type}`);
       }
-      
       res.status(200).json(data);
   } catch (error) {
       console.error('Error fetching data:', error);
