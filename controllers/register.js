@@ -3,6 +3,7 @@ const {
 } = require("../helper/getUserAggregationPipeline");
 const User = require("../models/Users");
 const ExchangeRate = require("../models/exchangeRate");
+const { Proffesion } = require("../models/masterSchemas");
 const {
   resizeImage,
   uploadToS3,
@@ -121,7 +122,7 @@ exports.registerUser = async (req, res) => {
             const { buffer, originalname, mimetype } = userPhotos[i];
 
             // Resize images if needed
-            const resizedImageBuffer = await resizeImage(buffer);
+            const resizedImageBuffer = await buffer;
             const fileName = generateFileName(originalname);
 
             // Upload resized images to S3
@@ -162,16 +163,16 @@ exports.registerUser = async (req, res) => {
         break;
 
       case "6":
-        const { ageRange, heightrange, annualIncomeRange } =
+        var { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeValue, annualIncomeRange } =
           req.body.partnerPreference;
         user.partnerPreference[0] = {
           ...req.body.partnerPreference,
-          ageRangeStart: ageRange.start,
-          ageRangeEnd: ageRange.end,
-          heightRangeStart: heightrange.start,
-          heightRangeEnd: heightrange.end,
-          annualIncomeRangeStart: annualIncomeRange.start,
-          annualIncomeRangeEnd: annualIncomeRange.end,
+          ageRangeStart: ageRangeStart,
+          ageRangeEnd: ageRangeEnd,
+          heightRangeStart: heightRangeStart,
+          heightRangeEnd: heightRangeEnd,
+          annualIncomeRangeStart: annualIncomeValue,
+          annualIncomeRangeEnd: "",
         };
         break;
       default:
@@ -184,7 +185,7 @@ exports.registerUser = async (req, res) => {
     res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
@@ -232,6 +233,52 @@ exports.getPageData = async (req, res) => {
       .json({ message: "Data fetched successfully", pageData: pageData[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+exports.createProfession = async (req, res) => {
+  try {
+    const { professionName } = req.body;
+    const count = await Proffesion.countDocuments();
+
+    const professionId = count + 1;
+
+    const profession = new Proffesion({
+      profession_name: professionName,
+      profession_id: parseInt(professionId)
+    });
+
+    await profession.save();
+
+    res.status(201).json({ message: "Profession created successfully", profession });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+
+exports.changeUserDetailsText = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { type, text } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if(type === "about-yourself"){
+      user.selfDetails[0].aboutYourself = text;
+    }else if(type === "personal-appearance"){
+      user.additionalDetails[0].personalAppearance = text;
+    }
+    await user.save();
+    res.status(200).json({ message: `${type} updated successfully`, user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
   }
 };

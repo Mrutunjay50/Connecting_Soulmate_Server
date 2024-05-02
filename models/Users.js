@@ -59,6 +59,10 @@ const familyDetailsSchema = mongoose.Schema({
   community: { type: Number, default: "", required: false },
   familyAnnualIncomeStart: { type: Number, required: false },
   familyAnnualIncomeEnd: { type: Number, required: false },
+  users: [{
+    gender: { type: String, required: false, default : "" },
+    option: { type: String, required: false, default : "" }
+  }],
 });
 
 const selfDescriptionSchema = mongoose.Schema({
