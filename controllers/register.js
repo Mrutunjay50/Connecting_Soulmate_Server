@@ -3,7 +3,7 @@ const {
 } = require("../helper/getUserAggregationPipeline");
 const User = require("../models/Users");
 const ExchangeRate = require("../models/exchangeRate");
-const { Proffesion } = require("../models/masterSchemas");
+const { Proffesion, FunActivity, Interest, Other, Fitness } = require("../models/masterSchemas");
 const {
   resizeImage,
   uploadToS3,
@@ -70,7 +70,7 @@ exports.registerUser = async (req, res) => {
         user.additionalDetails[0] = { ...req.body.additionalDetails };
         break;
       case "3":
-        const { annualIncomeValue, currencyType } = req.body.careerDetails;
+        var { annualIncomeValue, currencyType } = req.body.careerDetails;
         // Fetch exchange rates from the database
         const exchangeRate = await ExchangeRate.findOne({
           currency: currencyType,
@@ -81,13 +81,12 @@ exports.registerUser = async (req, res) => {
         user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
         break;
       case "4":
-        const { familyAnnualIncome, country, state, city } =
+        var { annualIncomeValue, country, state, city } =
           req.body.familyDetails;
 
         user.familyDetails[0] = {
           ...req.body.familyDetails,
-          familyAnnualIncomeStart: familyAnnualIncome.start,
-          familyAnnualIncomeEnd: familyAnnualIncome.end,
+          familyAnnualIncomeStart: annualIncomeValue,
           familyLocationCountry: country,
           familyLocationState: state,
           familyLocationCity: city,
@@ -163,8 +162,14 @@ exports.registerUser = async (req, res) => {
         break;
 
       case "6":
-        var { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd, annualIncomeValue, annualIncomeRange } =
-          req.body.partnerPreference;
+        var {
+          ageRangeStart,
+          ageRangeEnd,
+          heightRangeStart,
+          heightRangeEnd,
+          annualIncomeValue,
+          annualIncomeRange,
+        } = req.body.partnerPreference;
         user.partnerPreference[0] = {
           ...req.body.partnerPreference,
           ageRangeStart: ageRangeStart,
@@ -210,22 +215,39 @@ exports.getPageData = async (req, res) => {
 
     let pageData = await User.aggregate(aggregationPipeline);
 
+    const selfData = pageData[0].selfDetails;
+
     // Add image URL setup for page 5
     if (page === "5" && pageData.length > 0) {
-      const signedUrlsPromises = pageData[0].selfDetails.userPhotos.map(
+      const signedUrlsPromises = selfData.userPhotos.map(
         (item) => getSignedUrlFromS3(item)
       );
       try {
         // Use Promise.all() to wait for all promises to resolve
         const signedUrls = await Promise.all(signedUrlsPromises);
-        pageData[0].selfDetails.userPhotosUrl = signedUrls;
+        selfData.userPhotosUrl = signedUrls;
       } catch (error) {
         // Handle any errors that occurred during promise resolution
         console.error("Error:", error);
       }
-      pageData[0].selfDetails.profilePictureUrl = await getSignedUrlFromS3(
-        pageData[0].selfDetails.profilePicture
+      selfData.profilePictureUrl = await getSignedUrlFromS3(
+        selfData.profilePicture
       );
+      // Assuming interests and funActivities are arrays of strings
+      const interests = selfData.interests.split(",").map((interest) => parseInt(interest.trim()));
+      const funActivities = selfData.fun.split(",").map((activity) => parseInt(activity.trim()));
+      const others = selfData.other.split(",").map((other) => parseInt(other.trim()));
+      const fitnesses = selfData.fitness.split(",").map((fitness) => parseInt(fitness.trim()));
+      
+      const interest = await Interest.find({ intrest_id: { $in: interests } });
+      const funActivity = await FunActivity.find({ funActivity_id: { $in: funActivities } });
+      const fitness = await Fitness.find({ fitness_id: { $in: fitnesses } });
+      const other = await Other.find({ other_id: { $in: others } });
+
+      selfData.interestsTypes = interest?.map((item) => item.intrest_name)?.join(", ");
+      selfData.funActivitiesTypes = funActivity?.map((item) => item.funActivity_name)?.join(", ");
+      selfData.fitnessTypes =  fitness?.map((item) => item.fitness_name)?.join(", ");
+      selfData.otherTypes = other?.map((item) => item.other_name)?.join(", ");
     }
 
     res
@@ -246,18 +268,19 @@ exports.createProfession = async (req, res) => {
 
     const profession = new Proffesion({
       profession_name: professionName,
-      profession_id: parseInt(professionId)
+      profession_id: parseInt(professionId),
     });
 
     await profession.save();
 
-    res.status(201).json({ message: "Profession created successfully", profession });
+    res
+      .status(201)
+      .json({ message: "Profession created successfully", profession });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
-
 
 exports.changeUserDetailsText = async (req, res) => {
   try {
@@ -270,9 +293,9 @@ exports.changeUserDetailsText = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if(type === "about-yourself"){
+    if (type === "about-yourself") {
       user.selfDetails[0].aboutYourself = text;
-    }else if(type === "personal-appearance"){
+    } else if (type === "personal-appearance") {
       user.additionalDetails[0].personalAppearance = text;
     }
     await user.save();
