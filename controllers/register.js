@@ -103,18 +103,31 @@ exports.registerUser = async (req, res) => {
         const { aboutYourself, interests, fun, fitness, other } = JSON.parse(
           req.body.selfDetails
         );
+        let excessCount;
 
-        if (
-          user.selfDetails.length > 0 &&
-          userPhotos &&
-          userPhotos.length > 0
-        ) {
-          // If 'selfDetails' and 'userPhotos' exist, delete existing images from S3
-          const existingPhotos = user.selfDetails[0].userPhotos;
-          if (existingPhotos && existingPhotos.length > 0) {
+        // If new photos are coming and the total number of photos exceeds 5,
+        // remove the excess photos
+        if (userPhotos && userPhotos.length > 0) {
+          const totalPhotosCount =
+            user.selfDetails.length > 0
+              ? user.selfDetails[0].userPhotos.length + userPhotos.length
+              : userPhotos.length;
+
+          if (totalPhotosCount > 5) {
+            excessCount = totalPhotosCount - 5;
+            user.selfDetails[0].userPhotos.splice(0, excessCount);
+          }
+        }
+
+        // Delete existing images if new photos are uploaded
+        if (userPhotos && userPhotos.length > 0) {
+          const existingPhotos = user.selfDetails.length > 0 ? user.selfDetails[0].userPhotos : [];
+          // Only remove the excess photos if there are existing photos
+          if (existingPhotos.length > 0) {
             try {
-              // Delete existing images from S3
-              await Promise.all(existingPhotos.map(deleteFromS3));
+              // Remove the excess photos from the beginning of the array
+              const excessPhotos = existingPhotos.splice(0, excessCount);
+              await Promise.all(excessPhotos.map(deleteFromS3));
             } catch (error) {
               console.error("Error deleting existing images:", error);
             }
@@ -123,8 +136,8 @@ exports.registerUser = async (req, res) => {
 
         // Upload new user photos to S3
         if (userPhotos && userPhotos.length > 0) {
-          for (var i = 0; i < userPhotos.length; i++) {
-            const { buffer, originalname, mimetype } = userPhotos[i];
+          for (const photo of userPhotos) {
+            const { buffer, originalname, mimetype } = photo;
 
             // Resize images if needed
             const resizedImageBuffer = await buffer;
@@ -133,28 +146,20 @@ exports.registerUser = async (req, res) => {
             // Upload resized images to S3
             try {
               await uploadToS3(resizedImageBuffer, fileName, mimetype);
-              // Update userPhotos array with the generated file name
-              userPhotos[i].originalname = fileName;
+              // Add the new photo to the user's photos
+              user.selfDetails[0].userPhotos.push({ originalname: fileName });
             } catch (error) {
               console.error("Error uploading image to S3:", error);
             }
           }
         }
 
-        const newSelfDetails = {
-          userPhotos: userPhotos
-            ? userPhotos.map((photo) => photo.originalname)
-            : [],
-          profilePicture:
-            userPhotos && userPhotos.length > 0
-              ? userPhotos[0].originalname
-              : null,
-          aboutYourself: aboutYourself,
-          interests: interests,
-          fun: fun,
-          fitness: fitness,
-          other: other,
-        };
+        // Update other self details
+        user.selfDetails[0].aboutYourself = aboutYourself;
+        user.selfDetails[0].interests = interests;
+        user.selfDetails[0].fun = fun;
+        user.selfDetails[0].fitness = fitness;
+        user.selfDetails[0].other = other;
 
         if (user.selfDetails.length > 0) {
           // If 'selfDetails' already exist, update it with new details

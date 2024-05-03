@@ -154,7 +154,7 @@ const getUser = async (req, res, next) => {
       console.log(error);
     }
     const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture)
-    user.selfDetails[0]?.profilePictureUrl = profileUrl;
+    user.selfDetails[0].profilePictureUrl = profileUrl;
     res.status(200).json({ user });
   } catch (err) {
     console.log(err);
