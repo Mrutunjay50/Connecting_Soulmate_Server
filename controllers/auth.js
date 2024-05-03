@@ -5,6 +5,7 @@ dotenv.config();
 
 const User = require("../models/Users");
 const { UserDetail } = require("otpless-node-js-auth-sdk");
+const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
@@ -152,6 +153,8 @@ const getUser = async (req, res, next) => {
       error.statusCode = 404;
       console.log(error);
     }
+    const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture)
+    user.selfDetails[0]?.profilePictureUrl = profileUrl;
     res.status(200).json({ user });
   } catch (err) {
     console.log(err);

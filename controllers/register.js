@@ -3,7 +3,13 @@ const {
 } = require("../helper/getUserAggregationPipeline");
 const User = require("../models/Users");
 const ExchangeRate = require("../models/exchangeRate");
-const { Proffesion, FunActivity, Interest, Other, Fitness } = require("../models/masterSchemas");
+const {
+  Proffesion,
+  FunActivity,
+  Interest,
+  Other,
+  Fitness,
+} = require("../models/masterSchemas");
 const {
   resizeImage,
   uploadToS3,
@@ -194,6 +200,23 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+exports.deleteImagesInUser = async (req, res) => {
+  try {
+    const { imageKey } = req.body;
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404).json({ message: "user not found" });
+    }
+    user.selfDetails[0].userPhotos.filter((item) => item !== imageKey);
+    await user.save();
+    await deleteFromS3(imageKey);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
 exports.getPageData = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -219,8 +242,8 @@ exports.getPageData = async (req, res) => {
 
     // Add image URL setup for page 5
     if (page === "5" && pageData.length > 0) {
-      const signedUrlsPromises = selfData.userPhotos.map(
-        (item) => getSignedUrlFromS3(item)
+      const signedUrlsPromises = selfData.userPhotos.map((item) =>
+        getSignedUrlFromS3(item)
       );
       try {
         // Use Promise.all() to wait for all promises to resolve
@@ -234,19 +257,36 @@ exports.getPageData = async (req, res) => {
         selfData.profilePicture
       );
       // Assuming interests and funActivities are arrays of strings
-      const interests = selfData.interests.split(",").map((interest) => parseInt(interest.trim()));
-      const funActivities = selfData.fun.split(",").map((activity) => parseInt(activity.trim()));
-      const others = selfData.other.split(",").map((other) => parseInt(other.trim()));
-      const fitnesses = selfData.fitness.split(",").map((fitness) => parseInt(fitness.trim()));
-      
+      // sending already populated data
+      const interests = selfData.interests
+        .split(",")
+        .map((interest) => parseInt(interest.trim()));
+      const funActivities = selfData.fun
+        .split(",")
+        .map((activity) => parseInt(activity.trim()));
+      const others = selfData.other
+        .split(",")
+        .map((other) => parseInt(other.trim()));
+      const fitnesses = selfData.fitness
+        .split(",")
+        .map((fitness) => parseInt(fitness.trim()));
+      //finding if the any of the strings present in the documents
       const interest = await Interest.find({ intrest_id: { $in: interests } });
-      const funActivity = await FunActivity.find({ funActivity_id: { $in: funActivities } });
+      const funActivity = await FunActivity.find({
+        funActivity_id: { $in: funActivities },
+      });
       const fitness = await Fitness.find({ fitness_id: { $in: fitnesses } });
       const other = await Other.find({ other_id: { $in: others } });
 
-      selfData.interestsTypes = interest?.map((item) => item.intrest_name)?.join(", ");
-      selfData.funActivitiesTypes = funActivity?.map((item) => item.funActivity_name)?.join(", ");
-      selfData.fitnessTypes =  fitness?.map((item) => item.fitness_name)?.join(", ");
+      selfData.interestsTypes = interest
+        ?.map((item) => item.intrest_name)
+        ?.join(", ");
+      selfData.funActivitiesTypes = funActivity
+        ?.map((item) => item.funActivity_name)
+        ?.join(", ");
+      selfData.fitnessTypes = fitness
+        ?.map((item) => item.fitness_name)
+        ?.join(", ");
       selfData.otherTypes = other?.map((item) => item.other_name)?.join(", ");
     }
 
