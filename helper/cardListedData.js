@@ -2,6 +2,7 @@ exports.ListData = {
   "basicDetails.name": 1,
   "basicDetails.userId": 1,
   "basicDetails.dateOfBirth": 1,
+  "basicDetails.timeOfBirth": 1,
   "additionalDetails.currentlyLivingInCountry": 1,
   "additionalDetails.currentlyLivingInState": 1,
   "additionalDetails.currentlyLivingInCity": 1,

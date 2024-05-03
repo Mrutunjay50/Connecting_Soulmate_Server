@@ -19,6 +19,12 @@ const {
 } = require("../utils/s3Utils");
 const moment = require("moment");
 
+function generateUniqueNumber() {
+  const randomNumber = Math.floor(Math.random() * 100);
+  const uniqueNumber = `${randomNumber}`;
+  return uniqueNumber;
+}
+
 exports.registerUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -58,17 +64,14 @@ exports.registerUser = async (req, res) => {
         user.registrationPhase = "registering";
 
         // Generate userId and save the updated user document
-        const genderPrefix = user.basicDetails[0].gender;
-        const namePrefix = user.basicDetails[0].name.slice(0, 3).toUpperCase();
+        const genderPrefix = generateUniqueNumber();
+        const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();
         const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
         const dobFormatted = dob.format("YYYYMMDD");
-        const timeOfBirth = user.basicDetails[0].timeOfBirth.replace(":", "");
         const loginTime = moment().format("HHmmss");
 
         user.basicDetails[0].userId =
-          `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth
-            .split(" ")
-            .join("")}${loginTime}`
+          `CS${namePrefix}${genderPrefix}${dobFormatted}${loginTime}`
             ?.toUpperCase()
             .replaceAll(" ", "");
         break;
@@ -178,8 +181,8 @@ exports.registerUser = async (req, res) => {
           ageRangeEnd,
           heightRangeStart,
           heightRangeEnd,
-          annualIncomeValue,
-          annualIncomeRange,
+          annualIncomeRangeStart,
+          annualIncomeRangeEnd,
         } = req.body.partnerPreference;
         user.partnerPreference[0] = {
           ...req.body.partnerPreference,
@@ -187,8 +190,8 @@ exports.registerUser = async (req, res) => {
           ageRangeEnd: ageRangeEnd,
           heightRangeStart: heightRangeStart,
           heightRangeEnd: heightRangeEnd,
-          annualIncomeRangeStart: annualIncomeValue,
-          annualIncomeRangeEnd: "",
+          annualIncomeRangeStart: annualIncomeRangeStart,
+          annualIncomeRangeEnd: annualIncomeRangeEnd,
         };
         break;
       default:

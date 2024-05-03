@@ -24,6 +24,9 @@ exports.searchById = async (req, res) => {
 exports.advanceSearch = async (req, res) => {
   try {
     const searchParams = req.body;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const { gender } = req.params;
     const queryGender = gender === "F" ? "M" : "F";
 
@@ -78,11 +81,11 @@ exports.advanceSearch = async (req, res) => {
       }
     }
 
-    console.log(query);
-
     // Execute the query
-    const users = await User.find(query).select(ListData);
-
+    const users = await User.find(query)
+    .skip(skip)
+    .limit(limit)
+    .select(ListData);
     return res.status(200).json({users});
   } catch (error) {
     console.error("Error searching users:", error);

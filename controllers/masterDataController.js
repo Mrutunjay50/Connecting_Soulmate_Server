@@ -16,6 +16,12 @@ const csv = require("csvtojson");
 const User = require("../models/Users");
 const moment = require("moment");
 
+function generateUniqueNumber() {
+  const randomNumber = Math.floor(Math.random() * 100);
+  const uniqueNumber = `${randomNumber}`;
+  return uniqueNumber;
+}
+
 // exports.masterDataCSV = async (req, res) => {
 //   let masterData = [];
 //   try {
@@ -294,21 +300,20 @@ exports.uploadcsv = async (req, res) => {
       });
 
       // Generate userId based on the data
-      const genderPrefix = newUser.basicDetails[0].gender;
-      const namePrefix = newUser.basicDetails[0].name.slice(0, 3).toUpperCase();
+      const genderPrefix = generateUniqueNumber();
+      const namePrefix = newUser.basicDetails[0].name.slice(0, 2).toUpperCase();
       const dob = moment(newUser.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
       const dobFormatted = dob.format("YYYYMMDD");
-      const timeOfBirth = newUser.basicDetails[0].timeOfBirth.replace(":", "");
       const loginTime = moment().format("HHmmss");
 
       newUser.basicDetails[0].userId =
-        `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`
-          .toUpperCase()
-          .replaceAll(" ", "");
+      `CS${namePrefix}${genderPrefix}${dobFormatted}${loginTime}`
+        ?.toUpperCase()
+        .replaceAll(" ", "");
       newUser.userId =
-        `${genderPrefix}${namePrefix}${dobFormatted}${timeOfBirth}${loginTime}`
-          .toUpperCase()
-          .replaceAll(" ", "");
+      `CS${namePrefix}${genderPrefix}${dobFormatted}${loginTime}`
+        ?.toUpperCase()
+        .replaceAll(" ", "");
 
       await newUser.save();
     }

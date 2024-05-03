@@ -90,10 +90,9 @@ const preferenceSchema = mongoose.Schema({
   city: { type: Number, default: 0, required: false },
   education: { type: String, default: "", required: false },
   profession: { type: Number, default: 0, required: false },
-  workingpreference: { type: String, default: "", required: false },
   annualIncomeRangeStart: { type: Number, default: 0, required: false },
   annualIncomeRangeEnd: { type: Number, default: 0, required: false },
-  dietType: { type: Number, default: 0, required: false },
+  dietType: { type: String, default: 0, required: false },
 });
 
 const createdBySchema = mongoose.Schema({
