@@ -9,6 +9,8 @@ const {
   Interest,
   Other,
   Fitness,
+  Education,
+  Diet,
 } = require("../models/masterSchemas");
 const {
   resizeImage,
@@ -106,75 +108,53 @@ exports.registerUser = async (req, res) => {
         const { aboutYourself, interests, fun, fitness, other } = JSON.parse(
           req.body.selfDetails
         );
-        let excessCount;
-
-        // If new photos are coming and the total number of photos exceeds 5,
-        // remove the excess photos
-        if (userPhotos && userPhotos.length > 0) {
-          const totalPhotosCount =
-            user.selfDetails.length > 0
-              ? user.selfDetails[0].userPhotos.length + userPhotos.length
-              : userPhotos.length;
-
-          if (totalPhotosCount > 5) {
-            excessCount = totalPhotosCount - 5;
-            user.selfDetails[0].userPhotos.splice(0, excessCount);
-          }
+        
+        // Check if user.selfDetails exists, if not, create a new object
+        if (!user.selfDetails || !user.selfDetails[0]) {
+          user.selfDetails = [{}];
         }
-
-        // Delete existing images if new photos are uploaded
+        
+        // Update self details
+        const selfDetails = user.selfDetails[0];
+        selfDetails.aboutYourself = aboutYourself;
+        selfDetails.interests = interests;
+        selfDetails.fun = fun;
+        selfDetails.fitness = fitness;
+        selfDetails.other = other;
+        
+        // If new photos are uploaded, process them
         if (userPhotos && userPhotos.length > 0) {
-          const existingPhotos = user.selfDetails.length > 0 ? user.selfDetails[0].userPhotos : [];
-          // Only remove the excess photos if there are existing photos
-          if (existingPhotos.length > 0) {
-            try {
-              // Remove the excess photos from the beginning of the array
-              const excessPhotos = existingPhotos.splice(0, excessCount);
-              await Promise.all(excessPhotos.map(deleteFromS3));
-            } catch (error) {
-              console.error("Error deleting existing images:", error);
-            }
+          // Remove excess photos if total count exceeds 5
+          if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
+            const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+            selfDetails.userPhotos.splice(0, excessCount);
           }
-        }
-
-        // Upload new user photos to S3
-        if (userPhotos && userPhotos.length > 0) {
-          for (const photo of userPhotos) {
-            const { buffer, originalname, mimetype } = photo;
-
-            // Resize images if needed
-            const resizedImageBuffer = await buffer;
-            const fileName = generateFileName(originalname);
-
-            // Upload resized images to S3
-            try {
+        
+          // Upload new photos to S3 and add their file names to userPhotos array
+          try {
+            const uploadedPhotos = await Promise.all(userPhotos.map(async (photo) => {
+              const { buffer, originalname, mimetype } = photo;
+              const resizedImageBuffer = await buffer;
+              const fileName = generateFileName(originalname);
               await uploadToS3(resizedImageBuffer, fileName, mimetype);
-              // Add the new photo to the user's photos
-              user.selfDetails[0].userPhotos.push({ originalname: fileName });
-            } catch (error) {
-              console.error("Error uploading image to S3:", error);
-            }
+              return fileName;
+            }));
+            // Add uploaded photos to userPhotos array
+            selfDetails.userPhotos.push(...uploadedPhotos);
+          } catch (error) {
+            console.error("Error uploading images to S3:", error);
           }
         }
-
-        // Update other self details
-        user.selfDetails[0].aboutYourself = aboutYourself;
-        user.selfDetails[0].interests = interests;
-        user.selfDetails[0].fun = fun;
-        user.selfDetails[0].fitness = fitness;
-        user.selfDetails[0].other = other;
-
-        if (user.selfDetails.length > 0) {
-          // If 'selfDetails' already exist, update it with new details
-          user.selfDetails[0] = { ...newSelfDetails };
-        } else {
-          // If 'selfDetails' doesn't exist, create it with new details
-          user.selfDetails = [newSelfDetails];
+        
+        try {
+          // Save the updated user object
+          await user.save();
+          // Send response or handle success
+        } catch (error) {
+          console.error("Error saving user data:", error);
+          // Send error response or handle failure
         }
-
-        await user.save();
         break;
-
       case "6":
         var {
           ageRangeStart,
@@ -211,14 +191,68 @@ exports.registerUser = async (req, res) => {
 exports.deleteImagesInUser = async (req, res) => {
   try {
     const { imageKey } = req.body;
-    const { id } = req.params;
+    const { userId } = req.params;
+    const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
+    if (!user) {
+      return res.status(404).json({ message: "User not found" }); // Added 'return' statement
+    }
+    user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter((item) => item !== imageKey);
+    await user.save();
+    await deleteFromS3(imageKey);
+    res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+
+exports.addImagesInUser = async (req, res) => {
+  try {
+    const userPhotos = req.files;
+    const { userId } = req.params;
     const user = await User.findById(id);
     if (!user) {
       res.status(404).json({ message: "user not found" });
     }
-    user.selfDetails[0].userPhotos.filter((item) => item !== imageKey);
-    await user.save();
-    await deleteFromS3(imageKey);
+    if (!user.selfDetails || !user.selfDetails[0]) {
+      user.selfDetails = [{}];
+    }
+    
+    // Update self details
+    if (userPhotos && userPhotos.length > 0) {
+      // Remove excess photos if total count exceeds 5
+      if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
+        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+        selfDetails.userPhotos.splice(0, excessCount);
+      }
+    
+      // Upload new photos to S3 and add their file names to userPhotos array
+      try {
+        const uploadedPhotos = await Promise.all(userPhotos.map(async (photo) => {
+          const { buffer, originalname, mimetype } = photo;
+          const resizedImageBuffer = await buffer;
+          const fileName = generateFileName(originalname);
+          await uploadToS3(resizedImageBuffer, fileName, mimetype);
+          return fileName;
+        }));
+        // Add uploaded photos to userPhotos array
+        selfDetails.userPhotos.push(...uploadedPhotos);
+      } catch (error) {
+        console.error("Error uploading images to S3:", error);
+        res.status(500).json({ error: "Error uploading images to S3" });
+        return; // Exit the function early
+      }
+    }
+    try {
+      // Save the updated user object
+      await user.save();
+      // Send success response
+      res.status(200).json({ message: "User data updated successfully" });
+    } catch (error) {
+      console.error("Error saving user data:", error);
+      res.status(500).json({ error: "Error saving user data" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
@@ -246,10 +280,9 @@ exports.getPageData = async (req, res) => {
 
     let pageData = await User.aggregate(aggregationPipeline);
 
-    const selfData = pageData[0].selfDetails;
-
     // Add image URL setup for page 5
     if (page === "5" && pageData.length > 0) {
+      const selfData = pageData[0].selfDetails;
       const signedUrlsPromises = selfData.userPhotos.map((item) =>
         getSignedUrlFromS3(item)
       );
@@ -268,16 +301,16 @@ exports.getPageData = async (req, res) => {
       // sending already populated data
       const interests = selfData.interests
         .split(",")
-        .map((interest) => parseInt(interest.trim()));
+        .map((interest) => parseInt(interest.trim()) || 0); // Add a fallback value if parsing fails
       const funActivities = selfData.fun
         .split(",")
-        .map((activity) => parseInt(activity.trim()));
+        .map((activity) => parseInt(activity.trim()) || 0); // Add a fallback value if parsing fails
       const others = selfData.other
         .split(",")
-        .map((other) => parseInt(other.trim()));
+        .map((other) => parseInt(other.trim()) || 0); // Add a fallback value if parsing fails
       const fitnesses = selfData.fitness
         .split(",")
-        .map((fitness) => parseInt(fitness.trim()));
+        .map((fitness) => parseInt(fitness.trim()) || 0);
       //finding if the any of the strings present in the documents
       const interest = await Interest.find({ intrest_id: { $in: interests } });
       const funActivity = await FunActivity.find({
@@ -296,6 +329,29 @@ exports.getPageData = async (req, res) => {
         ?.map((item) => item.fitness_name)
         ?.join(", ");
       selfData.otherTypes = other?.map((item) => item.other_name)?.join(", ");
+    }
+    if (page === "6" && pageData.length > 0) {
+      const partnerPreference = pageData[0].partnerPreference;
+      const educations = partnerPreference.education
+        .split(",")
+        .map((interest) => parseInt(interest.trim()));
+      const diets = partnerPreference.dietType
+        .split(",")
+        .map((other) => parseInt(other.trim()));
+      //finding if the any of the strings present in the documents
+      const education = await Education.find({
+        education_id: { $in: educations },
+      });
+      const diet = await Diet.find({
+        diet_id: { $in: diets },
+      });
+
+      partnerPreference.educationTypes = education
+        ?.map((item) => item.education_name)
+        ?.join(", ");
+      partnerPreference.dietTypes = diet
+        ?.map((item) => item.diet_name)
+        ?.join(", ");
     }
 
     res

@@ -4,41 +4,6 @@ const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 
-exports.addToShortlist = async (req, res) => {
-  try {
-    const { user, shortlistedUserId } = req.body;
-
-    const shortlist = new ShortList({
-      user: user,
-      shortlistedUser: shortlistedUserId,
-    });
-
-    await shortlist.save();
-
-    res.status(201).json({ message: "User added to shortlist successfully" });
-  } catch (error) {
-    console.error("Error adding user to shortlist:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-exports.getShortlistedUser = async (req, res) => {
-  try {
-    const { UserId } = req.params;
-    const user = await ShortList.find({ user: UserId }).populate({
-      path: "shortlistedUser",
-      select: ListData,
-    });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.status(200).json(user);
-  } catch (error) {
-    console.error("Error fetching shortlisted user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 // Profile Request Section
 
 exports.sendProfileRequest = async (req, res) => {
@@ -60,11 +25,9 @@ exports.sendProfileRequest = async (req, res) => {
     });
     await notification.save();
 
-    // Emit notification event
-    // io.getIO().on("connection", (socket) =>{
-    //   socket.emit("notification", "notification");
-    // })
     io.getIO().emit(`notification/${profileRequestTo}`, notification);
+    io.getIO().emit(`profileRequestSent/${profileRequestTo}`, {"message": "request sent"});
+
   } catch (error) {
     console.error("Error sending profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -73,7 +36,8 @@ exports.sendProfileRequest = async (req, res) => {
 
 exports.acceptProfileRequest = async (req, res) => {
   try {
-    const { requestId, profileRequestToId } = req.params;
+    const { requestId } = req.params;
+    const {profileRequestToId} = req.query;
     const request = await ProfileRequests.findById(requestId);
 
     // Check if the request exists
@@ -101,6 +65,7 @@ exports.acceptProfileRequest = async (req, res) => {
 
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
+    io.getIO().emit(`profileRequestAccept/${request.profileRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting profile request:", error);
@@ -110,7 +75,8 @@ exports.acceptProfileRequest = async (req, res) => {
 
 exports.declineProfileRequest = async (req, res) => {
   try {
-    const { requestId, profileRequestToId } = req.params;
+    const { requestId } = req.params;
+    const {profileRequestToId} = req.query;
     const request = await ProfileRequests.findById(requestId);
 
     // Check if the request exists
@@ -138,6 +104,7 @@ exports.declineProfileRequest = async (req, res) => {
 
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
+    io.getIO().emit(`profileRequestDecline/${request.profileRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining profile request:", error);
@@ -147,7 +114,8 @@ exports.declineProfileRequest = async (req, res) => {
 
 exports.cancelProfileRequest = async (req, res) => {
   try {
-    const { requestId, profileRequestById } = req.params;
+    const { requestId } = req.params;
+    const {profileRequestById} = req.query;
     const request = await ProfileRequests.findById(requestId);
 
     // Check if the request exists
@@ -175,7 +143,8 @@ exports.cancelProfileRequest = async (req, res) => {
 
 exports.blockProfileRequest = async (req, res) => {
   try {
-    const { requestId, profileRequestById } = req.params;
+    const { requestId } = req.params;
+    const {blockProfileRequestById, blockProfileRequestToId} = req.query;
     await updateRequestStatus(
       ProfileRequests,
       requestId,
@@ -255,6 +224,7 @@ exports.sendInterestRequest = async (req, res) => {
         await notification.save();
         // io.getIO().to(interestRequestTo).emit("notification", notification);
         io.getIO().emit(`notification/${interestRequestTo}`, notification);
+        io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
   } catch (error) {
     console.error("Error sending interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -263,7 +233,8 @@ exports.sendInterestRequest = async (req, res) => {
 
 exports.acceptInterestRequest = async (req, res) => {
   try {
-    const { requestId, interestRequestToId } = req.params;
+    const { requestId } = req.params;
+    const {interestRequestToId} = req.query;
     const request = await InterestRequests.findById(requestId);
 
     // Check if the request exists
@@ -292,6 +263,7 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
+    io.getIO().emit(`interestRequestAccepted/${request.interestRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting interest request:", error);
@@ -301,7 +273,8 @@ exports.acceptInterestRequest = async (req, res) => {
 
 exports.declineInterestRequest = async (req, res) => {
   try {
-    const { requestId, interestRequestToId } = req.params;
+    const { requestId } = req.params;
+    const {interestRequestToId} = req.query;
     const request = await InterestRequests.findById(requestId);
 
     // Check if the request exists
@@ -331,6 +304,7 @@ exports.declineInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
+    io.getIO().emit(`interestRequestDeclined/${request.interestRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining interest request:", error);
@@ -340,7 +314,8 @@ exports.declineInterestRequest = async (req, res) => {
 
 exports.cancelInterestRequest = async (req, res) => {
   try {
-    const { requestId, interestRequestById } = req.params;
+    const { requestId } = req.params;
+    const {interestRequestById} = req.query
     const request = await InterestRequests.findById(requestId);
 
     // Check if the request exists
@@ -368,7 +343,8 @@ exports.cancelInterestRequest = async (req, res) => {
 
 exports.blockedInterestRequest = async (req, res) => {
   try {
-    const { requestId, interestRequestById } = req.params;
+    const { requestId } = req.params;
+    const {interestRequestById} = req.query
     await updateRequestStatus(
       InterestRequests,
       requestId,
@@ -424,28 +400,55 @@ exports.getInterestRequestsReceived = async (req, res) => {
 };
 
 async function sendRequest(Model, requestBy, requestTo, type, action, res) {
-  const existingRequest = await Model.findOne({
-    [`${type.toLowerCase()}RequestBy`]: requestBy,
-    [`${type.toLowerCase()}RequestTo`]: requestTo,
-  });
-  if (existingRequest) {
-    if (existingRequest.action === 'pending') {
-      res.status(200).json({ message: `${type} request already sent` });
-    } else if ((existingRequest.action === 'blocked')){
-      res.status(200).json({ message: `${type} : request cant be sent as u have blocked the user`});
-    } else {
-      existingRequest.action = 'pending'; // Change the action to 'pending'
-      await existingRequest.save();
-      res.status(200).json({ message: `${type} request updated to pending` });
-    }
-  } else {
-    const newRequest = new Model({
+  try {
+    const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
       [`${type.toLowerCase()}RequestTo`]: requestTo,
-      action,
     });
-    await newRequest.save();
-    res.status(201).json({ message: `${type} request sent successfully` });
+
+    if (existingRequest) {
+      if (existingRequest.action === 'pending') {
+        res.status(200).json({ message: `${type} request already sent` });
+      } else if (existingRequest.action === 'blocked') {
+        res.status(200).json({ message: `${type}: request can't be sent as you have blocked the user` });
+      } else {
+        existingRequest.action = 'pending'; // Change the action to 'pending'
+        await existingRequest.save();
+        res.status(200).json({ message: `${type} request updated to pending` });
+      }
+    } else {
+      const newRequest = new Model({
+        [`${type.toLowerCase()}RequestBy`]: requestBy,
+        [`${type.toLowerCase()}RequestTo`]: requestTo,
+        action,
+      });
+
+      // Check if there is a shortlist document where profileRequestBy is the user and profileRequestTo is the shortlisted user
+      const shortlistBy = await ShortList.findOne({
+        user: requestBy,
+        shortlistedUser: requestTo
+      });
+
+      // Check if a shortlist document exists where profileRequestTo is the user and profileRequestBy is the shortlisted user
+      const shortlistTo = await ShortList.findOne({
+        user: requestTo,
+        shortlistedUser: requestBy
+      });
+
+      if (shortlistBy) {
+        newRequest.isShortListedBy = 'yes';
+      }
+
+      if (shortlistTo) {
+        newRequest.isShortListedTo = 'yes';
+      }
+
+      await newRequest.save();
+      res.status(201).json({ message: `${type} request sent successfully` });
+    }
+  } catch (error) {
+    console.error("Error sending request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 

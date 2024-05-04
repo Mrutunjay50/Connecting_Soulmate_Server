@@ -8,6 +8,9 @@ const {
     Diet,
     Community,
     FunActivity,
+    Country,
+    State,
+    City
   } = require("../models/masterSchemas");
   
   exports.getMasterData = async (req, res) => {
@@ -39,6 +42,15 @@ const {
           break;
         case 'community':
           data = await Community.find();
+          break;
+        case 'country':
+          data = await Country.find();
+          break;
+        case 'state':
+          data = await State.find();
+          break;
+        case 'city':
+          data = await City.find();
           break;
         case 'funActivity':
           data = await FunActivity.find();

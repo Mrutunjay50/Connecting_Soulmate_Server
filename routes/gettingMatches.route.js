@@ -4,7 +4,7 @@ const {
   getMatchesAccordingToPreference
 } = require("../controllers/matchingProfile");
 
-const {addToShortlist, getShortlistedUser} = require("../controllers/requestController");
+const {addToShortlist, getShortlistedUser} = require("../controllers/shortlistController");
 
 module.exports = (app) => {
   app.post("/shortlist/add", addToShortlist);

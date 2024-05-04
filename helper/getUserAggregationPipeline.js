@@ -310,9 +310,9 @@ exports.getUserAggregationPipeline = (userId, page) => {
         },
         {
           $lookup: {
-            from: "professions", // name of the Country collection
+            from: "proffesions", // name of the Country collection
             localField: "partnerPreference.profession",
-            foreignField: "profession_id",
+            foreignField: "proffesion_id",
             as: "professiontype",
           },
         },
@@ -330,7 +330,7 @@ exports.getUserAggregationPipeline = (userId, page) => {
                   statetype: { $arrayElemAt: ["$statetype.state_name", 0] },
                   citytype: { $arrayElemAt: ["$citytype.city_name", 0] },
                   professiontype: {
-                    $arrayElemAt: ["$professiontype.profession_name", 0],
+                    $arrayElemAt: ["$professiontype.proffesion_name", 0],
                   },
                 },
               ],
