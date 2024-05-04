@@ -210,8 +210,10 @@ exports.deleteImagesInUser = async (req, res) => {
 exports.addImagesInUser = async (req, res) => {
   try {
     const userPhotos = req.files;
+
+    console.log(userPhotos);
     const { userId } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "user not found" });
     }
@@ -220,6 +222,7 @@ exports.addImagesInUser = async (req, res) => {
     }
     
     // Update self details
+    let selfDetails = user.selfDetails[0];
     if (userPhotos && userPhotos.length > 0) {
       // Remove excess photos if total count exceeds 5
       if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
