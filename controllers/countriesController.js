@@ -26,10 +26,9 @@ exports.getStatesByCountry = async (req, res) => {
 
 // Fetch cities by country and state
 exports.getCitiesByState = async (req, res) => {
-    const { country, state } = req.query;
-    console.log(country, state );
+    const { state } = req.query;
     try {
-      const cities = await City.find({ country_id: country, state_id: state });
+      const cities = await City.find({ state_id: state });
       res.status(200).json(cities);
     } catch (error) {
       console.error('Error fetching cities:', error);

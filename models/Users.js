@@ -114,7 +114,7 @@ const createdBySchema = mongoose.Schema({
       return this.createdFor !== "myself";
     },
   },
-  countryCode : { type: String, required: false },
+  // countryCode : { type: String, required: false },
   phone: { type: String, required: false },
   gender: { type: String, enum: ["F", "M"] },
 });

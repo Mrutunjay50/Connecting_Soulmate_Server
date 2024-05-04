@@ -369,11 +369,13 @@ exports.createProfession = async (req, res) => {
     const count = await Proffesion.countDocuments();
 
     const professionId = count + 1;
-
-    const profession = new Proffesion({
-      profession_name: professionName,
-      profession_id: parseInt(professionId),
-    });
+    let profession;
+    if(professionName !== ""){
+      profession = new Proffesion({
+        proffesion_name: professionName,
+        proffesion_id: parseInt(professionId),
+      });
+    }
 
     await profession.save();
 

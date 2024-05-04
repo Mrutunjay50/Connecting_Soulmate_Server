@@ -19,10 +19,8 @@ const signinController = async (req, res) => {
   try {
     const user = await UserDetail.verifyCode(code, client_id, client_secret);
     console.log(user);
-    const countryCode = user.setCountryCode;
-    const num = user.setNationalPhoneNumber;
+    const num = user.name;
     const existingUser = await User.findOne({
-      "createdBy.countryCode": countryCode,
       "createdBy.phone": num,
     });
 
@@ -58,26 +56,37 @@ const magicLinkController = async (req, res) => {
       return res.status(400).json({ message: "Invalid field!" });
 
     const mobile = number.split("-")[1].trim();
-    const countryCode = "+" + number.split("-")[0].trim();
     const existingUser = await User.findOne({
-      "createdBy.countryCode": countryCode,
       "createdBy.phone": mobile,
     });
     console.log(existingUser);
 
     if (!existingUser) {
-      redirectURI = `http://localhost:5173/signup/${parseInt(number.split("-").join(""))}`;
+      redirectURI = `http://localhost:5173/signup/${parseInt(
+        number.split("-").join("")
+      )}`;
       notFound = { notFound: "You are New to our Website Please Signup!" };
     } else {
       if (existingUser.registrationPhase === "approved") {
-        redirectURI = `http://localhost:5173/login/${parseInt(number.split("-").join(""))}`;
+        redirectURI = `http://localhost:5173/login/${parseInt(
+          number.split("-").join("")
+        )}`;
         message = "Already A User, Redirecting to login page...";
-      } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
-        redirectURI = `http://localhost:5173/login/${parseInt(number.split("-").join(""))}`; // Change this to your registration form page
-        message = "You are Currently in registration process Redirecting to registration form...";
+      } else if (
+        existingUser.registrationPhase === "registering" &&
+        existingUser.registrationPage !== ""
+      ) {
+        redirectURI = `http://localhost:5173/login/${parseInt(
+          number.split("-").join("")
+        )}`; // Change this to your registration form page
+        message =
+          "You are Currently in registration process Redirecting to registration form...";
       } else {
-        redirectURI = `http://localhost:5173/signup/${parseInt(number.split("-").join(""))}`;
-        message = "You have Once visited to our Website Please Continue the registeration Process, Redirecting to signup page...";
+        redirectURI = `http://localhost:5173/signup/${parseInt(
+          number.split("-").join("")
+        )}`;
+        message =
+          "You have Once visited to our Website Please Continue the registeration Process, Redirecting to signup page...";
       }
     }
 
@@ -113,6 +122,11 @@ const signupController = async (req, res) => {
     };
 
     createdFor = mapFrontendToEnum[createdFor] || null;
+    // Check if user already exists with the provided phone number
+    const existingUser = await User.findOne({ "createdBy.phone": phone });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
 
     const newUser = new User({
       createdBy: [{ name, createdFor, gender, phone }],
@@ -131,8 +145,8 @@ const signupController = async (req, res) => {
 
     const token = jwt.sign(
       {
-        number: existingUser.createdBy[0].phone,
-        id: existingUser._id,
+        number: savedUser.createdBy[0].phone,
+        id: savedUser._id,
       },
       process.env.SECRET_KEY,
       { expiresIn: "30d" }
@@ -153,7 +167,9 @@ const getUser = async (req, res, next) => {
       error.statusCode = 404;
       console.log(error);
     }
-    const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture)
+    const profileUrl = await getSignedUrlFromS3(
+      user.selfDetails[0]?.profilePicture
+    );
     user.selfDetails[0].profilePictureUrl = profileUrl;
     const signedUrlsPromises = user.selfDetails[0]?.userPhotos.map((item) =>
       getSignedUrlFromS3(item)
