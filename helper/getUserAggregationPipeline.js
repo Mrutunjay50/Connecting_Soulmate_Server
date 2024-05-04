@@ -114,16 +114,16 @@ exports.getUserAggregationPipeline = (userId, page) => {
         },
         {
           $lookup: {
-            from: "professions", // name of the Country collection
+            from: "proffesions", // name of the Country collection
             localField: "careerDetails.profession",
-            foreignField: "profession_id",
+            foreignField: "proffesion_id",
             as: "professiontype",
           },
         },
         {
           $lookup: {
             from: "educations", // name of the Country collection
-            localField: "careerDetails.highest_Education",
+            localField: "careerDetails.highestEducation",
             foreignField: "education_id",
             as: "educationtype",
           },
@@ -137,7 +137,7 @@ exports.getUserAggregationPipeline = (userId, page) => {
                 { $arrayElemAt: ["$careerDetails", 0] },
                 {
                   professiontype: {
-                    $arrayElemAt: ["$professiontype.profession_name", 0],
+                    $arrayElemAt: ["$professiontype.proffesion_name", 0],
                   },
                   educationtype: {
                     $arrayElemAt: ["$educationtype.education_name", 0],

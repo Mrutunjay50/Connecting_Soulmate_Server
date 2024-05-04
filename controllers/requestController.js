@@ -73,7 +73,7 @@ exports.sendProfileRequest = async (req, res) => {
 
 exports.acceptProfileRequest = async (req, res) => {
   try {
-    const { requestId } = req.params;
+    const { requestId, profileRequestToId } = req.params;
     await updateRequestStatus(
       ProfileRequests,
       requestId,
@@ -101,7 +101,7 @@ exports.acceptProfileRequest = async (req, res) => {
 
 exports.declineProfileRequest = async (req, res) => {
   try {
-    const { requestId } = req.params;
+    const { requestId, profileRequestToId } = req.params;
     await updateRequestStatus(
       ProfileRequests,
       requestId,
@@ -199,7 +199,7 @@ exports.sendInterestRequest = async (req, res) => {
 
 exports.acceptInterestRequest = async (req, res) => {
   try {
-    const { requestId } = req.params;
+    const { requestId, interestRequestToId } = req.params;
     await updateRequestStatus(
       InterestRequests,
       requestId,
@@ -227,7 +227,7 @@ exports.acceptInterestRequest = async (req, res) => {
 
 exports.declineInterestRequest = async (req, res) => {
   try {
-    const { requestId } = req.params;
+    const { requestId, interestRequestToId } = req.params;
     await updateRequestStatus(
       InterestRequests,
       requestId,
