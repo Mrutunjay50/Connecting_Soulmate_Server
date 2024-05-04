@@ -155,6 +155,15 @@ const getUser = async (req, res, next) => {
     }
     const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture)
     user.selfDetails[0].profilePictureUrl = profileUrl;
+    const signedUrlsPromises = user.selfDetails[0]?.userPhotos.map((item) =>
+      getSignedUrlFromS3(item)
+    );
+    try {
+      const signedUrls = await Promise.all(signedUrlsPromises);
+      user.selfDetails[0].userPhotosUrl = signedUrls;
+    } catch (error) {
+      console.error("Error:", error);
+    }
     res.status(200).json({ user });
   } catch (err) {
     console.log(err);

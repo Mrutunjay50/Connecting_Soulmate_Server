@@ -74,6 +74,17 @@ exports.sendProfileRequest = async (req, res) => {
 exports.acceptProfileRequest = async (req, res) => {
   try {
     const { requestId, profileRequestToId } = req.params;
+    const request = await ProfileRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Profile request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.profileRequestTo !== profileRequestToId) {
+      return res.status(403).json({ error: "Unauthorized: You cannot accept this profile request" });
+    }
     await updateRequestStatus(
       ProfileRequests,
       requestId,
@@ -81,8 +92,6 @@ exports.acceptProfileRequest = async (req, res) => {
       "accepted",
       res
     );
-
-    const request = await ProfileRequests.findById(requestId);
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: request.profileRequestBy,
@@ -102,6 +111,17 @@ exports.acceptProfileRequest = async (req, res) => {
 exports.declineProfileRequest = async (req, res) => {
   try {
     const { requestId, profileRequestToId } = req.params;
+    const request = await ProfileRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Profile request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.profileRequestTo !== profileRequestToId) {
+      return res.status(403).json({ error: "Unauthorized: You cannot decline this profile request" });
+    }
     await updateRequestStatus(
       ProfileRequests,
       requestId,
@@ -109,8 +129,6 @@ exports.declineProfileRequest = async (req, res) => {
       "declined",
       res
     );
-
-    const request = await ProfileRequests.findById(requestId);
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: request.profileRequestBy,
@@ -121,6 +139,52 @@ exports.declineProfileRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
     // io.getIO().to(admin).emit("notification", notification);
+  } catch (error) {
+    console.error("Error declining profile request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.cancelProfileRequest = async (req, res) => {
+  try {
+    const { requestId, profileRequestById } = req.params;
+    const request = await ProfileRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Profile request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.profileRequestBy !== profileRequestById) {
+      return res.status(403).json({ error: "Unauthorized: You cannot cancel this profile request" });
+    }
+    await updateRequestStatus(
+      ProfileRequests,
+      requestId,
+      "Profile",
+      "cancelled",
+      res
+    );
+
+  } catch (error) {
+    console.error("Error declining profile request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.blockProfileRequest = async (req, res) => {
+  try {
+    const { requestId, profileRequestById } = req.params;
+    await updateRequestStatus(
+      ProfileRequests,
+      requestId,
+      "Profile",
+      "blocked",
+      res
+    );
+
+    const request = await ProfileRequests.findById(requestId);
   } catch (error) {
     console.error("Error declining profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -200,6 +264,17 @@ exports.sendInterestRequest = async (req, res) => {
 exports.acceptInterestRequest = async (req, res) => {
   try {
     const { requestId, interestRequestToId } = req.params;
+    const request = await InterestRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Interest request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.interestRequestTo !== interestRequestToId) {
+      return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
+    }
     await updateRequestStatus(
       InterestRequests,
       requestId,
@@ -207,7 +282,6 @@ exports.acceptInterestRequest = async (req, res) => {
       "accepted",
       res
     );
-    const request = await InterestRequests.findById(requestId);
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: request.interestRequestTo,
@@ -228,6 +302,18 @@ exports.acceptInterestRequest = async (req, res) => {
 exports.declineInterestRequest = async (req, res) => {
   try {
     const { requestId, interestRequestToId } = req.params;
+    const request = await InterestRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Interest request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.interestRequestTo !== interestRequestToId) {
+      return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
+    }
+
     await updateRequestStatus(
       InterestRequests,
       requestId,
@@ -235,7 +321,6 @@ exports.declineInterestRequest = async (req, res) => {
       "declined",
       res
     );
-    const request = await InterestRequests.findById(requestId);
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: request.interestRequestTo,
@@ -247,6 +332,51 @@ exports.declineInterestRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
     // io.getIO().to(admin).emit("notification", notification);
+  } catch (error) {
+    console.error("Error declining interest request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.cancelInterestRequest = async (req, res) => {
+  try {
+    const { requestId, interestRequestById } = req.params;
+    const request = await InterestRequests.findById(requestId);
+
+    // Check if the request exists
+    if (!request) {
+      return res.status(404).json({ error: "Interest request not found" });
+    }
+
+    // Check if the user is authorized to cancel the request
+    if (request.interestRequestBy !== interestRequestById) {
+      return res.status(403).json({ error: "Unauthorized: You cannot cancel this interest request" });
+    }
+
+    await updateRequestStatus(
+      InterestRequests,
+      requestId,
+      "Interest",
+      "cancelled",
+      res
+    );
+  } catch (error) {
+    console.error("Error declining interest request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.blockedInterestRequest = async (req, res) => {
+  try {
+    const { requestId, interestRequestById } = req.params;
+    await updateRequestStatus(
+      InterestRequests,
+      requestId,
+      "Interest",
+      "blocked",
+      res
+    );
+    const request = await InterestRequests.findById(requestId);
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -299,7 +429,15 @@ async function sendRequest(Model, requestBy, requestTo, type, action, res) {
     [`${type.toLowerCase()}RequestTo`]: requestTo,
   });
   if (existingRequest) {
-    res.status(400).json({ error: `${type} request already sent` });
+    if (existingRequest.action === 'pending') {
+      res.status(200).json({ message: `${type} request already sent` });
+    } else if ((existingRequest.action === 'blocked')){
+      res.status(200).json({ message: `${type} : request cant be sent as u have blocked the user`});
+    } else {
+      existingRequest.action = 'pending'; // Change the action to 'pending'
+      await existingRequest.save();
+      res.status(200).json({ message: `${type} request updated to pending` });
+    }
   } else {
     const newRequest = new Model({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
