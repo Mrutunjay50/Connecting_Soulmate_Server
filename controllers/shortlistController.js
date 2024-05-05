@@ -14,7 +14,10 @@ exports.addToShortlist = async (req, res) => {
   
       if (existingShortlist) {
         // If the entry already exists, delete it
-        await existingShortlist.remove();
+        await ShortList.deleteOne({
+          user: user,
+          shortlistedUser: shortlistedUserId,
+        });
         res.status(200).json({ message: "User removed from shortlist" });
   
         // Update isShortListedTo and isShortListedBy to 'no' in profile and interest requests
