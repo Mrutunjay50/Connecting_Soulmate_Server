@@ -21,17 +21,14 @@ const {
 } = require("../utils/s3Utils");
 const moment = require("moment");
 
-function generateUniqueNumber()
-{
+function generateUniqueNumber() {
   const randomNumber = Math.floor(Math.random() * 100);
-  const uniqueNumber = `${ randomNumber }`;
+  const uniqueNumber = `${randomNumber}`;
   return uniqueNumber;
 }
 
-exports.registerUser = async (req, res) =>
-{
-  try
-  {
+exports.registerUser = async (req, res) => {
+  try {
     const { userId } = req.params;
     const { page } = req.query; // Assuming you have a userId to identify the user
     // Fetch the user based on userId
@@ -39,14 +36,12 @@ exports.registerUser = async (req, res) =>
 
     console.log(req.body);
 
-    if (!user)
-    {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Based on the page number, update the corresponding array
-    switch (page)
-    {
+    switch (page) {
       case "1":
         const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
         const currentDate = new Date();
@@ -59,18 +54,18 @@ exports.registerUser = async (req, res) =>
           currentMonth < birthMonth ||
           (currentMonth === birthMonth &&
             currentDate.getDate() < birthDate.getDate())
-        )
-        {
+        ) {
           age--;
         }
 
-        if (age < 21)
-        {
-          return res.status(400).json({ error: "You must be at least 21 years old to register." }); // Stop further execution
+        if (age < 21) {
+          return res
+            .status(400)
+            .json({ error: "You must be at least 21 years old to register." }); // Stop further execution
         }
         user.basicDetails[0] = {
           ...req.body.basicDetails,
-          name: `${ fname } ${ mname } ${ lname }`,
+          name: `${fname} ${mname} ${lname}`,
           gender: user.createdBy[0].gender,
           age: age.toString(),
         };
@@ -80,11 +75,12 @@ exports.registerUser = async (req, res) =>
         const genderPrefix = generateUniqueNumber();
         const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();
         const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-        const dobFormatted = dob.format("YYYYMMDD");
-        const loginTime = moment().format("HHmmss");
+        const dobFormatted = dob.format("YYYYMM");
+        // Count all user documents
+        const noOfUsers = await User.countDocuments({});
 
         user.basicDetails[0].userId =
-          `CS${ namePrefix }${ genderPrefix }${ dobFormatted }${ loginTime }`
+          `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
             ?.toUpperCase()
             .replaceAll(" ", "");
         break;
@@ -116,18 +112,16 @@ exports.registerUser = async (req, res) =>
         break;
       case "5":
         const userPhotos = req.files;
-        const { aboutYourself, interests, fun, fitness, other, profileImage } = JSON.parse(
-          req.body.selfDetails
-        );
+        const { aboutYourself, interests, fun, fitness, other, profileImage } =
+          JSON.parse(req.body.selfDetails);
 
         // console.log(JSON.parse(
         //   req.body.selfDetails
         // ));
         // console.log(req.files);
-        
+
         // Check if user.selfDetails exists, if not, create a new object
-        if (!user.selfDetails || !user.selfDetails[0])
-        {
+        if (!user.selfDetails || !user.selfDetails[0]) {
           user.selfDetails = [{}];
         }
 
@@ -141,41 +135,40 @@ exports.registerUser = async (req, res) =>
         selfDetails.other = other;
 
         // If new photos are uploaded, process them
-        if (userPhotos && userPhotos.length > 0)
-        {
+        if (userPhotos && userPhotos.length > 0) {
           // Remove excess photos if total count exceeds 5
-          if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5)
-          {
-            const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+          if (
+            selfDetails.userPhotos &&
+            selfDetails.userPhotos.length + userPhotos.length > 5
+          ) {
+            const excessCount =
+              selfDetails.userPhotos.length + userPhotos.length - 5;
             selfDetails.userPhotos.splice(0, excessCount);
           }
 
           // Upload new photos to S3 and add their file names to userPhotos array
-          try
-          {
-            const uploadedPhotos = await Promise.all(userPhotos.map(async (photo) =>
-            {
-              const { buffer, originalname, mimetype } = photo;
-              const resizedImageBuffer = await buffer;
-              const fileName = generateFileName(originalname);
-              await uploadToS3(resizedImageBuffer, fileName, mimetype);
-              return fileName;
-            }));
+          try {
+            const uploadedPhotos = await Promise.all(
+              userPhotos.map(async (photo) => {
+                const { buffer, originalname, mimetype } = photo;
+                const resizedImageBuffer = await buffer;
+                const fileName = generateFileName(originalname);
+                await uploadToS3(resizedImageBuffer, fileName, mimetype);
+                return fileName;
+              })
+            );
             // Add uploaded photos to userPhotos array
             selfDetails.userPhotos.push(...uploadedPhotos);
-          } catch (error)
-          {
+          } catch (error) {
             console.error("Error uploading images to S3:", error);
           }
         }
 
-        try
-        {
+        try {
           // Save the updated user object
           await user.save();
           // Send response or handle success
-        } catch (error)
-        {
+        } catch (error) {
           console.error("Error saving user data:", error);
         }
         break;
@@ -188,25 +181,28 @@ exports.registerUser = async (req, res) =>
           annualIncomeRangeStart,
           annualIncomeRangeEnd,
         } = req.body.partnerPreference;
-        if (req.body.partnerPreference && req.body.partnerPreference.education)
-        {
-          if (Array.isArray(req.body.partnerPreference.education))
-          {
-            req.body.partnerPreference.education = req.body.partnerPreference.education.toString()
+        if (
+          req.body.partnerPreference &&
+          req.body.partnerPreference.education
+        ) {
+          if (Array.isArray(req.body.partnerPreference.education)) {
+            req.body.partnerPreference.education =
+              req.body.partnerPreference.education.toString();
           }
         }
-        if (req.body.partnerPreference && req.body.partnerPreference.maritalStatus)
-        {
-          if (Array.isArray(req.body.partnerPreference.maritalStatus))
-          {
-            req.body.partnerPreference.maritalStatus = req.body.partnerPreference.maritalStatus.toString()
+        if (
+          req.body.partnerPreference &&
+          req.body.partnerPreference.maritalStatus
+        ) {
+          if (Array.isArray(req.body.partnerPreference.maritalStatus)) {
+            req.body.partnerPreference.maritalStatus =
+              req.body.partnerPreference.maritalStatus.toString();
           }
         }
-        if (req.body.partnerPreference && req.body.partnerPreference.dietType)
-        {
-          if (Array.isArray(req.body.partnerPreference.dietType))
-          {
-            req.body.partnerPreference.dietType = req.body.partnerPreference.dietType.toString()
+        if (req.body.partnerPreference && req.body.partnerPreference.dietType) {
+          if (Array.isArray(req.body.partnerPreference.dietType)) {
+            req.body.partnerPreference.dietType =
+              req.body.partnerPreference.dietType.toString();
           }
         }
         user.partnerPreference[0] = {
@@ -227,142 +223,125 @@ exports.registerUser = async (req, res) =>
     await user.save();
 
     res.status(200).json({ message: "Data added successfully", user });
-  } catch (err)
-  {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
-exports.deleteImagesInUser = async (req, res) =>
-{
-  try
-  {
+exports.deleteImagesInUser = async (req, res) => {
+  try {
     const { imageKey } = req.body;
     const { userId } = req.params;
     const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
-    if (!user)
-    {
+    if (!user) {
       return res.status(404).json({ message: "User not found" }); // Added 'return' statement
     }
-    user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter((item) => item !== imageKey);
+    user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter(
+      (item) => item !== imageKey
+    );
     await user.save();
     await deleteFromS3(imageKey);
     res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
-  } catch (err)
-  {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
-
-exports.addImagesInUser = async (req, res) =>
-{
-  try
-  {
+exports.addImagesInUser = async (req, res) => {
+  try {
     const userPhotos = req.files;
 
     console.log(userPhotos);
     const { userId } = req.params;
     const user = await User.findById(userId);
-    if (!user)
-    {
+    if (!user) {
       res.status(404).json({ message: "user not found" });
     }
-    if (!user.selfDetails || !user.selfDetails[0])
-    {
+    if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
     }
 
     // Update self details
     let selfDetails = user.selfDetails[0];
-    if (userPhotos && userPhotos.length > 0)
-    {
+    if (userPhotos && userPhotos.length > 0) {
       // Remove excess photos if total count exceeds 5
-      if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5)
-      {
-        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+      if (
+        selfDetails.userPhotos &&
+        selfDetails.userPhotos.length + userPhotos.length > 5
+      ) {
+        const excessCount =
+          selfDetails.userPhotos.length + userPhotos.length - 5;
         selfDetails.userPhotos.splice(0, excessCount);
       }
 
       // Upload new photos to S3 and add their file names to userPhotos array
-      try
-      {
-        const uploadedPhotos = await Promise.all(userPhotos.map(async (photo) =>
-        {
-          const { buffer, originalname, mimetype } = photo;
-          const resizedImageBuffer = await buffer;
-          const fileName = generateFileName(originalname);
-          await uploadToS3(resizedImageBuffer, fileName, mimetype);
-          return fileName;
-        }));
+      try {
+        const uploadedPhotos = await Promise.all(
+          userPhotos.map(async (photo) => {
+            const { buffer, originalname, mimetype } = photo;
+            const resizedImageBuffer = await buffer;
+            const fileName = generateFileName(originalname);
+            await uploadToS3(resizedImageBuffer, fileName, mimetype);
+            return fileName;
+          })
+        );
         // Add uploaded photos to userPhotos array
         selfDetails.userPhotos.push(...uploadedPhotos);
-      } catch (error)
-      {
+      } catch (error) {
         console.error("Error uploading images to S3:", error);
         res.status(500).json({ error: "Error uploading images to S3" });
         return; // Exit the function early
       }
     }
-    try
-    {
+    try {
       // Save the updated user object
       await user.save();
       // Send success response
       res.status(200).json({ message: "User data updated successfully" });
-    } catch (error)
-    {
+    } catch (error) {
       console.error("Error saving user data:", error);
       res.status(500).json({ error: "Error saving user data" });
     }
-  } catch (err)
-  {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
-exports.getPageData = async (req, res) =>
-{
-  try
-  {
+exports.getPageData = async (req, res) => {
+  try {
     const { userId } = req.params;
     const { page } = req.query;
 
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
-    if (!user)
-    {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Get the aggregation pipeline based on the page
     const aggregationPipeline = getUserAggregationPipeline(userId, page);
 
-    if (!aggregationPipeline)
-    {
+    if (!aggregationPipeline) {
       return res.status(400).json({ error: "Invalid page number" });
     }
 
     let pageData = await User.aggregate(aggregationPipeline);
 
     // Add image URL setup for page 5
-    if (page === "5" && pageData.length > 0)
-    {
+    if (page === "5" && pageData.length > 0) {
       const selfData = pageData[0].selfDetails;
       const signedUrlsPromises = selfData.userPhotos.map((item) =>
         getSignedUrlFromS3(item)
       );
-      try
-      {
+      try {
         // Use Promise.all() to wait for all promises to resolve
         const signedUrls = await Promise.all(signedUrlsPromises);
         selfData.userPhotosUrl = signedUrls;
-      } catch (error)
-      {
+      } catch (error) {
         // Handle any errors that occurred during promise resolution
         console.error("Error:", error);
       }
@@ -402,8 +381,7 @@ exports.getPageData = async (req, res) =>
         ?.join(", ");
       selfData.otherTypes = other?.map((item) => item.other_name)?.join(", ");
     }
-    if (page === "6" && pageData.length > 0)
-    {
+    if (page === "6" && pageData.length > 0) {
       const partnerPreference = pageData[0].partnerPreference;
       const educations = partnerPreference.education
         .split(",")
@@ -430,24 +408,20 @@ exports.getPageData = async (req, res) =>
     res
       .status(200)
       .json({ message: "Data fetched successfully", pageData: pageData[0] });
-  } catch (err)
-  {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
-exports.createProfession = async (req, res) =>
-{
-  try
-  {
+exports.createProfession = async (req, res) => {
+  try {
     const { professionName } = req.body;
     const count = await Proffesion.countDocuments();
 
     const professionId = count + 1;
     let profession;
-    if (professionName !== "")
-    {
+    if (professionName !== "") {
       profession = new Proffesion({
         proffesion_name: professionName,
         proffesion_id: parseInt(professionId),
@@ -459,38 +433,31 @@ exports.createProfession = async (req, res) =>
     res
       .status(201)
       .json({ message: "Profession created successfully", profession });
-  } catch (err)
-  {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
 
-exports.changeUserDetailsText = async (req, res) =>
-{
-  try
-  {
+exports.changeUserDetailsText = async (req, res) => {
+  try {
     const { userId } = req.params;
     const { type, text } = req.body;
 
     const user = await User.findById(userId);
 
-    if (!user)
-    {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (type === "about-yourself")
-    {
+    if (type === "about-yourself") {
       user.selfDetails[0].aboutYourself = text;
-    } else if (type === "personal-appearance")
-    {
+    } else if (type === "personal-appearance") {
       user.additionalDetails[0].personalAppearance = text;
     }
     await user.save();
-    res.status(200).json({ message: `${ type } updated successfully`, user });
-  } catch (err)
-  {
+    res.status(200).json({ message: `${type} updated successfully`, user });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }

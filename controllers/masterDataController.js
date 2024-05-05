@@ -127,20 +127,21 @@ function calculateAge(birthDateStr) {
   // Parse the birth date string
   const [datePart, timePart] = birthDateStr.split(" ");
   const [month, day, year] = datePart.split("/");
-  
+
   // Create a new Date object with the parsed components
   const birthDate = new Date(`${year}-${month}-${day}T${timePart}`);
 
   // Get today's date
   const today = new Date();
-  
+
   // Calculate the difference in years
   let age = today.getFullYear() - birthDate.getFullYear();
 
   // Check if the birthday hasn't occurred yet this year
-  const hasBirthdayPassed = 
-    today.getMonth() > birthDate.getMonth() || 
-    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+  const hasBirthdayPassed =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() >= birthDate.getDate());
 
   // If the birthday hasn't occurred yet this year, subtract 1 from the age
   if (!hasBirthdayPassed) {
@@ -198,7 +199,12 @@ exports.uploadcsv = async (req, res) => {
     for (const row of response) {
       const newUser = new User({
         basicDetails: {
-          name: row["Bride/Groom - First Name"] + " " + row["Bride/Groom - Middle Name"] + " " + row["Bride/Groom - Last Name"],
+          name:
+            row["Bride/Groom - First Name"] +
+            " " +
+            row["Bride/Groom - Middle Name"] +
+            " " +
+            row["Bride/Groom - Last Name"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
           placeOfBirthCountry: parseInt(row["Place of Birth - Country"]) || 0,
           placeOfBirthState: parseInt(row["Place of Birth - State"]) || 0,
@@ -214,11 +220,14 @@ exports.uploadcsv = async (req, res) => {
           height: parseInt(row["Height (Feet)"]) || 5,
           weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
-          contact:row["Contact Details"].replace("+", "") + row["Add Number"],
+          contact: row["Contact Details"].replace("+", "") + row["Add Number"],
           personalAppearance: row["Personal  Appearance"],
-          currentlyLivingInCountry: parseInt(row["Presently Settled In Country"]) || 0,
-          currentlyLivingInState: parseInt(row["Presently Settled in State"]) || 0,
-          currentlyLivingInCity: parseInt(row["Presently Settled in City"]) || 0,
+          currentlyLivingInCountry:
+            parseInt(row["Presently Settled In Country"]) || 0,
+          currentlyLivingInState:
+            parseInt(row["Presently Settled in State"]) || 0,
+          currentlyLivingInCity:
+            parseInt(row["Presently Settled in City"]) || 0,
           countryCode: row["Contact Details"],
           relocationInFuture: row["Open to Relocate in Future"],
           diet: parseInt(row["Diet Type"]) || 0,
@@ -234,8 +243,13 @@ exports.uploadcsv = async (req, res) => {
           profession: parseInt(row["Profession"]) || 0,
           currentDesignation: row["Current Designation"],
           previousOccupation: row["Previous Occupation"],
-          annualIncomeValue: parseInt(row["Approximate Annual Income value"]?.split("-")[1]?.trim()) || 0,
-          currencyType: row["Approximate Annual Income"].split("(")[1]?.replace(")","") || "INR"
+          annualIncomeValue:
+            parseInt(
+              row["Approximate Annual Income value"]?.split("-")[1]?.trim()
+            ) || 0,
+          currencyType:
+            row["Approximate Annual Income"].split("(")[1]?.replace(")", "") ||
+            "INR",
         },
         familyDetails: {
           fatherName: row["Father's Name (First Name, Middle Name, Last Name)"],
@@ -245,20 +259,20 @@ exports.uploadcsv = async (req, res) => {
           users: [
             {
               gender: "M", // Assuming this column contains the gender of the sibling
-              option: row["Siblings [Brother 1]"] || "Unmarried" // You can set this to a default value or leave it empty
+              option: row["Siblings [Brother 1]"] || "Unmarried", // You can set this to a default value or leave it empty
             },
             {
               gender: "F", // Assuming this column contains the gender of the sibling
-              option: row["Siblings [Sister 1]"] || "Unmarried" // You can set this to a default value or leave it empty
+              option: row["Siblings [Sister 1]"] || "Unmarried", // You can set this to a default value or leave it empty
             },
             {
               gender: "F", // Assuming this column contains the gender of the sibling
-              option: row["Siblings [Sister 2]"] || "Unmarried" // You can set this to a default value or leave it empty
+              option: row["Siblings [Sister 2]"] || "Unmarried", // You can set this to a default value or leave it empty
             },
             {
               gender: "F", // Assuming this column contains the gender of the sibling
-              option: row["Siblings [Sister 3]"] || "Unmarried" // You can set this to a default value or leave it empty
-            }
+              option: row["Siblings [Sister 3]"] || "Unmarried", // You can set this to a default value or leave it empty
+            },
           ],
           withFamilyStatus: row["Bride / Groom Lives with Family"],
           familyLocationCountry: parseInt(row["Family Settled - Country"]) || 0,
@@ -267,8 +281,14 @@ exports.uploadcsv = async (req, res) => {
           religion: parseInt(row["Religion"]) || 0,
           caste: row["Caste"],
           community: parseInt(row["F Community"]) || 0,
-          familyAnnualIncomeStart: parseInt(row["Family Annual Income Range"]?.split("-")[0]?.trim()) || 0,
-          familyAnnualIncomeEnd: parseInt(row["Family Annual Income Range"]?.split("-")[1]?.trim()) || 0,
+          familyAnnualIncomeStart:
+            parseInt(
+              row["Family Annual Income Range"]?.split("-")[0]?.trim()
+            ) || 0,
+          familyAnnualIncomeEnd:
+            parseInt(
+              row["Family Annual Income Range"]?.split("-")[1]?.trim()
+            ) || 0,
         },
         // Populate selfDescriptionSchema fields
         selfDetails: {
@@ -276,7 +296,8 @@ exports.uploadcsv = async (req, res) => {
           fun: row["Fun"],
           fitness: row["Fitness"],
           other: row["Other Interests"],
-          profilePicture: row["Images"].split(",").join(".jpeg,").split(",")[0] || "",
+          profilePicture:
+            row["Images"].split(",").join(".jpeg,").split(",")[0] || "",
           userPhotos: row["Images"].split(",").join(".jpeg,").split(",") || [],
           userPhotosUrl: row[""],
           profilePictureUrl: row[""],
@@ -296,42 +317,52 @@ exports.uploadcsv = async (req, res) => {
           city: parseInt(row["City"]) || 0,
           education: row["Qualification"],
           workingpreference: row["Working Preference"],
-          profession : parseInt(row["P Profession"]) || 0,
-          annualIncomeRangeStart: parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
-          annualIncomeRangeEnd: parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
+          profession: parseInt(row["P Profession"]) || 0,
+          annualIncomeRangeStart:
+            parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
+          annualIncomeRangeEnd:
+            parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
           dietType: row["Other Details - Diet"] || "",
         },
         // Populate createdBySchema fields
         createdBy: {
           createdFor: createdForMapping[row["This Profile is for"]],
           name: row["Your First Name"] + " " + row["Your Last Name"],
-          phone: row["Contact Number - Mobile Number (Country Code)"].replace("+", "") + row["Contact Number - Mobile Number"],
+          phone:
+            row["Contact Number - Mobile Number (Country Code)"].replace(
+              "+",
+              ""
+            ) + row["Contact Number - Mobile Number"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         regiaterationPhase: row["notapproved"],
         registrationPage: row[""],
-        annualIncomeType: row["Approximate Annual Income"].split("(")[1]?.replace(")","") || "INR",
+        annualIncomeType:
+          row["Approximate Annual Income"].split("(")[1]?.replace(")", "") ||
+          "INR",
         userId: "",
-        accessType : "users",
-        isDeleted : false
+        accessType: "users",
+        isDeleted: false,
       });
 
       // Generate userId based on the data
       const genderPrefix = generateUniqueNumber();
       const namePrefix = newUser.basicDetails[0].name.slice(0, 2).toUpperCase();
       const dob = moment(newUser.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-      const dobFormatted = dob.format("YYYYMMDD");
-      const loginTime = moment().format("HHmmss");
+      const dobFormatted = dob.format("YYYYMM");
+      console.log(dobFormatted);
+      // Count all user documents
+      const noOfUsers = await User.countDocuments({});
 
       newUser.basicDetails[0].userId =
-      `CS${namePrefix}${genderPrefix}${dobFormatted}${loginTime}`
-        ?.toUpperCase()
-        .replaceAll(" ", "");
+        `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
+          ?.toUpperCase()
+          .replaceAll(" ", "");
       newUser.userId =
-      `CS${namePrefix}${genderPrefix}${dobFormatted}${loginTime}`
-        ?.toUpperCase()
-        .replaceAll(" ", "");
+        `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
+          ?.toUpperCase()
+          .replaceAll(" ", "");
 
       await newUser.save();
     }
