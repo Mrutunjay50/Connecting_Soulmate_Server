@@ -4,7 +4,7 @@ const searchController = require("../controllers/search.js");
 const { imageMulter } = require("../multer/multerImg.js");
 
 module.exports = (app) => {
-  app.post("/user-data/:userId", imageMulter, registerController.registerUser);
+  app.post("/user-data/:userId",imageMulter, registerController.registerUser);
   app.post("/add-profession", registerController.createProfession);
   app.post("/text-detail-change/:userId", registerController.changeUserDetailsText);
   app.put("/user-image-delete/:userId", registerController.deleteImagesInUser);

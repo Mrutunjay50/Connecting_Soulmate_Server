@@ -15,6 +15,6 @@ const fileFilter = (req, file, cb) => {
 
 const Storage = multer.memoryStorage();
 const imageMulter = multer({ storage: Storage, fileFilter: fileFilter }).array("userPhotos", 5);// Change to 'array' for multiple files
+const profilePictureMulter = multer({ storage: Storage, fileFilter: fileFilter }).single("profilePicture");
 
-
-module.exports = { imageMulter };
+module.exports = { imageMulter, profilePictureMulter };

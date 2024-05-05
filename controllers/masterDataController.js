@@ -207,14 +207,14 @@ exports.uploadcsv = async (req, res) => {
           timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
           age: calculateAge(row["Date of birth"]) || 0,
           manglik: manglik[row["Manglik Status"]],
-          horoscope: row[""],
+          horoscope: row["Horoscope Match"],
           userId: "",
         },
         additionalDetails: {
-          height: parseInt(row["Height (Feet)"]) || 0,
+          height: parseInt(row["Height (Feet)"]) || 5,
           weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
-          contact: row["Add Number"],
+          contact:row["Contact Details"].replace("+", "") + row["Add Number"],
           personalAppearance: row["Personal  Appearance"],
           currentlyLivingInCountry: parseInt(row["Presently Settled In Country"]) || 0,
           currentlyLivingInState: parseInt(row["Presently Settled in State"]) || 0,
@@ -242,14 +242,31 @@ exports.uploadcsv = async (req, res) => {
           fatherOccupation: row["Father's Occupation"],
           motherName: row["Mother's Name (First Name, Middle Name, Last Name)"],
           motherOccupation: row["Mother's Occupation"],
-          siblings: row["Siblings [Brother 1]"],
+          users: [
+            {
+              gender: "M", // Assuming this column contains the gender of the sibling
+              option: row["Siblings [Brother 1]"] || "Unmarried" // You can set this to a default value or leave it empty
+            },
+            {
+              gender: "F", // Assuming this column contains the gender of the sibling
+              option: row["Siblings [Sister 1]"] || "Unmarried" // You can set this to a default value or leave it empty
+            },
+            {
+              gender: "F", // Assuming this column contains the gender of the sibling
+              option: row["Siblings [Sister 2]"] || "Unmarried" // You can set this to a default value or leave it empty
+            },
+            {
+              gender: "F", // Assuming this column contains the gender of the sibling
+              option: row["Siblings [Sister 3]"] || "Unmarried" // You can set this to a default value or leave it empty
+            }
+          ],
           withFamilyStatus: row["Bride / Groom Lives with Family"],
           familyLocationCountry: parseInt(row["Family Settled - Country"]) || 0,
           familyLocationState: parseInt(row["Family Settled - State"]) || 0,
           familyLocationCity: parseInt(row["Family Settled - City"]) || 0,
           religion: parseInt(row["Religion"]) || 0,
           caste: row["Caste"],
-          community: parseInt(row["Community"]) || 0,
+          community: parseInt(row["F Community"]) || 0,
           familyAnnualIncomeStart: parseInt(row["Family Annual Income Range"]?.split("-")[0]?.trim()) || 0,
           familyAnnualIncomeEnd: parseInt(row["Family Annual Income Range"]?.split("-")[1]?.trim()) || 0,
         },
@@ -272,22 +289,23 @@ exports.uploadcsv = async (req, res) => {
           heightRangeStart: parseInt(row["Height (Feet) Range"]) || 0,
           heightRangeEnd: parseInt(row["To Range"]) || 0,
           maritalStatus: row["Martial Status"],
-          community: parseInt(row["Community Of"]) || 0,
+          community: parseInt(row["Community"]) || 0,
           caste: parseInt(row[""]) || 0,
           country: parseInt(row["Country"]) || 0,
           state: parseInt(row["State"]) || 0,
           city: parseInt(row["City"]) || 0,
           education: row["Qualification"],
           workingpreference: row["Working Preference"],
+          profession : parseInt(row["P Profession"]) || 0,
           annualIncomeRangeStart: parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
           annualIncomeRangeEnd: parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
-          dietType: parseInt(row["Other Details - Diet"]) || 0,
+          dietType: row["Other Details - Diet"] || "",
         },
         // Populate createdBySchema fields
         createdBy: {
           createdFor: createdForMapping[row["This Profile is for"]],
           name: row["Your First Name"] + " " + row["Your Last Name"],
-          phone: row["Contact Number - Mobile Number (Country Code)"] + row["Contact Number - Mobile Number"],
+          phone: row["Contact Number - Mobile Number (Country Code)"].replace("+", "") + row["Contact Number - Mobile Number"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",

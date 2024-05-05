@@ -49,7 +49,6 @@ const familyDetailsSchema = mongoose.Schema({
   fatherOccupation: { type: String, default: "", required: false },
   motherName: { type: String, default: "", required: false },
   motherOccupation: { type: String, default: "", required: false },
-  siblings: { type: String, default: "", required: false },
   withFamilyStatus: { type: String, default: "", required: false },
   familyLocationCountry: { type: Number, required: false },
   familyLocationState: { type: Number, required: false },

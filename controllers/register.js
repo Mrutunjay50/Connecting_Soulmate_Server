@@ -116,10 +116,15 @@ exports.registerUser = async (req, res) =>
         break;
       case "5":
         const userPhotos = req.files;
-        const { aboutYourself, interests, fun, fitness, other } = JSON.parse(
+        const { aboutYourself, interests, fun, fitness, other, profileImage } = JSON.parse(
           req.body.selfDetails
         );
 
+        // console.log(JSON.parse(
+        //   req.body.selfDetails
+        // ));
+        // console.log(req.files);
+        
         // Check if user.selfDetails exists, if not, create a new object
         if (!user.selfDetails || !user.selfDetails[0])
         {
@@ -128,6 +133,7 @@ exports.registerUser = async (req, res) =>
 
         // Update self details
         const selfDetails = user.selfDetails[0];
+        selfDetails.profilePicture = profileImage;
         selfDetails.aboutYourself = aboutYourself;
         selfDetails.interests = interests;
         selfDetails.fun = fun;
@@ -171,7 +177,6 @@ exports.registerUser = async (req, res) =>
         } catch (error)
         {
           console.error("Error saving user data:", error);
-          // Send error response or handle failure
         }
         break;
       case "6":

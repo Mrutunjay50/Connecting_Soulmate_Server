@@ -1,3 +1,4 @@
+const User = require('../models/Users');
 const ExchangeRate = require('../models/exchangeRate');
 
 // Controller to create a new exchange rate
@@ -61,9 +62,23 @@ exports.updateExchangeRateByCurrency = async (req, res) => {
       { rateToUSD },
       { new: true }
     );
-
+    
     if (!exchangeRate) {
       return res.status(404).json({ error: 'Exchange rate not found' });
+    }
+    const updateResult = await User.updateMany(
+      { "annualIncomeType": currency },
+      { 
+        $set: { 
+          "annualIncomeUsd": { 
+            $multiply: ["$annualIncomeValue", rateToUSD] 
+          } 
+        } 
+      }
+    );
+    console.log(updateResult);
+    if (updateResult.nModified === 0) {
+      return res.status(404).json({ error: 'No users found with matching annualCurrency' });
     }
 
     return res.status(200).json(exchangeRate);
