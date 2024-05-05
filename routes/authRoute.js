@@ -7,6 +7,7 @@ const {
   getAllUsers,
 } = require("../controllers/auth");
 const express = require("express");
+const { isAdmin } = require("../middleware/is_auth");
 const router = express.Router();
 const validateSignupInput = [
   body("email")
@@ -52,6 +53,6 @@ router.post("/createMagicLink", magicLinkController);
 router.post("/signup", signupController);
 router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
-router.get("/get-all-users", getAllUsers);
+router.get("/get-all-users",isAdmin ,getAllUsers);
 
 module.exports = router;

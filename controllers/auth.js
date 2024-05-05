@@ -56,8 +56,9 @@ const magicLinkController = async (req, res) => {
       return res.status(400).json({ message: "Invalid field!" });
 
     const mobile = number.split("-")[1].trim();
+    const countryCode = number.split("-")[0].trim();
     const existingUser = await User.findOne({
-      "createdBy.phone": mobile,
+      "createdBy.phone": countryCode + mobile,
     });
     console.log(existingUser);
 

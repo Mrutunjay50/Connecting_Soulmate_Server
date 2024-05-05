@@ -156,7 +156,7 @@ const userSchema = mongoose.Schema(
       default : ""
     },
     annualIncomeType: { type: String },
-    type : { type: String, required: false, enum :["users", "admin"], default : "users"}
+    accessType : { type: String, required: false, enum :["users", "admin"], default : "users"}
   },
   { timestamps: true }
 );

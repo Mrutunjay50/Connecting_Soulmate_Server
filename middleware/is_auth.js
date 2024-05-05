@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/Users");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -71,8 +71,10 @@ const isAdmin = async (req, res, next) => {
         if (!user) {
           return res.status(401).json({ message: "User not found." });
         }
+        console.log(user.lastLogin);
         // Check if the user is an admin
-        if (user.admin) {
+        if (user.accessType === "admin") {
+          req.user = user;
           next(); // If the user is an admin, proceed to the next middleware/controller
         } else {
           return res.status(403).json({ message: "Not admin." });

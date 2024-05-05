@@ -287,8 +287,7 @@ exports.uploadcsv = async (req, res) => {
         createdBy: {
           createdFor: createdForMapping[row["This Profile is for"]],
           name: row["Your First Name"] + " " + row["Your Last Name"],
-          phone: row["Contact Number - Mobile Number"],
-          countryCode: row["Contact Number - Mobile Number (Country Code)"],
+          phone: row["Contact Number - Mobile Number (Country Code)"] + row["Contact Number - Mobile Number"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
@@ -296,7 +295,8 @@ exports.uploadcsv = async (req, res) => {
         registrationPage: row[""],
         annualIncomeType: row["Approximate Annual Income"].split("(")[1]?.replace(")","") || "INR",
         userId: "",
-        type : "users",
+        accessType : "users",
+        isDeleted : false
       });
 
       // Generate userId based on the data
