@@ -57,6 +57,10 @@ exports.registerUser = async (req, res) => {
         ) {
           age--;
         }
+
+        if (age < 21) {
+          return res.status(400).json({ error: "You must be at least 21 years old to register." }); // Stop further execution
+        }
         user.basicDetails[0] = {
           ...req.body.basicDetails,
           name: `${fname} ${mname} ${lname}`,

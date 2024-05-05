@@ -46,7 +46,7 @@ exports.acceptProfileRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.profileRequestTo !== profileRequestToId) {
+    if (request.profileRequestTo.toString() !== profileRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot accept this profile request" });
     }
     await updateRequestStatus(
@@ -85,7 +85,7 @@ exports.declineProfileRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.profileRequestTo !== profileRequestToId) {
+    if (request.profileRequestTo.toString() !== profileRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot decline this profile request" });
     }
     await updateRequestStatus(
@@ -124,7 +124,7 @@ exports.cancelProfileRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.profileRequestBy !== profileRequestById) {
+    if (request.profileRequestBy.toString() !== profileRequestById) {
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this profile request" });
     }
     await updateRequestStatus(
@@ -243,7 +243,7 @@ exports.acceptInterestRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.interestRequestTo !== interestRequestToId) {
+    if (request.interestRequestTo.toString() !== interestRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
     }
     await updateRequestStatus(
@@ -283,7 +283,7 @@ exports.declineInterestRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.interestRequestTo !== interestRequestToId) {
+    if (request.interestRequestTo.toString() !== interestRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
     }
 
@@ -324,7 +324,7 @@ exports.cancelInterestRequest = async (req, res) => {
     }
 
     // Check if the user is authorized to cancel the request
-    if (request.interestRequestBy !== interestRequestById) {
+    if (request.interestRequestBy.toString() !== interestRequestById) {
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this interest request" });
     }
 

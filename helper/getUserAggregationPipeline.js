@@ -317,6 +317,14 @@ exports.getUserAggregationPipeline = (userId, page) => {
           },
         },
         {
+          $lookup: {
+            from: "communities", // name of the Country collection
+            localField: "partnerPreference.community",
+            foreignField: "community_id",
+            as: "communitytype",
+          },
+        },
+        {
           $project: {
             _id: 1,
             userId: 1,
@@ -331,6 +339,9 @@ exports.getUserAggregationPipeline = (userId, page) => {
                   citytype: { $arrayElemAt: ["$citytype.city_name", 0] },
                   professiontype: {
                     $arrayElemAt: ["$professiontype.proffesion_name", 0],
+                  },
+                  communitytype: {
+                    $arrayElemAt: ["$communitytype.community_name", 0],
                   },
                 },
               ],
