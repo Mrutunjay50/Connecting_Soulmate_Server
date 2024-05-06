@@ -11,7 +11,7 @@ exports.getMatchesAccordingToPreference = async (req, res) =>
       const { gender } = req.params;
       const { ageRangeStart, ageRangeEnd, heightRangeStart, heightRangeEnd,
         annualIncomeRangeStart, annualIncomeRangeEnd, maritalStatus, community,
-        caste, country, state, city, education, dietType, profession, page } = req.query;
+        caste, country, state, city, education, dietType, profession, page, category } = req.query;
       const filterConditions = [];
       const skip = (parseInt(page) - 1) * PAGE_LIMIT;
       const limit = PAGE_LIMIT;
