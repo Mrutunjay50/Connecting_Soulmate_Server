@@ -63,18 +63,19 @@ const generateFileName = (originalname) => {
 };
 
 const getSignedUrlFromS3 = async (key, expiresIn = 3600) => {
-
-  if(key){
-    try {
+  try {
+    if (key) {
       const getObjectParams = {
         Bucket: process.env.BUCKET_NAME,
         Key: key,
       };
       const command = new GetObjectCommand(getObjectParams);
       return await getSignedUrl(S3, command, { expiresIn });
-    } catch (error) {
-      throw new Error('Error generating signed URL: ' + error.message);
+    } else {
+      return null;
     }
+  } catch (error) {
+    throw new Error('Error generating signed URL: ' + error.message);
   }
 };
 
