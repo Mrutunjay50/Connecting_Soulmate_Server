@@ -6,6 +6,7 @@ dotenv.config();
 const User = require("../models/Users");
 const { UserDetail } = require("otpless-node-js-auth-sdk");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+const { getAggregationPipelineForUsers } = require("../helper/aggregationPipelineForUsers");
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
@@ -162,28 +163,39 @@ const signupController = async (req, res) => {
 
 const getUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
+    const userData = await User.findById(req.params.userId);
+    if (!userData) {
       const error = new Error("User not found.");
       error.statusCode = 404;
       console.log(error);
+      return res.status(404).json({ error: "User not found." });
     }
+    const aggregationPipeline = getAggregationPipelineForUsers(req.params.userId);
+    let aggregatedData = await User.aggregate(aggregationPipeline);
+    
+    if (aggregatedData.length === 0) {
+      return res.status(404).json({ error: "User data not found." });
+    }
+    
+    let user = aggregatedData[0]; // Get the first element of the aggregated result
+    
     const profileUrl = await getSignedUrlFromS3(
-      user.selfDetails[0]?.profilePicture
+      user.selfDetails?.profilePicture
     );
-    user.selfDetails[0].profilePictureUrl = profileUrl;
-    const signedUrlsPromises = user.selfDetails[0]?.userPhotos.map((item) =>
+    user.selfDetails.profilePictureUrl = profileUrl || "";
+    const signedUrlsPromises = user.selfDetails?.userPhotos.map((item) =>
       getSignedUrlFromS3(item)
     );
     try {
       const signedUrls = await Promise.all(signedUrlsPromises);
-      user.selfDetails[0].userPhotosUrl = signedUrls;
+      user.selfDetails.userPhotosUrl = signedUrls;
     } catch (error) {
       console.error("Error:", error);
     }
     res.status(200).json({ user });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
