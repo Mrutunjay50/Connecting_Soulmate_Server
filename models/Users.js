@@ -151,11 +151,11 @@ const userSchema = mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["", "A", "B", "C", "AB", "AC", "BC", "ABC"],
+      enum: ["", "A", "B", "C", "A,B", "A,C", "B,C", "A,B,C"],
       default : ""
     },
     annualIncomeType: { type: String },
-    accessType : { type: String, required: false, enum :["users", "admin"], default : "users"}
+    accessType : { type: String, required: false, enum :["0", "1", "2"], default : "2"}
   },
   { timestamps: true }
 );

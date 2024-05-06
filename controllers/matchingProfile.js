@@ -98,6 +98,11 @@ exports.getMatchesAccordingToPreference = async (req, res) =>
       {
         filterConditions.push({ $or: orConditions });
       }
+
+      // Category filtering as an AND condition
+      if (category) {
+        filterConditions.push({ "category": { $in: [category, new RegExp(`^${category}$`, "i")] } });
+      }
   
       // Selectively project only required fields
       const filteredUsers = await User.find({ $and: filterConditions })
@@ -130,7 +135,6 @@ exports.getMatchesAccordingToPreference = async (req, res) =>
         const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture || "");
         user.selfDetails[0].profilePictureUrl = profileUrl || "";
       
-        console.log(profileUrl);
         
         if (user.familyDetails && user.familyDetails[0]?.community) {
           const communityData = communities.find(community => community.community_id === user.familyDetails[0]?.community);
