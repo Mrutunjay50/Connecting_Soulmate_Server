@@ -153,6 +153,14 @@ exports.getAggregationPipelineForUsers = (userId) => {
             $project: {
               _id: 1,
               userId: 1,
+              gender : 1,
+              lastLogin : 1,
+              registrationPage : 1,
+              registrationPhase : 1,
+              accessType : 1,
+              annualIncomeType : 1,
+              category : 1,
+              isDeleted : 1,
               basicDetails: {
                 $mergeObjects: [
                   { $arrayElemAt: ["$basicDetails", 0] },
