@@ -1,3 +1,4 @@
+const { getAggregationPipelineForUsers } = require("../helper/aggregationPipelineForUsers");
 const User = require("../models/Users");
 
 exports.updateRegistrationPhase = async (req, res) => {
@@ -34,16 +35,39 @@ exports.updateRegistrationPhase = async (req, res) => {
 
   const getUserById = async (req, res, next) => {
     try {
-      const user = await User.findById(id)
-  
-      if (!user) {
-        const error = new Error("user not found.");
+      const userData = await User.findById(req.params.userId);
+      if (!userData) {
+        const error = new Error("User not found.");
         error.statusCode = 404;
         console.log(error);
+        return res.status(404).json({ error: "User not found." });
+      }
+      const aggregationPipeline = getAggregationPipelineForUsers(req.params.userId);
+      let aggregatedData = await User.aggregate(aggregationPipeline);
+      
+      if (aggregatedData.length === 0) {
+        return res.status(404).json({ error: "User data not found." });
+      }
+      
+      let user = aggregatedData[0]; // Get the first element of the aggregated result
+      
+      const profileUrl = await getSignedUrlFromS3(
+        user.selfDetails?.profilePicture
+      );
+      user.selfDetails.profilePictureUrl = profileUrl || "";
+      const signedUrlsPromises = user.selfDetails?.userPhotos.map((item) =>
+        getSignedUrlFromS3(item)
+      );
+      try {
+        const signedUrls = await Promise.all(signedUrlsPromises);
+        user.selfDetails.userPhotosUrl = signedUrls;
+      } catch (error) {
+        console.error("Error:", error);
       }
       res.status(200).json({ user });
     } catch (err) {
       console.log(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   };
   
