@@ -1,8 +1,8 @@
 const {
   getUserAggregationPipeline,
 } = require("../helper/getUserAggregationPipeline");
-const User = require("../models/Users");
-const ExchangeRate = require("../models/exchangeRate");
+const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/registerationPageHandler");
+const User = require("../models/Users")
 const {
   Proffesion,
   FunActivity,
@@ -19,13 +19,7 @@ const {
   getSignedUrlFromS3,
   deleteFromS3,
 } = require("../utils/s3Utils");
-const moment = require("moment");
 
-function generateUniqueNumber() {
-  const randomNumber = Math.floor(Math.random() * 100);
-  const uniqueNumber = `${randomNumber}`;
-  return uniqueNumber;
-}
 
 exports.registerUser = async (req, res) => {
   try {
@@ -34,8 +28,6 @@ exports.registerUser = async (req, res) => {
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
-    console.log(req.body);
-
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -43,177 +35,22 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
-        const currentDate = new Date();
-        const birthDate = new Date(dateOfBirth);
-        let age = currentDate.getFullYear() - birthDate.getFullYear();
-        const currentMonth = currentDate.getMonth();
-        const birthMonth = birthDate.getMonth();
-
-        if (
-          currentMonth < birthMonth ||
-          (currentMonth === birthMonth &&
-            currentDate.getDate() < birthDate.getDate())
-        ) {
-          age--;
-        }
-
-        if (age < 21) {
-          return res
-            .status(200)
-            .json({ message: "You must be at least 21 years old to register." }); // Stop further execution
-        }
-        user.basicDetails[0] = {
-          ...req.body.basicDetails,
-          name: `${fname} ${mname} ${lname}`,
-          gender: user.createdBy[0].gender,
-          age: age.toString(),
-        };
-        user.registrationPhase = "registering";
-
-        // Generate userId and save the updated user document
-        const genderPrefix = generateUniqueNumber();
-        const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();
-        const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-        const dobFormatted = dob.format("YYYYMM");
-        // Count all user documents
-        const noOfUsers = await User.countDocuments({});
-
-        user.basicDetails[0].userId =
-          `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
-            ?.toUpperCase()
-            .replaceAll(" ", "");
+        await handlePage1(req, user);
         break;
       case "2":
-        user.additionalDetails[0] = { ...req.body.additionalDetails };
+        await handlePage2(req, user);
         break;
       case "3":
-        var { annualIncomeValue, currencyType } = req.body.careerDetails;
-        // Fetch exchange rates from the database
-        const exchangeRate = await ExchangeRate.findOne({
-          currency: currencyType,
-        });
-
-        // Convert annualIncomeValue to USD
-        let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
-        user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
+        await handlePage3(req, user);
         break;
       case "4":
-        var { annualIncomeValue, country, state, city } =
-          req.body.familyDetails;
-
-        user.familyDetails[0] = {
-          ...req.body.familyDetails,
-          familyAnnualIncomeStart: annualIncomeValue,
-          familyLocationCountry: country,
-          familyLocationState: state,
-          familyLocationCity: city,
-        };
+        await handlePage4(req, user);
         break;
       case "5":
-        const userPhotos = req.files;
-        const { aboutYourself, interests, fun, fitness, other, profileImage } =
-          JSON.parse(req.body.selfDetails);
-
-        // console.log(JSON.parse(
-        //   req.body.selfDetails
-        // ));
-        // console.log(req.files);
-
-        // Check if user.selfDetails exists, if not, create a new object
-        if (!user.selfDetails || !user.selfDetails[0]) {
-          user.selfDetails = [{}];
-        }
-
-        // Update self details
-        const selfDetails = user.selfDetails[0];
-        selfDetails.profilePicture = profileImage;
-        selfDetails.aboutYourself = aboutYourself;
-        selfDetails.interests = interests;
-        selfDetails.fun = fun;
-        selfDetails.fitness = fitness;
-        selfDetails.other = other;
-
-        // If new photos are uploaded, process them
-        if (userPhotos && userPhotos.length > 0) {
-          // Remove excess photos if total count exceeds 5
-          if (
-            selfDetails.userPhotos &&
-            selfDetails.userPhotos.length + userPhotos.length > 5
-          ) {
-            const excessCount =
-              selfDetails.userPhotos.length + userPhotos.length - 5;
-            selfDetails.userPhotos.splice(0, excessCount);
-          }
-
-          // Upload new photos to S3 and add their file names to userPhotos array
-          try {
-            const uploadedPhotos = await Promise.all(
-              userPhotos.map(async (photo) => {
-                const { buffer, originalname, mimetype } = photo;
-                const resizedImageBuffer = await buffer;
-                const fileName = generateFileName(originalname);
-                await uploadToS3(resizedImageBuffer, fileName, mimetype);
-                return fileName;
-              })
-            );
-            // Add uploaded photos to userPhotos array
-            selfDetails.userPhotos.push(...uploadedPhotos);
-          } catch (error) {
-            console.error("Error uploading images to S3:", error);
-          }
-        }
-
-        try {
-          // Save the updated user object
-          await user.save();
-          // Send response or handle success
-        } catch (error) {
-          console.error("Error saving user data:", error);
-        }
+        await handlePage5(req, user);
         break;
       case "6":
-        var {
-          ageRangeStart,
-          ageRangeEnd,
-          heightRangeStart,
-          heightRangeEnd,
-          annualIncomeRangeStart,
-          annualIncomeRangeEnd,
-        } = req.body.partnerPreference;
-        if (
-          req.body.partnerPreference &&
-          req.body.partnerPreference.education
-        ) {
-          if (Array.isArray(req.body.partnerPreference.education)) {
-            req.body.partnerPreference.education =
-              req.body.partnerPreference.education.toString();
-          }
-        }
-        if (
-          req.body.partnerPreference &&
-          req.body.partnerPreference.maritalStatus
-        ) {
-          if (Array.isArray(req.body.partnerPreference.maritalStatus)) {
-            req.body.partnerPreference.maritalStatus =
-              req.body.partnerPreference.maritalStatus.toString();
-          }
-        }
-        if (req.body.partnerPreference && req.body.partnerPreference.dietType) {
-          if (Array.isArray(req.body.partnerPreference.dietType)) {
-            req.body.partnerPreference.dietType =
-              req.body.partnerPreference.dietType.toString();
-          }
-        }
-        user.partnerPreference[0] = {
-          ...req.body.partnerPreference,
-          ageRangeStart: ageRangeStart,
-          ageRangeEnd: ageRangeEnd,
-          heightRangeStart: heightRangeStart,
-          heightRangeEnd: heightRangeEnd,
-          annualIncomeRangeStart: annualIncomeRangeStart,
-          annualIncomeRangeEnd: annualIncomeRangeEnd,
-        };
+        await handlePage6(req, user);
         break;
       default:
         return res.status(400).json({ error: "Invalid page number" });
