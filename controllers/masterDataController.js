@@ -297,8 +297,8 @@ exports.uploadcsv = async (req, res) => {
           fitness: row["Fitness"],
           other: row["Other Interests"],
           profilePicture:
-            row["Images"].split(",").join(".jpeg,").split(",")[0] || "",
-          userPhotos: row["Images"].split(",").join(".jpeg,").split(",") || [],
+            (row["Images"] + ",").split(",").join(".jpeg,").split(",")[0] || "",
+          userPhotos: (row["Images"] + ",").split(",").join(".jpeg,").split(",") || [],
           userPhotosUrl: row[""],
           profilePictureUrl: row[""],
           aboutYourself: row["About Yourself"],
@@ -342,8 +342,12 @@ exports.uploadcsv = async (req, res) => {
           row["Approximate Annual Income"].split("(")[1]?.replace(")", "") ||
           "INR",
         userId: "",
-        accessType: "users",
+        accessType: "2",
         isDeleted: false,
+        isProfileRequest : false,
+        isInterestRequest : false,
+        isShortListed : false,
+        isBlocked : false
       });
 
       // Generate userId based on the data

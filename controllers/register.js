@@ -60,8 +60,8 @@ exports.registerUser = async (req, res) => {
 
         if (age < 21) {
           return res
-            .status(400)
-            .json({ error: "You must be at least 21 years old to register." }); // Stop further execution
+            .status(200)
+            .json({ message: "You must be at least 21 years old to register." }); // Stop further execution
         }
         user.basicDetails[0] = {
           ...req.body.basicDetails,
@@ -334,7 +334,7 @@ exports.getPageData = async (req, res) => {
     // Add image URL setup for page 5
     if (page === "5" && pageData.length > 0) {
       const selfData = pageData[0].selfDetails;
-      const signedUrlsPromises = selfData.userPhotos.map((item) =>
+      const signedUrlsPromises = selfData.userPhotos?.map((item) =>
         getSignedUrlFromS3(item)
       );
       try {

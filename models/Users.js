@@ -135,6 +135,26 @@ const userSchema = mongoose.Schema(
       enum: [true, false],
       default : false
     },
+    isBlocked : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
+    isShortListed : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
+    isInterestRequest : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
+    isProfileRequest : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
     registrationPhase: {
       type: String,
       enum: ["registering", "notapproved", "approved"],

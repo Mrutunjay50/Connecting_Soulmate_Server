@@ -161,6 +161,7 @@ exports.getAggregationPipelineForUsers = (userId) => {
               annualIncomeType : 1,
               category : 1,
               isDeleted : 1,
+              createdBy : 1,
               basicDetails: {
                 $mergeObjects: [
                   { $arrayElemAt: ["$basicDetails", 0] },

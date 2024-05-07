@@ -183,7 +183,7 @@ const getUser = async (req, res, next) => {
       user.selfDetails?.profilePicture
     );
     user.selfDetails.profilePictureUrl = profileUrl || "";
-    const signedUrlsPromises = user.selfDetails?.userPhotos.map((item) =>
+    const signedUrlsPromises = user.selfDetails?.userPhotos?.map((item) =>
       getSignedUrlFromS3(item)
     );
     try {
