@@ -1,6 +1,7 @@
 const User = require("../models/Users");
 const ExchangeRate = require("../models/exchangeRate");
 const moment = require("moment");
+const { generateFileName, uploadToS3 } = require("../utils/s3Utils");
 
 
 function generateUniqueNumber() {
@@ -71,9 +72,10 @@ exports.handlePage4 = async (req, user) => {
 
 exports.handlePage5 = async (req, user) => {
   const userPhotos = req.files;
-  const { aboutYourself, interests, fun, fitness, other, profileImage } =
+  const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } =
     JSON.parse(req.body.selfDetails);
 
+    console.log(aboutYourself, interests, fun, fitness, other, profilePicture);
   if (!user.selfDetails || !user.selfDetails[0]) {
     user.selfDetails = [{}];
   }
@@ -102,6 +104,9 @@ exports.handlePage5 = async (req, user) => {
           const resizedImageBuffer = await buffer;
           const fileName = generateFileName(originalname);
           await uploadToS3(resizedImageBuffer, fileName, mimetype);
+          if(originalname === profilePicture){
+            selfDetails.profilePicture = String(fileName); 
+          } 
           return fileName;
         })
       );
