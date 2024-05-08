@@ -13,7 +13,7 @@ const {
   Diet,
 } = require("../models/masterSchemas");
 const {
-  resizeImage,
+  // resizeImage,
   uploadToS3,
   generateFileName,
   getSignedUrlFromS3,
@@ -60,87 +60,6 @@ exports.registerUser = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: "Data added successfully", user });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error", err });
-  }
-};
-
-exports.deleteImagesInUser = async (req, res) => {
-  try {
-    const { imageKey } = req.body;
-    const { userId } = req.params;
-    const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
-    if (!user) {
-      return res.status(404).json({ message: "User not found" }); // Added 'return' statement
-    }
-    user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter(
-      (item) => item !== imageKey
-    );
-    await user.save();
-    await deleteFromS3(imageKey);
-    res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error", err });
-  }
-};
-
-exports.addImagesInUser = async (req, res) => {
-  try {
-    const userPhotos = req.files;
-
-    console.log(userPhotos);
-    const { userId } = req.params;
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ message: "user not found" });
-    }
-    if (!user.selfDetails || !user.selfDetails[0]) {
-      user.selfDetails = [{}];
-    }
-
-    // Update self details
-    let selfDetails = user.selfDetails[0];
-    if (userPhotos && userPhotos.length > 0) {
-      // Remove excess photos if total count exceeds 5
-      if (
-        selfDetails.userPhotos &&
-        selfDetails.userPhotos.length + userPhotos.length > 5
-      ) {
-        const excessCount =
-          selfDetails.userPhotos.length + userPhotos.length - 5;
-        selfDetails.userPhotos.splice(0, excessCount);
-      }
-
-      // Upload new photos to S3 and add their file names to userPhotos array
-      try {
-        const uploadedPhotos = await Promise.all(
-          userPhotos.map(async (photo) => {
-            const { buffer, originalname, mimetype } = photo;
-            const resizedImageBuffer = await buffer;
-            const fileName = generateFileName(originalname);
-            await uploadToS3(resizedImageBuffer, fileName, mimetype);
-            return fileName;
-          })
-        );
-        // Add uploaded photos to userPhotos array
-        selfDetails.userPhotos.push(...uploadedPhotos);
-      } catch (error) {
-        console.error("Error uploading images to S3:", error);
-        res.status(500).json({ error: "Error uploading images to S3" });
-        return; // Exit the function early
-      }
-    }
-    try {
-      // Save the updated user object
-      await user.save();
-      // Send success response
-      res.status(200).json({ message: "User data updated successfully" });
-    } catch (error) {
-      console.error("Error saving user data:", error);
-      res.status(500).json({ error: "Error saving user data" });
-    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
@@ -245,6 +164,87 @@ exports.getPageData = async (req, res) => {
     res
       .status(200)
       .json({ message: "Data fetched successfully", pageData: pageData[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+exports.deleteImagesInUser = async (req, res) => {
+  try {
+    const { imageKey } = req.body;
+    const { userId } = req.params;
+    const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
+    if (!user) {
+      return res.status(404).json({ message: "User not found" }); // Added 'return' statement
+    }
+    user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter(
+      (item) => item !== imageKey
+    );
+    await user.save();
+    await deleteFromS3(imageKey);
+    res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+exports.addImagesInUser = async (req, res) => {
+  try {
+    const userPhotos = req.files;
+
+    console.log(userPhotos);
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "user not found" });
+    }
+    if (!user.selfDetails || !user.selfDetails[0]) {
+      user.selfDetails = [{}];
+    }
+
+    // Update self details
+    let selfDetails = user.selfDetails[0];
+    if (userPhotos && userPhotos.length > 0) {
+      // Remove excess photos if total count exceeds 5
+      if (
+        selfDetails.userPhotos &&
+        selfDetails.userPhotos.length + userPhotos.length > 5
+      ) {
+        const excessCount =
+          selfDetails.userPhotos.length + userPhotos.length - 5;
+        selfDetails.userPhotos.splice(0, excessCount);
+      }
+
+      // Upload new photos to S3 and add their file names to userPhotos array
+      try {
+        const uploadedPhotos = await Promise.all(
+          userPhotos.map(async (photo) => {
+            const { buffer, originalname, mimetype } = photo;
+            const resizedImageBuffer = await buffer;
+            const fileName = generateFileName(originalname);
+            await uploadToS3(resizedImageBuffer, fileName, mimetype);
+            return fileName;
+          })
+        );
+        // Add uploaded photos to userPhotos array
+        selfDetails.userPhotos.push(...uploadedPhotos);
+      } catch (error) {
+        console.error("Error uploading images to S3:", error);
+        res.status(500).json({ error: "Error uploading images to S3" });
+        return; // Exit the function early
+      }
+    }
+    try {
+      // Save the updated user object
+      await user.save();
+      // Send success response
+      res.status(200).json({ message: "User data updated successfully" });
+    } catch (error) {
+      console.error("Error saving user data:", error);
+      res.status(500).json({ error: "Error saving user data" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });

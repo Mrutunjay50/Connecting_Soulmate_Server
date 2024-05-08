@@ -88,7 +88,7 @@ const preferenceSchema = mongoose.Schema({
   state: { type: Number, default: 0, required: false },
   city: { type: Number, default: 0, required: false },
   education: { type: String, default: "", required: false },
-  profession: { type: Number, default: 0, required: false },
+  profession: { type: String, default: 0, required: false },
   annualIncomeRangeStart: { type: Number, default: 0, required: false },
   annualIncomeRangeEnd: { type: Number, default: 0, required: false },
   dietType: { type: String, default: 0, required: false },

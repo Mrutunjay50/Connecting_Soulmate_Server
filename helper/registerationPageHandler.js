@@ -113,13 +113,13 @@ exports.handlePage5 = async (req, user) => {
 };
 
 exports.handlePage6 = async (req, user) => {
-  const {
+  let {
     ageRangeStart,
     ageRangeEnd,
     heightRangeStart,
     heightRangeEnd,
-    annualIncomeRangeStart,
-    annualIncomeRangeEnd,
+    annualIncomeValue,
+    annualIncomeRangeEnd
   } = req.body.partnerPreference;
 
   if (req.body.partnerPreference && req.body.partnerPreference.education) {
@@ -136,17 +136,25 @@ exports.handlePage6 = async (req, user) => {
   }
   if (req.body.partnerPreference && req.body.partnerPreference.dietType) {
     if (Array.isArray(req.body.partnerPreference.dietType)) {
-      req.body.partnerPreference.dietType =
-        req.body.partnerPreference.dietType.toString();
+      req.body.partnerPreference.dietType = req.body.partnerPreference.dietType.toString();
     }
   }
+  if (req.body.partnerPreference && req.body.partnerPreference.profession) {
+    if (Array.isArray(req.body.partnerPreference.profession)) {
+      req.body.partnerPreference.profession = req.body.partnerPreference.profession.toString();
+    }
+  }
+
+  console.log(req.body);
   user.partnerPreference[0] = {
     ...req.body.partnerPreference,
+    dietType : req.body.partnerPreference.dietType,
+    profession :req.body.partnerPreference.profession,
     ageRangeStart: ageRangeStart,
     ageRangeEnd: ageRangeEnd,
     heightRangeStart: heightRangeStart,
     heightRangeEnd: heightRangeEnd,
-    annualIncomeRangeStart: annualIncomeRangeStart,
+    annualIncomeRangeStart: annualIncomeValue,
     annualIncomeRangeEnd: annualIncomeRangeEnd,
   };
 };

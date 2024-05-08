@@ -6,6 +6,16 @@ const profileRequestSchema = mongoose.Schema({
   action: { type: String, enum:["pending","accepted","declined", "cancelled", "blocked"] },
   isShortListedTo: { type: String, enum:["no", "yes"], default : "no" },
   isShortListedBy: { type: String, enum:["no", "yes"], default : "no" },
+  isBlocked : {
+    type: String,
+    enum: [true, false],
+    default : false
+  },
+  isInterestRequest : {
+    type: String,
+    enum: [true, false],
+    default : false
+  },
 });
 
 
@@ -15,6 +25,16 @@ const interestRequestSchema = mongoose.Schema({
   action: { type: String, enum:["pending","accepted","declined", "cancelled", "blocked"] },
   isShortListedTo: { type: String, enum:["no", "yes"], default : "no" },
   isShortListedBy: { type: String, enum:["no", "yes"], default : "no" },
+  isBlocked : {
+    type: String,
+    enum: [true, false],
+    default : false
+  },
+  isProfileRequest : {
+    type: String,
+    enum: [true, false],
+    default : false
+  },
 });
 
 const ProfileRequests = mongoose.model("profilerequests", profileRequestSchema);
