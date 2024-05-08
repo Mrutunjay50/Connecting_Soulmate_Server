@@ -72,7 +72,10 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
       orConditions.push({ "careerDetails.highestEducation": { $in: educationArray } });
   }
   community && orConditions.push({ "familyDetails.community": community });
-  profession && orConditions.push({ "careerDetails.profession": profession });
+  if (profession) {
+      const professionTypeArray = profession.trim().split(",").map(val => val.trim());
+      orConditions.push({ "careerDetails.profession": { $in: professionTypeArray } });
+  }
   if (dietType) {
       const dietTypeArray = dietType.trim().split(",").map(val => val.trim());
       orConditions.push({ "additionalDetails.diet": { $in: dietTypeArray } });
