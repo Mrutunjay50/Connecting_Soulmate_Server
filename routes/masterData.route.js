@@ -9,6 +9,7 @@ const router = (app) => {
   // app.post("/masterDataUploader",isAdmin, fileMulter, masterController.uploadcsv);
   app.post("/masterDataUploader", fileMulter, masterController.uploadcsv);
   app.get("/getMasterData/:type", getMasterController.getMasterData);
+  app.get("/getMasterData/:type/:id", getMasterController.getMasterDataById);
   app.get("/countries", countriesController.getCountries);
   app.get("/country-state-city", countriesController.getDataById);
   app.get("/states", countriesController.getStatesByCountry);

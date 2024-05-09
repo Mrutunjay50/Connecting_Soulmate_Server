@@ -267,7 +267,7 @@ exports.acceptInterestRequest = async (req, res) => {
 
     // Check if the user is authorized to cancel the request
     if (request.interestRequestTo.toString() !== interestRequestToId) {
-      return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
+      return res.status(403).json({ error: "Unauthorized: You cannot accept this interest request" });
     }
     await updateRequestStatus(
       InterestRequests,

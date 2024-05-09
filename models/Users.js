@@ -121,7 +121,7 @@ const createdBySchema = mongoose.Schema({
 // Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
-    userId: { type: String, default: "" },
+    userId: { type: String, default: ""},
     createdBy: [createdBySchema],
     basicDetails: [basicDetailsSchema],
     additionalDetails: [additionalDetailsSchema],
