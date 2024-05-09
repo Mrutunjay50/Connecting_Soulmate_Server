@@ -8,7 +8,7 @@ const { ListData } = require("./cardListedData");
 
 const PAGE_LIMIT = 10;
 
-exports.getFilteredProfiles = async (req, res, queryParams) => {
+exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
     try {
       const { userId } = req.params;
       const { gender } = req.query;
@@ -16,16 +16,30 @@ exports.getFilteredProfiles = async (req, res, queryParams) => {
       const page = parseInt(req.query.page) || 1;
       const skip = (page - 1) * PAGE_LIMIT;
       const limit = PAGE_LIMIT;
-  
+      let usersData;
       // Fetch users based on query parameters
-      const usersData = await User.find({
-        gender: queryGender,
-        ...queryParams,
-      })
-      .sort({ createdAt: 1 })
-      .skip(skip)
-      .limit(limit)
-      .select(ListData);
+      if (findOne){
+        usersData = await User.find({
+          _id :userId.toString(),
+          gender: queryGender,
+          ...queryParams,
+        })
+        .sort({ createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
+        .select(ListData);
+      }else {
+        usersData = await User.find({
+          gender: queryGender,
+          ...queryParams,
+        })
+        .sort({ createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
+        .select(ListData);
+      }
+
+      // console.log(usersData)
   
       const users = JSON.parse(JSON.stringify(usersData));
   

@@ -1,10 +1,11 @@
 const User = require("../models/Users");
 const { ListData } = require("../helper/cardListedData");
+const { getFilteredProfiles } = require("../helper/getFilteredUsers");
 
 exports.searchById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const {category, gender} = req.query
+    const { category, gender } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: "userId is required" });
@@ -13,20 +14,20 @@ exports.searchById = async (req, res) => {
     if (gender !== "M" && gender !== "F") {
       return res.status(400).json({ error: "Invalid gender" });
     }
-    const queryGender = gender === "F" ? "M" : "F";
-        // Construct the query with userId, gender, and category condition
-        const user = await User.findOne({
-          userId, 
-          gender: queryGender,
-          category: { 
-            $in: [category, new RegExp(`^${category}$`, "i")]
-          }
-        }).select(ListData);
+    // Construct the query with userId, gender, and category condition
+    const user = await User.findOne({
+      userId,
+    });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.status(200).json({ user });
+    req.params.userId = user?._id;
+    const filters = {
+      category: { $in: [category || "", new RegExp(`^${category || ""}$`, "i")] },
+    };
+
+    await getFilteredProfiles(req, res, filters, "findOne");
   } catch (error) {
     console.error("Error searching user by ID:", error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -36,11 +37,11 @@ exports.searchById = async (req, res) => {
 exports.advanceSearch = async (req, res) => {
   try {
     const searchParams = req.body;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const { gender } = req.params;
-    const queryGender = gender === "F" ? "M" : "F";
+    // const page = parseInt(req.query.page) || 1;
+    // const limit = parseInt(req.query.limit) || 10;
+    // const skip = (page - 1) * limit;
+    // const { gender } = req.params;
+    // const queryGender = gender === "F" ? "M" : "F";
 
     // Define mapping between search parameters and MongoDB fields
     const fieldMap = {
@@ -75,11 +76,6 @@ exports.advanceSearch = async (req, res) => {
       },
     };
 
-    // Construct the query
-    const query = {
-      gender: queryGender,
-    };
-
     // Iterate through search parameters and add them to the query
     for (const [param, value] of Object.entries(searchParams)) {
       const field = fieldMap[param];
@@ -92,7 +88,13 @@ exports.advanceSearch = async (req, res) => {
           query[field] = { $in: [value, new RegExp(`^${value}$`, "i")] };
         } else if (typeof field === "string") {
           // If the value is a comma-separated string, split it into an array
-          if (param !== "gender" && param !== "agerange" && param !== "heightrange" && param !== "annualincome" && value.includes(",")) {
+          if (
+            param !== "gender" &&
+            param !== "agerange" &&
+            param !== "heightrange" &&
+            param !== "annualincome" &&
+            value.includes(",")
+          ) {
             const options = value.split(",").map((option) => option.trim());
             query[field] = { $in: options }; // Match any option in the array
           } else {
@@ -109,18 +111,13 @@ exports.advanceSearch = async (req, res) => {
     }
 
     // Execute the query
-    const users = await User.find(query)
-      .skip(skip)
-      .limit(limit)
-      .select(ListData);
-    return res.status(200).json({ users });
+    const filters = { ...query };
+    await getFilteredProfiles(req, res, filters);
   } catch (error) {
     console.error("Error searching users:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 
 // exports.advanceSearch = async (req, res) => {
 //   try {

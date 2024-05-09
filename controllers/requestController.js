@@ -1,5 +1,7 @@
-const { InterestRequests, ProfileRequests } = require("../models/interests");
+const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
 const ShortList = require("../models/shortlistUsers");
+const { ProfileRequests, InterestRequests } = require("../models/interests");
+const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
@@ -462,6 +464,17 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
   res.status(200).json({ message: `${type} request ${status} successfully` });
 }
 
+async function getPendingRequests(Model, userId, type, res, received = false) {
+  const requests = await Model.find({
+    [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
+    action: "pending",
+  }).populate({
+    path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
+    select: ListData,
+  });
+  res.status(200).json({ requests });
+}
+
 async function getRequests(Model, userId, type, status, res) {
 try {
     let requests
@@ -485,20 +498,9 @@ try {
       ]);
     }
 
-    res.status(200).json({ requests });
+    return res.status(200).json({ requests });
   } catch (error) {
     console.error(`Error getting ${status} ${type} requests:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
-
-async function getPendingRequests(Model, userId, type, res, received = false) {
-  const requests = await Model.find({
-    [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
-    action: "pending",
-  }).populate({
-    path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
-    select: ListData,
-  });
-  res.status(200).json({ requests });
 }
