@@ -239,15 +239,15 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-        // Create and save notification for profile request sent
-        const notification = new Notifications({
-          notificationTo: interestRequestTo,
-          notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
-        });
-        await notification.save();
-        // io.getIO().to(interestRequestTo).emit("notification", notification);
-        io.getIO().emit(`notification/${interestRequestTo}`, notification);
-        io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
+    // Create and save notification for profile request sent
+    const notification = new Notifications({
+      notificationTo: interestRequestTo,
+      notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
+    });
+    await notification.save();
+    // io.getIO().to(interestRequestTo).emit("notification", notification);
+    io.getIO().emit(`notification/${interestRequestTo}`, notification);
+    io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
   } catch (error) {
     console.error("Error sending interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
