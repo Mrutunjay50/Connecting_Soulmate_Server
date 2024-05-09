@@ -17,8 +17,8 @@ const basicDetailsSchema = mongoose.Schema({
 const additionalDetailsSchema = mongoose.Schema({
   height: { type: Number, required: false },
   weight: { type: String, required: false },
-  email: { type: String, required: false },
-  contact: { type: String, required: false },
+  email: { type: String, required: false, unique: true },
+  contact: { type: String, required: false, unique: true },
   personalAppearance: { type: String, required: false },
   currentlyLivingInCountry: { type: Number, required: false },
   currentlyLivingInState: { type: Number, required: false },
@@ -114,7 +114,7 @@ const createdBySchema = mongoose.Schema({
     },
   },
   // countryCode : { type: String, required: false },
-  phone: { type: String, required: false },
+  phone: { type: String, required: false, unique: true },
   gender: { type: String, enum: ["F", "M"] },
 });
 
