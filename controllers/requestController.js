@@ -11,7 +11,7 @@ const Notifications = require("../models/notifications");
 exports.sendProfileRequest = async (req, res) => {
   try {
     const { profileRequestBy, profileRequestTo } = req.body;
-    await sendRequest(
+    const message = await sendRequest(
       ProfileRequests,
       profileRequestBy,
       profileRequestTo,
@@ -22,22 +22,22 @@ exports.sendProfileRequest = async (req, res) => {
     const existingNotification = await Notifications.findOne({
       notificationTo: profileRequestTo,
       notificationBy: profileRequestBy,
-      notificationType : "profilesent"
+      notificationType: "profilesent"
     });
     // Create and save notification for profile request sent
-    let notification;
-    if(!existingNotification)(
-      notification = new Notifications({
+    let notifications;
+    if (!existingNotification) {
+      notifications = new Notifications({
         notificationTo: profileRequestTo,
         notificationBy: profileRequestBy,
-        notificationText: `You /(${profileRequestBy})/ have received a profile request from ${profileRequestBy}`,
-        notificationType : "profilesent"
-      })
-    )
-    await notification.save();
-    io.getIO().emit(`notification/${profileRequestTo}`, notification);
-    io.getIO().emit(`profileRequestSent/${profileRequestTo}`, {"message": "request sent"});
-
+        notificationText: `You (${profileRequestBy}) have received a profile request from ${profileRequestTo}`,
+        notificationType: "profilesent"
+      });
+      await notifications.save();
+    }
+    io.getIO().emit(`notification/${profileRequestTo}`, notifications);
+    io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
+    return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -237,7 +237,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
 exports.sendInterestRequest = async (req, res) => {
   try {
     const { interestRequestBy, interestRequestTo } = req.body;
-    await sendRequest(
+    const message = await sendRequest(
       InterestRequests,
       interestRequestBy,
       interestRequestTo,
@@ -251,19 +251,20 @@ exports.sendInterestRequest = async (req, res) => {
       notificationType : "interestsent"
     });
     let notification;
-    if (existingNotification) {
+    if (!existingNotification) {
       notification = new Notifications({
         notificationTo: interestRequestTo,
         notificationBy: interestRequestBy,
         notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
         notificationType : "interestsent"
       });
+      await notification.save();
     }
     // Create and save notification for profile request sent
-    await notification.save();
     // io.getIO().to(interestRequestTo).emit("notification", notification);
     io.getIO().emit(`notification/${interestRequestTo}`, notification);
     io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
+    return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -467,13 +468,13 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
 
     if (existingRequest) {
       if (existingRequest.action === 'pending' && action === 'pending') {
-        return res.status(200).json({ message: `${type} request already sent` });
+        return { message: `${type} request already sent` }
       } else if (existingRequest.action === 'blocked') {
-        return res.status(200).json({ message: `${type}: request can't be sent as you have blocked the user` });
+        return ({ message: `${type}: request can't be sent as you have blocked the user` });
       } else {
         existingRequest.action = action; // Change the action to 'pending'
         await existingRequest.save();
-        return res.status(200).json({ message: `${type} request updated to ${action}` });
+        return ({ message: `${type} request updated to ${action}` });
       }
     }
 
@@ -504,7 +505,7 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
     newRequest.isProfileRequestTo = !!profilelistTo;
 
     await newRequest.save();
-    res.status(201).json({ message: `${type} request sent successfully` });
+    return { message: `${type} request sent successfully` }
   } catch (error) {
     console.error("Error processing request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -541,7 +542,6 @@ async function getPendingRequests(Model, userId, type, res, received) {
     select: ListData,
   });
 
-  console.log(requests);
   return requests;
 }
 
