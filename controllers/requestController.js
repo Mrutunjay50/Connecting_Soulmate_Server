@@ -19,11 +19,17 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
-
+    const existingNotification = await Notifications.findOne({
+      notificationTo: profileRequestTo,
+      notificationBy: profileRequestBy,
+      notificationType : "profilesent"
+    });
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: profileRequestTo,
-      notificationText: `You (${profileRequestBy}) have received a profile request from ${profileRequestBy}`,
+      notificationBy: profileRequestBy,
+      notificationText: `You /(${profileRequestBy})/ have received a profile request from ${profileRequestBy}`,
+      notificationType : "profilesent"
     });
     await notification.save();
 
@@ -58,15 +64,28 @@ exports.acceptProfileRequest = async (req, res) => {
       "accepted",
       res
     );
+        // Check if a notification with the same fields already exists
+    const existingNotification = await Notifications.findOne({
+      notificationBy: request.profileRequestTo,
+      notificationTo: request.profileRequestBy,
+      notificationType : "profileaccepted"
+    });
+
+    if (existingNotification) {
+      return res.status(400).json({ message: "Notification already exists" });
+    }
     // Create and save notification for profile request sent
     const notification = new Notifications({
+      notificationBy: request.profileRequestTo,
       notificationTo: request.profileRequestBy,
       notificationText: `${request.profileRequestTo} have accepted the profile request from ${request.profileRequestBy}`,
+      notificationType : "profileaccepted"
     });
     await notification.save();
 
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
+    io.getIO().emit(`notification/${request.profileRequestTo}`, notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
@@ -97,15 +116,9 @@ exports.declineProfileRequest = async (req, res) => {
       "declined",
       res
     );
-    // Create and save notification for profile request sent
-    const notification = new Notifications({
-      notificationTo: request.profileRequestBy,
-      notificationText: `${request.profileRequestTo} have declined the profile request from ${request.profileRequestBy}`,
-    });
-    await notification.save();
 
     // Emit notification event
-    io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
+    // io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
@@ -136,7 +149,17 @@ exports.cancelProfileRequest = async (req, res) => {
       "cancelled",
       res
     );
+    // Check if a notification with the same fields already exists
+    const existingNotification = await Notifications.findOne({
+      notificationBy: request.profileRequestBy,
+      notificationTo: request.profileRequestTo,
+      notificationType : "profilesent",
+    });
 
+    if (existingNotification) {
+      // Delete the existing notification
+      await Notifications.findByIdAndDelete(existingNotification._id);
+    }
   } catch (error) {
     console.error("Error cancelling profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -220,10 +243,21 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
+    const existingNotification = await Notifications.findOne({
+      notificationTo: interestRequestTo,
+      notificationBy: interestRequestBy,
+      notificationType : "interestsent"
+    });
+
+    if (existingNotification) {
+      return res.status(400).json({ message: "Notification already exists" });
+    }
     // Create and save notification for profile request sent
     const notification = new Notifications({
       notificationTo: interestRequestTo,
+      notificationBy: interestRequestBy,
       notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
+      notificationType : "interestsent"
     });
     await notification.save();
     // io.getIO().to(interestRequestTo).emit("notification", notification);
@@ -257,10 +291,21 @@ exports.acceptInterestRequest = async (req, res) => {
       "accepted",
       res
     );
+    const existingNotification = await Notifications.findOne({
+      notificationTo: request.interestRequestBy,
+      notificationBy: request.interestRequestTo,
+      notificationType : "interestaccepted"
+    });
+
+    if (existingNotification) {
+      return res.status(400).json({ message: "Notification already exists" });
+    }
     // Create and save notification for profile request sent
     const notification = new Notifications({
-      notificationTo: request.interestRequestTo,
+      notificationTo: request.interestRequestBy,
+      notificationBy: request.interestRequestTo,
       notificationText: `${request.interestRequestTo} have accepted the profile request from ${request.interestRequestBy}`,
+      notificationType : "interestaccepted"
     });
     await notification.save();
 
@@ -298,16 +343,10 @@ exports.declineInterestRequest = async (req, res) => {
       "declined",
       res
     );
-    // Create and save notification for profile request sent
-    const notification = new Notifications({
-      notificationTo: request.interestRequestTo,
-      notificationText: `${request.interestRequestTo} have declined the profile request from ${request.interestRequestBy}`,
-    });
-    await notification.save();
 
     // Emit notification event
-    io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
-    io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
+    // io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
+    // io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
@@ -339,6 +378,17 @@ exports.cancelInterestRequest = async (req, res) => {
       "cancelled",
       res
     );
+    // Check if a notification with the same fields already exists
+    const existingNotification = await Notifications.findOne({
+      notificationTo: request.interestRequestTo,
+      notificationBy: request.interestRequestBy,
+      notificationType : "interestsent",
+    });
+
+    if (existingNotification) {
+      // Delete the existing notification
+      await Notifications.findByIdAndDelete(existingNotification._id);
+    }
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });

@@ -1,5 +1,6 @@
 const { getUserDashboard } = require("../controllers/dashboardController.js");
 const { getUserById } = require("../controllers/matchingProfile.js");
+const { getNotificationsForUser } = require("../controllers/notificationController.js");
 const {
   registerUser,
   createProfession,
@@ -19,7 +20,8 @@ module.exports = (app) => {
   app.put("/user-image-upload/:userId", imageMulter, addImagesInUser);
   app.get("/user-data/:userId", getPageData);
   app.get("/get-user-data/:userId", getUserById);
-  app.get("/search-user/:userId", searchController.searchById);
   app.get("/user-dashboard-data/:userId", getUserDashboard);
+  app.get("/user-notification-data/:userId", getNotificationsForUser);
+  app.get("/search-user/:userId", searchController.searchById);
   app.post("/search-users/:gender", searchController.advanceSearch);
 };
