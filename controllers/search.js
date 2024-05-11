@@ -43,11 +43,11 @@ exports.advanceSearch = async (req, res) => {
     const fieldMap = {
       country: "basicDetails.placeOfBirthCountry",
       state: "basicDetails.placeOfBirthState",
-      city: "basicDetails.placeOfBirthCity",
       maritalStatus: "additionalDetails.maritalStatus",
       education: "careerDetails.highestEducation",
       smoking: "additionalDetails.smoking",
       profession: "careerDetails.profession",
+      community: "familyDetails.community",
       interests: "selfDetails.interests",
       dietType: "additionalDetails.diet",
       ageRangeStart: {
