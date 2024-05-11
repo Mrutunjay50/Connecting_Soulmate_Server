@@ -5,7 +5,7 @@ const { getFilteredProfiles } = require("../helper/getFilteredUsers");
 exports.searchById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { category, gender } = req.query;
+    const { category, gender, userIds } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: "userId is required" });
@@ -16,15 +16,15 @@ exports.searchById = async (req, res) => {
     }
     // Construct the query with userId, gender, and category condition
     const user = await User.findOne({
-      userId,
+      userId : userIds,
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    req.params.userId = user?._id;
     const filters = {
       category: { $in: [category || "", new RegExp(`^${category || ""}$`, "i")] },
+      userId : userIds
     };
 
     await getFilteredProfiles(req, res, filters, "findOne");
@@ -104,7 +104,6 @@ exports.advanceSearch = async (req, res) => {
 
     // Execute the query
     const filters = { ...query };
-    console.log(query);
     await getFilteredProfiles(req, res, filters);
   } catch (error) {
     console.error("Error searching users:", error);

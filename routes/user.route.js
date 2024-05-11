@@ -22,6 +22,6 @@ module.exports = (app) => {
   app.get("/get-user-data/:userId", getUserById);
   app.get("/user-dashboard-data/:userId", getUserDashboard);
   app.get("/user-notification-data/:userId", getNotificationsForUser);
-  app.get("/search-user/:userId", searchController.searchById);
-  app.post("/search-users/:gender", searchController.advanceSearch);
+  app.post("/search-user/:userId", searchController.searchById);
+  app.post("/search-users/:userId", searchController.advanceSearch);
 };
