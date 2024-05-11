@@ -138,7 +138,7 @@ exports.cancelProfileRequest = async (req, res) => {
     );
 
   } catch (error) {
-    console.error("Error declining profile request:", error);
+    console.error("Error cancelling profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -415,14 +415,14 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
     });
 
     if (existingRequest) {
-      if (existingRequest.action === 'pending') {
+      if (existingRequest.action === 'pending' && action === 'pending') {
         return res.status(200).json({ message: `${type} request already sent` });
       } else if (existingRequest.action === 'blocked') {
         return res.status(200).json({ message: `${type}: request can't be sent as you have blocked the user` });
       } else {
-        existingRequest.action = 'pending'; // Change the action to 'pending'
+        existingRequest.action = action; // Change the action to 'pending'
         await existingRequest.save();
-        return res.status(200).json({ message: `${type} request updated to pending` });
+        return res.status(200).json({ message: `${type} request updated to ${action}` });
       }
     }
 
