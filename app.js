@@ -6,9 +6,11 @@ const morgan = require("morgan");
 const dotenv = require("dotenv");
 let router = express.Router();
 const UserRoutes = require("./routes/authRoute");
+const cron = require('node-cron');
 http = require("http");
 
 const { initializeRoutes } = require("./routes/index");
+const { sendLatestUserDetails } = require("./controllers/userSettingsController");
 initializeRoutes(router);
 
 dotenv.config();
@@ -55,6 +57,19 @@ async function startServer() {
   io.on("connection", (socket) => {
     console.log(`User connected ${socket.id}`);
   });
+
+  cron.schedule('0 0 */5 * *', async () => {
+    try {
+        // Call the function to send latest user details
+        await sendLatestUserDetails();
+        console.log('Cron job executed successfully');
+    } catch (error) {
+        console.error('Error executing cron job:', error);
+    }
+}, {
+    scheduled: true,
+    timezone: "Asia/Tokyo" // Replace "your-timezone-here" with your timezone
+});
 
   app.use(router);
   app.use("/auth", UserRoutes);

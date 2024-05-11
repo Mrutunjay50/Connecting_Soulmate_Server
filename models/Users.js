@@ -139,6 +139,11 @@ const userSchema = mongoose.Schema(
       type: String,
       default : ""
     },
+    isEmailSubscribed : {
+      type: String,
+      enum: [true, false],
+      default : false
+    },
     isBlocked : {
       type: String,
       enum: [true, false],

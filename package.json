@@ -30,6 +30,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
     "nodemon": "^3.0.2",
     "otpless-node-js-auth-sdk": "^1.0.8",
     "sharp": "^0.33.1",
