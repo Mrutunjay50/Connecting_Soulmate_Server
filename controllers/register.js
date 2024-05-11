@@ -193,9 +193,11 @@ exports.deleteImagesInUser = async (req, res) => {
 exports.addImagesInUser = async (req, res) => {
   try {
     const userPhotos = req.files;
-
-    console.log(userPhotos);
     const { userId } = req.params;
+    const {userPhotosKeys, profilePictureIndex, profilePictureKey} = req.body
+
+    console.log(userPhotosKeys, profilePictureIndex, profilePictureKey);
+
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "user not found" });
@@ -206,6 +208,23 @@ exports.addImagesInUser = async (req, res) => {
 
     // Update self details
     let selfDetails = user.selfDetails[0];
+
+    if (profilePictureKey) {
+      selfDetails.profilePicture = profilePictureKey;
+    }
+    // Remove photos not present in userPhotosKeys from both userPhotos array and S3
+    if (selfDetails.userPhotos && selfDetails.userPhotos.length > 0) {
+      selfDetails.userPhotos.forEach(async (photo) => {
+        if (!userPhotosKeys.includes(photo)) {
+          // Remove photo from S3
+          await deleteFromS3(photo); // Assuming there is a function to delete from S3
+          // Remove photo from userPhotos array
+          selfDetails.userPhotos = selfDetails.userPhotos.filter(
+            (p) => p !== photo
+          );
+        }
+      });
+    }
     if (userPhotos && userPhotos.length > 0) {
       // Remove excess photos if total count exceeds 5
       if (
@@ -216,7 +235,6 @@ exports.addImagesInUser = async (req, res) => {
           selfDetails.userPhotos.length + userPhotos.length - 5;
         selfDetails.userPhotos.splice(0, excessCount);
       }
-
       // Upload new photos to S3 and add their file names to userPhotos array
       try {
         const uploadedPhotos = await Promise.all(
@@ -228,6 +246,10 @@ exports.addImagesInUser = async (req, res) => {
             return fileName;
           })
         );
+        // If profilePictureKey is present and matches any uploaded photo, add it to selfDetails.profilePicture
+        if (profilePictureIndex && uploadedPhotos.length > 0) {
+          selfDetails.profilePicture = uploadedPhotos[profilePictureIndex];
+        }
         // Add uploaded photos to userPhotos array
         selfDetails.userPhotos.push(...uploadedPhotos);
       } catch (error) {
