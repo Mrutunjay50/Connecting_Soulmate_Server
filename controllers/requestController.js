@@ -25,14 +25,16 @@ exports.sendProfileRequest = async (req, res) => {
       notificationType : "profilesent"
     });
     // Create and save notification for profile request sent
-    const notification = new Notifications({
-      notificationTo: profileRequestTo,
-      notificationBy: profileRequestBy,
-      notificationText: `You /(${profileRequestBy})/ have received a profile request from ${profileRequestBy}`,
-      notificationType : "profilesent"
-    });
+    let notification;
+    if(!existingNotification)(
+      notification = new Notifications({
+        notificationTo: profileRequestTo,
+        notificationBy: profileRequestBy,
+        notificationText: `You /(${profileRequestBy})/ have received a profile request from ${profileRequestBy}`,
+        notificationType : "profilesent"
+      })
+    )
     await notification.save();
-
     io.getIO().emit(`notification/${profileRequestTo}`, notification);
     io.getIO().emit(`profileRequestSent/${profileRequestTo}`, {"message": "request sent"});
 
@@ -248,17 +250,16 @@ exports.sendInterestRequest = async (req, res) => {
       notificationBy: interestRequestBy,
       notificationType : "interestsent"
     });
-
+    let notification;
     if (existingNotification) {
-      return res.status(400).json({ message: "Notification already exists" });
+      notification = new Notifications({
+        notificationTo: interestRequestTo,
+        notificationBy: interestRequestBy,
+        notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
+        notificationType : "interestsent"
+      });
     }
     // Create and save notification for profile request sent
-    const notification = new Notifications({
-      notificationTo: interestRequestTo,
-      notificationBy: interestRequestBy,
-      notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
-      notificationType : "interestsent"
-    });
     await notification.save();
     // io.getIO().to(interestRequestTo).emit("notification", notification);
     io.getIO().emit(`notification/${interestRequestTo}`, notification);

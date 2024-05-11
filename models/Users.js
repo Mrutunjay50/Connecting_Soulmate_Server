@@ -135,6 +135,10 @@ const userSchema = mongoose.Schema(
       enum: [true, false],
       default : false
     },
+    deleteReason : {
+      type: String,
+      default : ""
+    },
     isBlocked : {
       type: String,
       enum: [true, false],
