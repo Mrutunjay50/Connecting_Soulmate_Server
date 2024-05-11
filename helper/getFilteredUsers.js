@@ -12,7 +12,7 @@ const PAGE_LIMIT = 10;
 exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
     try {
       const { userId } = req.params;
-      console.log(userId);
+      // console.log(userId);
       const { gender } = req.query;
       const queryGender = gender === "F" ? "M" : "F";
       const page = parseInt(req.query.page) || 1;
@@ -115,13 +115,11 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
         // Check if there is an interest request to this user
         user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
         user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
-        console.log(user.isBlocked, blocked);
       });
       
       await Promise.all(promises);
-          // Filter out blocked users
+      // Filter out blocked users
       const filteredUsers = users.filter(user => !user.isBlocked);
-      console.log(filteredUsers);
       res.status(200).json({ users: filteredUsers });
     } catch (error) {
       console.error("Error retrieving users:", error);

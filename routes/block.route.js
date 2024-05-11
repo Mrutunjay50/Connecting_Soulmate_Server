@@ -3,7 +3,7 @@ const { blockUser, unblockUser, getBlockedUsers } = require("../controllers/bloc
   
   module.exports = (app) => {
     app.post("/block-user", blockUser);
-    app.get("/unblock-user", unblockUser);
+    app.put("/unblock-user", unblockUser);
     app.get("/get-blocked-users/:userId", getBlockedUsers);
   };
   

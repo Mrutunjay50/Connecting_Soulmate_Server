@@ -103,7 +103,7 @@ exports.deleteProfile = async (req, res) => {
 
 exports.updateContactInfo = async (req, res) => {
   try {
-    const { userId, email, contact } = req.body;
+    const { userId, email, phone } = req.body;
 
     // Find the user by userId
     const user = await User.findById(userId);
@@ -111,11 +111,16 @@ exports.updateContactInfo = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Update email and contact
-    user.additionalDetails[0].email = email;
-    user.additionalDetails[0].contact = contact;
+    // Update email if it's not empty
+    if (email.trim() !== "") {
+      user.additionalDetails[0].email = email;
+    }
 
-    // Save the updated user
+    // Update contact if it's not empty
+    if (phone.trim() !== "") {
+      user.additionalDetails[0].contact = phone;
+    }
+
     await user.save();
 
     res.status(200).json({ message: "Contact info updated successfully" });
