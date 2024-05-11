@@ -67,7 +67,7 @@ exports.acceptProfileRequest = async (req, res) => {
 
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
-    io.getIO().emit(`profileRequestAccept/${request.profileRequestBy}`, {"message": "request accepted"});
+    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting profile request:", error);
@@ -106,7 +106,7 @@ exports.declineProfileRequest = async (req, res) => {
 
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
-    io.getIO().emit(`profileRequestDecline/${request.profileRequestBy}`, {"message": "request declined"});
+    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining profile request:", error);
@@ -267,7 +267,7 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
-    io.getIO().emit(`interestRequestAccepted/${request.interestRequestBy}`, {"message": "request accepted"});
+    io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error accepting interest request:", error);
@@ -308,7 +308,7 @@ exports.declineInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
-    io.getIO().emit(`interestRequestDeclined/${request.interestRequestBy}`, {"message": "request declined"});
+    io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
   } catch (error) {
     console.error("Error declining interest request:", error);

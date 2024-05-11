@@ -214,10 +214,30 @@ const getAllUsers = async (req, res, next) => {
     console.log(err);
   }
 };
+
+
+const getAllPendingUsers = async (req, res, next) => {
+  try {
+    const user = await User.find({registrationPhase : "registering"}).select("_id basicDetails.name createdBy.createdFor category gender userId createdAt").sort({ createdAt: -1 })
+    .exec();
+
+    if (!user) {
+      const error = new Error("No Users found.");
+      error.statusCode = 404;
+      console.log(error);
+    }
+    res.status(200).json({ user });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
 module.exports = {
   signinController,
   signupController,
   magicLinkController,
   getUser,
-  getAllUsers
+  getAllUsers,
+  getAllPendingUsers
 };

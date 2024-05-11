@@ -5,6 +5,7 @@ const {
   getUser,
   magicLinkController,
   getAllUsers,
+  getAllPendingUsers,
 } = require("../controllers/auth");
 const express = require("express");
 const { isAdmin } = require("../middleware/is_auth");
@@ -54,5 +55,6 @@ router.post("/signup", signupController);
 router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
 router.get("/get-all-users",isAdmin ,getAllUsers);
+router.get("/get-all-pending-users",isAdmin ,getAllPendingUsers);
 
 module.exports = router;
