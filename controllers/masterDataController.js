@@ -212,7 +212,7 @@ exports.uploadcsv = async (req, res) => {
           dateOfBirth: row["Date of birth"]?.split(" ")[0],
           timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
           age: calculateAge(row["Date of birth"]) || 0,
-          manglik: manglik[row["Manglik Status"]],
+          manglik: manglik[parseInt(row["Manglik Status"]) || 1],
           horoscope: row["Horoscope Match"],
           userId: "",
         },
@@ -233,7 +233,7 @@ exports.uploadcsv = async (req, res) => {
           diet: parseInt(row["Diet Type"]) || 0,
           alcohol: row["Alcohol Consumption Preference"],
           smoking: row["Smoking Preference"],
-          maritalStatus: maritalstatus[row["Martial Status"]],
+          maritalStatus: maritalstatus[parseInt(row["Martial Status"]) || 1],
         },
         careerDetails: {
           highestEducation: row["Education Completed"],
