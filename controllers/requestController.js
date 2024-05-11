@@ -143,25 +143,6 @@ exports.cancelProfileRequest = async (req, res) => {
   }
 };
 
-exports.blockProfileRequest = async (req, res) => {
-  try {
-    const { requestId } = req.params;
-    const {blockProfileRequestById, blockProfileRequestToId} = req.query;
-    await updateRequestStatus(
-      ProfileRequests,
-      requestId,
-      "Profile",
-      "blocked",
-      res
-    );
-
-    const request = await ProfileRequests.findById(requestId);
-  } catch (error) {
-    console.error("Error declining profile request:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
 exports.getProfileRequestsAccepted = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -364,24 +345,6 @@ exports.cancelInterestRequest = async (req, res) => {
   }
 };
 
-exports.blockedInterestRequest = async (req, res) => {
-  try {
-    const { requestId } = req.params;
-    const {interestRequestById} = req.query
-    await updateRequestStatus(
-      InterestRequests,
-      requestId,
-      "Interest",
-      "blocked",
-      res
-    );
-    const request = await InterestRequests.findById(requestId);
-  } catch (error) {
-    console.error("Error declining interest request:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
 exports.getInterestRequestsAccepted = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -444,7 +407,7 @@ exports.getInterestRequestsReceived = async (req, res) => {
   }
 };
 
-async function sendRequest(Model, requestBy, requestTo, type, action, res) {
+async function processRequest(Model, requestBy, requestTo, type, action, res) {
   try {
     const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
@@ -453,64 +416,74 @@ async function sendRequest(Model, requestBy, requestTo, type, action, res) {
 
     if (existingRequest) {
       if (existingRequest.action === 'pending') {
-        res.status(200).json({ message: `${type} request already sent` });
+        return res.status(200).json({ message: `${type} request already sent` });
       } else if (existingRequest.action === 'blocked') {
-        res.status(200).json({ message: `${type}: request can't be sent as you have blocked the user` });
+        return res.status(200).json({ message: `${type}: request can't be sent as you have blocked the user` });
       } else {
         existingRequest.action = 'pending'; // Change the action to 'pending'
         await existingRequest.save();
-        res.status(200).json({ message: `${type} request updated to pending` });
+        return res.status(200).json({ message: `${type} request updated to pending` });
       }
-    } else {
-      const newRequest = new Model({
-        [`${type.toLowerCase()}RequestBy`]: requestBy,
-        [`${type.toLowerCase()}RequestTo`]: requestTo,
-        action,
-      });
-
-      // Check if there is a shortlist document where profileRequestBy is the user and profileRequestTo is the shortlisted user
-      const shortlistBy = await ShortList.findOne({
-        user: requestBy,
-        shortlistedUser: requestTo
-      });
-
-      // Check if a shortlist document exists where profileRequestTo is the user and profileRequestBy is the shortlisted user
-      const shortlistTo = await ShortList.findOne({
-        user: requestTo,
-        shortlistedUser: requestBy
-      });
-
-      if (shortlistBy) {
-        newRequest.isShortListedBy = 'yes';
-      }
-
-      if (shortlistTo) {
-        newRequest.isShortListedTo = 'yes';
-      }
-
-      await newRequest.save();
-      res.status(201).json({ message: `${type} request sent successfully` });
     }
+
+    const newRequest = new Model({
+      [`${type.toLowerCase()}RequestBy`]: requestBy,
+      [`${type.toLowerCase()}RequestTo`]: requestTo,
+      action,
+    });
+
+    // Create an array of promises for batch processing
+    const promises = [
+      ShortList.findOne({ user: requestBy, shortlistedUser: requestTo }),
+      ShortList.findOne({ user: requestTo, shortlistedUser: requestBy }),
+      InterestRequests.findOne({ interestRequestBy: requestBy, interestRequestTo: requestTo }),
+      InterestRequests.findOne({ interestRequestBy: requestTo, interestRequestTo: requestBy }),
+      ProfileRequests.findOne({ profileRequestBy: requestBy, profileRequestTo: requestTo }),
+      ProfileRequests.findOne({ profileRequestBy: requestTo, profileRequestTo: requestBy }),
+    ];
+
+    // Execute all promises in parallel
+    const [shortlistBy, shortlistTo, interestlistBy, interestlistTo, profilelistBy, profilelistTo] = await Promise.all(promises);
+
+    newRequest.isShortListedBy = !!shortlistBy;
+    newRequest.isShortListedTo = !!shortlistTo;
+    newRequest.isInterestRequestBy = !!interestlistBy;
+    newRequest.isInterestRequestTo = !!interestlistTo;
+    newRequest.isProfileRequestBy = !!profilelistBy;
+    newRequest.isProfileRequestTo = !!profilelistTo;
+
+    await newRequest.save();
+    res.status(201).json({ message: `${type} request sent successfully` });
   } catch (error) {
-    console.error("Error sending request:", error);
+    console.error("Error processing request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
+async function sendRequest(Model, requestBy, requestTo, type, action, res) {
+  await processRequest(Model, requestBy, requestTo, type, action, res);
+}
+
 async function updateRequestStatus(Model, requestId, type, status, res) {
-  const request = await Model.findById(requestId);
-  if (!request) {
-    return res.status(404).json({ error: "Request not found" });
+  try {
+    const request = await Model.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+    request.action = status;
+
+    await processRequest(Model, request[`${type.toLowerCase()}RequestBy`], request[`${type.toLowerCase()}RequestTo`], type, status, res);
+  } catch (error) {
+    console.error(`Error updating ${type} request status:`, error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-  request.action = status;
-  await request.save();
-  res.status(200).json({ message: `${type} request ${status} successfully` });
 }
 
 async function getPendingRequests(Model, userId, type, res, received = false) {
   const requests = await Model.find({
     [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
     action: "pending",
+    isBlocked : false
   }).populate({
     path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
     select: ListData,
@@ -524,7 +497,7 @@ try {
 
     if(status === "pending"){
       requests = await Model.find({
-        $or: [{ [`${type.toLowerCase()}RequestBy`]: userId, action: status }]
+        $or: [{ [`${type.toLowerCase()}RequestBy`]: userId, action: status, isBlocked : false }]
       }).populate([
         { path: `${type.toLowerCase()}RequestBy`, select: ListData },
         { path: `${type.toLowerCase()}RequestTo`, select: ListData }
@@ -532,8 +505,8 @@ try {
     }else {
       requests = await Model.find({
         $or: [
-          { [`${type.toLowerCase()}RequestBy`]: userId, action: status },
-          { [`${type.toLowerCase()}RequestTo`]: userId, action: status }
+          { [`${type.toLowerCase()}RequestBy`]: userId, action: status, isBlocked : false },
+          { [`${type.toLowerCase()}RequestTo`]: userId, action: status, isBlocked : false }
         ]
       }).populate([
         { path: `${type.toLowerCase()}RequestBy`, select: ListData },

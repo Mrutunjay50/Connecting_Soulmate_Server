@@ -8,8 +8,8 @@ const {addToShortlist, getShortlistedUser} = require("../controllers/shortlistCo
 
 module.exports = (app) => {
   app.post("/shortlist/add", addToShortlist);
+  app.get("/shortlist/get/:userId", getShortlistedUser);
   app.get("/getUser/:gender", getAllUsers);
   app.get("/getUserPre/:userId", getMatchesAccordingToPreference);
   app.get("/newlyJoined/:userId", getNewlyJoinedProfiles);
-  app.get("/shortlist/get/:UserId", getShortlistedUser);
 };

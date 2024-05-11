@@ -4,6 +4,7 @@ const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("./cardListedData");
+const BlockedUser = require("../models/blockedUser");
 
 
 const PAGE_LIMIT = 10;
@@ -53,7 +54,7 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
       const bornstateIds = users.map(user => user.basicDetails[0]?.placeOfBirthState);
       const cityIds = users.map(user => user.additionalDetails[0]?.currentlyLivingInCity);
   
-      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests] = await Promise.all([
+      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests, blocked] = await Promise.all([
         Community.find({ community_id: { $in: communityIds } }),
         Proffesion.find({ proffesion_id: { $in: professionIds } }),
         Diet.find({ diet_id: { $in: dietIds } }),
@@ -64,7 +65,8 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
         City.find({ city_id: { $in: cityIds } }),
         ShortList.find({ user: userId }),
         ProfileRequests.find({ profileRequestBy: userId }),
-        InterestRequests.find({ interestRequestBy: userId })
+        InterestRequests.find({ interestRequestBy: userId }),
+        BlockedUser.find({ blockedBy: userId }),
       ]);
   
       const promises = users.map(async (user) => {
@@ -112,10 +114,13 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
   
         // Check if there is an interest request to this user
         user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+        user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
       });
       
       await Promise.all(promises);
-      res.status(200).json({ users });
+          // Filter out blocked users
+      const filteredUsers = users.filter(user => !user.isBlocked);
+      res.status(200).json({ users: filteredUsers });
     } catch (error) {
       console.error("Error retrieving users:", error);
       res.status(500).json({ error: "Internal server error" });

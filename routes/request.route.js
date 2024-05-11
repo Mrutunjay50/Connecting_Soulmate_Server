@@ -25,7 +25,6 @@ module.exports = (app) => {
   app.put("/api/profile-request/accept/:requestId", acceptProfileRequest);
   app.put("/api/profile-request/decline/:requestId", declineProfileRequest);
   app.put("/api/profile-request/cancel/:requestId", cancelProfileRequest);
-  app.put("/api/profile-request/block/:requestId", blockProfileRequest);
   app.get("/api/profile-request/accepted/:userId", getProfileRequestsAccepted);
   app.get("/api/profile-request/declined/:userId", getProfileRequestsDeclined);
   app.get("/api/profile-request/sent/:userId", getProfileRequestsSent);
@@ -36,7 +35,6 @@ module.exports = (app) => {
   app.put("/api/interest-request/accept/:requestId", acceptInterestRequest);
   app.put("/api/interest-request/decline/:requestId", declineInterestRequest);
   app.put("/api/interest-request/cancel/:requestId", cancelInterestRequest);
-  app.put("/api/interest-request/block/:requestId", blockedInterestRequest);
   app.get(
     "/api/interest-request/accepted/:userId",
     getInterestRequestsAccepted

@@ -3,6 +3,7 @@ const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("../helper/cardListedData");
+const BlockedUser = require("../models/blockedUser");
 
 exports.addToShortlist = async (req, res) => {
     try {
@@ -28,9 +29,17 @@ exports.addToShortlist = async (req, res) => {
             { profileRequestBy: user, profileRequestTo: shortlistedUserId },
             { isShortListedBy: false }
           ),
+          ProfileRequests.updateMany(
+            { profileRequestBy: shortlistedUserId, profileRequestTo: user },
+            { isShortListedTo: false }
+          ),
           InterestRequests.updateMany(
             { interestRequestBy: user, interestRequestTo: shortlistedUserId },
             { isShortListedBy: false }
+          ),
+          InterestRequests.updateMany(
+            { interestRequestBy: shortlistedUserId, interestRequestTo: user },
+            { isShortListedTo: false }
           )
         ]);
       } else {
@@ -50,9 +59,17 @@ exports.addToShortlist = async (req, res) => {
             { profileRequestBy: user, profileRequestTo: shortlistedUserId },
             { isShortListedBy: true }
           ),
+          ProfileRequests.updateMany(
+            { profileRequestBy: shortlistedUserId, profileRequestTo: user },
+            { isShortListedTo: true }
+          ),
           InterestRequests.updateMany(
             { interestRequestBy: user, interestRequestTo: shortlistedUserId },
             { isShortListedBy: true }
+          ),
+          InterestRequests.updateMany(
+            { interestRequestBy: shortlistedUserId, interestRequestTo: user },
+            { isShortListedTo: true }
           ),
         ]);
       }
@@ -66,12 +83,12 @@ exports.addToShortlist = async (req, res) => {
 
 exports.getShortlistedUser = async (req, res) => {
     try {
-      const { UserId } = req.params;
-      const users = await ShortList.find({ user: UserId }).populate({
+      const { userId } = req.params;
+      const users = await ShortList.find({ user: userId }).populate({
         path: "shortlistedUser",
         select: ListData,
       });
-      console.log(users);
+      // console.log(users);
       const user = JSON.parse(JSON.stringify(users));
   
       // Fetch additional data for users
@@ -84,7 +101,7 @@ exports.getShortlistedUser = async (req, res) => {
       const bornstateIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
       const cityIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
   
-      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests] = await Promise.all([
+      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, profileRequests, interestRequests, blocked] = await Promise.all([
         Community.find({ community_id: { $in: communityIds } }),
         Proffesion.find({ proffesion_id: { $in: professionIds } }),
         Diet.find({ diet_id: { $in: dietIds } }),
@@ -93,9 +110,9 @@ exports.getShortlistedUser = async (req, res) => {
         State.find({ state_id: { $in: bornstateIds } }),
         State.find({ state_id: { $in: stateIds } }),
         City.find({ city_id: { $in: cityIds } }),
-        ShortList.find({ user: UserId }),
-        ProfileRequests.find({ profileRequestBy: UserId }),
-        InterestRequests.find({ interestRequestBy: UserId })
+        ProfileRequests.find({ profileRequestBy: userId }),
+        InterestRequests.find({ interestRequestBy: userId }),
+        BlockedUser.find({ blockedBy: userId }),
       ]);
   
       const promises = user.map(async (user) => {
@@ -141,13 +158,16 @@ exports.getShortlistedUser = async (req, res) => {
   
         // Check if there is an interest request to this user
         user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+        user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
       });
       
       await Promise.all(promises);
+      const filteredUsers = user.filter(user => !user.isBlocked);
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json(user);
+      res.status(200).json({ users: filteredUsers });
     } catch (error) {
       console.error("Error fetching shortlisted user:", error);
       res.status(500).json({ error: "Internal server error" });
