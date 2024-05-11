@@ -181,6 +181,9 @@ exports.deleteImagesInUser = async (req, res) => {
     user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter(
       (item) => item !== imageKey
     );
+    if(user.selfDetails[0]?.profilePicture === imageKey){
+      user.selfDetails[0].profilePicture = user.selfDetails[0]?.userPhotos[0];
+    }
     await user.save();
     await deleteFromS3(imageKey);
     res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
@@ -196,8 +199,6 @@ exports.addImagesInUser = async (req, res) => {
     const { userId } = req.params;
     const {userPhotosKeys, profilePictureIndex, profilePictureKey} = req.body
 
-    console.log(userPhotosKeys, profilePictureIndex, profilePictureKey);
-
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "user not found" });
@@ -205,7 +206,6 @@ exports.addImagesInUser = async (req, res) => {
     if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
     }
-
     // Update self details
     let selfDetails = user.selfDetails[0];
 
