@@ -177,7 +177,7 @@ exports.getProfileRequestsDeclined = async (req, res) => {
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
-    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res);
+    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, false);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestTo?.selfDetails[0]?.profilePicture);
@@ -380,7 +380,7 @@ exports.getInterestRequestsDeclined = async (req, res) => {
 exports.getInterestRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
-    const requests = await getPendingRequests(InterestRequests, userId, "Interest", res);
+    const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, false);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
@@ -479,15 +479,18 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
   }
 }
 
-async function getPendingRequests(Model, userId, type, res, received = false) {
+async function getPendingRequests(Model, userId, type, res, received) {
+  console.log(received);
   const requests = await Model.find({
-    [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
+    [`${type.toLowerCase()}Request${received == true ? "To" : "By"}`]: userId,
     action: "pending",
     isBlocked : false
   }).populate({
-    path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
+    path: `${type.toLowerCase()}Request${received == true ? "By" : "To"}`,
     select: ListData,
   });
+
+  console.log(requests);
   return requests;
 }
 
