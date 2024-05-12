@@ -59,7 +59,7 @@ exports.acceptProfileRequest = async (req, res) => {
     if (request.profileRequestTo.toString() !== profileRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot accept this profile request" });
     }
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       ProfileRequests,
       requestId,
       "Profile",
@@ -90,6 +90,7 @@ exports.acceptProfileRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.profileRequestTo}`, notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
+    return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -111,7 +112,7 @@ exports.declineProfileRequest = async (req, res) => {
     if (request.profileRequestTo.toString() !== profileRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot decline this profile request" });
     }
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       ProfileRequests,
       requestId,
       "Profile",
@@ -123,6 +124,7 @@ exports.declineProfileRequest = async (req, res) => {
     // io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
+    return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -144,7 +146,7 @@ exports.cancelProfileRequest = async (req, res) => {
     if (request.profileRequestBy.toString() !== profileRequestById) {
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this profile request" });
     }
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       ProfileRequests,
       requestId,
       "Profile",
@@ -162,6 +164,7 @@ exports.cancelProfileRequest = async (req, res) => {
       // Delete the existing notification
       await Notifications.findByIdAndDelete(existingNotification._id);
     }
+    return res.status(200).json({responseMsg, notification : "also deleted or not found"})
   } catch (error) {
     console.error("Error cancelling profile request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -286,7 +289,7 @@ exports.acceptInterestRequest = async (req, res) => {
     if (request.interestRequestTo.toString() !== interestRequestToId) {
       return res.status(403).json({ error: "Unauthorized: You cannot accept this interest request" });
     }
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       InterestRequests,
       requestId,
       "Interest",
@@ -316,6 +319,7 @@ exports.acceptInterestRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
+    return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -338,7 +342,7 @@ exports.declineInterestRequest = async (req, res) => {
       return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
     }
 
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       InterestRequests,
       requestId,
       "Interest",
@@ -351,6 +355,7 @@ exports.declineInterestRequest = async (req, res) => {
     // io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     // io.getIO().to(admin).emit("notification", notification);
+    return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -373,7 +378,7 @@ exports.cancelInterestRequest = async (req, res) => {
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this interest request" });
     }
 
-    await updateRequestStatus(
+    const responseMsg = await updateRequestStatus(
       InterestRequests,
       requestId,
       "Interest",
@@ -391,6 +396,7 @@ exports.cancelInterestRequest = async (req, res) => {
       // Delete the existing notification
       await Notifications.findByIdAndDelete(existingNotification._id);
     }
+    return res.status(201).json({responseMsg, notification : "also deleted or not found"})
   } catch (error) {
     console.error("Error declining interest request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -468,13 +474,13 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
 
     if (existingRequest) {
       if (existingRequest.action === 'pending' && action === 'pending') {
-        return { message: `${type} request already sent` }
+        return `${type} request already sent`
       } else if (existingRequest.action === 'blocked') {
-        return ({ message: `${type}: request can't be sent as you have blocked the user` });
+        return `${type}: request can't be sent as you have blocked the user`
       } else {
         existingRequest.action = action; // Change the action to 'pending'
         await existingRequest.save();
-        return ({ message: `${type} request updated to ${action}` });
+        return `${type} request updated to ${action}`
       }
     }
 
@@ -505,7 +511,7 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
     newRequest.isProfileRequestTo = !!profilelistTo;
 
     await newRequest.save();
-    return { message: `${type} request sent successfully` }
+    return `${type} request sent successfully`
   } catch (error) {
     console.error("Error processing request:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -513,7 +519,7 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
 }
 
 async function sendRequest(Model, requestBy, requestTo, type, action, res) {
-  await processRequest(Model, requestBy, requestTo, type, action, res);
+  return await processRequest(Model, requestBy, requestTo, type, action, res);
 }
 
 async function updateRequestStatus(Model, requestId, type, status, res) {
@@ -524,7 +530,7 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
     }
     request.action = status;
 
-    await processRequest(Model, request[`${type.toLowerCase()}RequestBy`], request[`${type.toLowerCase()}RequestTo`], type, status, res);
+    return await processRequest(Model, request[`${type.toLowerCase()}RequestBy`], request[`${type.toLowerCase()}RequestTo`], type, status, res);
   } catch (error) {
     console.error(`Error updating ${type} request status:`, error);
     res.status(500).json({ error: "Internal Server Error" });
