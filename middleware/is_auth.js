@@ -73,7 +73,7 @@ const isAdmin = async (req, res, next) => {
         }
         console.log(user.lastLogin);
         // Check if the user is an admin
-        if (user.accessType === "admin") {
+        if (user.accessType === "0" || user.accessType === "1") {
           req.user = user;
           next(); // If the user is an admin, proceed to the next middleware/controller
         } else {
