@@ -218,7 +218,11 @@ const getAllUsers = async (req, res, next) => {
 
 const getAllPendingUsers = async (req, res, next) => {
   try {
-    const user = await User.find({registrationPhase : "registering"}).select("_id basicDetails.name createdBy.createdFor category gender userId createdAt").sort({ createdAt: -1 })
+    const adminId = req.user._id
+    const user = await User.find({ 
+      registrationPhase: "registering",
+      _id: { $ne: adminId } // Exclude users with _id matching adminId
+    }).select("_id basicDetails.name createdBy.createdFor category gender userId createdAt").sort({ createdAt: -1 })
     .exec();
 
     if (!user) {
