@@ -126,7 +126,7 @@ function generateUniqueNumber() {
 function calculateAge(birthDateStr) {
   // Parse the birth date string
   const [datePart, timePart] = birthDateStr.split(" ");
-  const [month, day, year] = datePart.split("/");
+  const [day, month, year] = datePart.split("-");
 
   // Create a new Date object with the parsed components
   const birthDate = new Date(`${year}-${month}-${day}T${timePart}`);
@@ -197,6 +197,22 @@ exports.uploadcsv = async (req, res) => {
     const response = await csv().fromFile(req.file.path);
 
     for (const row of response) {
+      const currencyType = row["Approximate Annual Income"].split("(")[1]?.replace(")", "") || "INR";
+      let exchangeRate;
+      switch (currencyType) {
+        case "INR":
+          exchangeRate = 0.015;
+          break;
+        case "AED":
+          exchangeRate = 0.27;
+          break;
+        case "GBP":
+          exchangeRate = 1.38;
+          break;
+        // Add more cases for other currency types if needed
+        default:
+          exchangeRate = 1; // Default exchange rate
+      }
       const newUser = new User({
         basicDetails: {
           name:
@@ -212,7 +228,7 @@ exports.uploadcsv = async (req, res) => {
           dateOfBirth: row["Date of birth"]?.split(" ")[0],
           timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
           age: calculateAge(row["Date of birth"]) || 0,
-          manglik: manglik[parseInt(row["Manglik Status"]) || 1],
+          manglik: manglik[parseInt(row["Manglik Status"]) || "yes"],
           horoscope: row["Horoscope Match"],
           userId: "",
         },
@@ -233,7 +249,7 @@ exports.uploadcsv = async (req, res) => {
           diet: parseInt(row["Diet Type"]) || 0,
           alcohol: row["Alcohol Consumption Preference"],
           smoking: row["Smoking Preference"],
-          maritalStatus: maritalstatus[parseInt(row["Martial Status"]) || 1],
+          maritalStatus: maritalstatus[parseInt(row["Martial Status"]) || "single"],
         },
         careerDetails: {
           highestEducation: row["Education Completed"],
@@ -243,13 +259,14 @@ exports.uploadcsv = async (req, res) => {
           profession: parseInt(row["Profession"]) || 0,
           currentDesignation: row["Current Designation"],
           previousOccupation: row["Previous Occupation"],
+          annualIncomeUSD: (parseInt(
+            row["Approximate Annual Income value"]?.split("-")[1]?.trim()
+          ) * exchangeRate) || 0,
           annualIncomeValue:
             parseInt(
               row["Approximate Annual Income value"]?.split("-")[1]?.trim()
             ) || 0,
-          currencyType:
-            row["Approximate Annual Income"].split("(")[1]?.replace(")", "") ||
-            "INR",
+          currencyType:currencyType,
         },
         familyDetails: {
           fatherName: row["Father's Name (First Name, Middle Name, Last Name)"],
