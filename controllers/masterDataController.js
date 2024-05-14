@@ -233,7 +233,7 @@ exports.uploadcsv = async (req, res) => {
           userId: "",
         },
         additionalDetails: {
-          height: parseInt(row["Height (Feet)"]) || 5,
+          height: row["Height (Feet)"] || 5,
           weight: row["Weight - Value"] + " " + row["Weight"] || "60 KGS",
           email: row["Email Address"],
           contact: row["Contact Details"].replace("+", "") + row["Add Number"],
@@ -326,7 +326,7 @@ exports.uploadcsv = async (req, res) => {
           ageRangeEnd: parseInt(row["To"]) || 0,
           heightRangeStart: parseInt(row["Height (Feet) Range"]) || 0,
           heightRangeEnd: parseInt(row["To Range"]) || 0,
-          maritalStatus: row["Martial Status"],
+          maritalStatus: maritalstatus[parseInt(row["P Martial Status"]) || "single"],
           community: parseInt(row["Community"]) || 0,
           caste: parseInt(row[""]) || 0,
           country: parseInt(row["Country"]) || 0,
