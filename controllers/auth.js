@@ -11,8 +11,7 @@ const { getAggregationPipelineForUsers } = require("../helper/aggregationPipelin
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const channel = "WHATSAPP";
-
-dotenv.config();
+const DOMAIN = process.env.FRONTEND_URL;
 
 const signinController = async (req, res) => {
   const { code } = req.body;
@@ -64,13 +63,13 @@ const magicLinkController = async (req, res) => {
     console.log(existingUser);
 
     if (!existingUser) {
-      redirectURI = `http://localhost:5173/signup/${parseInt(
+      redirectURI = `${DOMAIN}/signup/${parseInt(
         number.split("-").join("")
       )}`;
       notFound = { notFound: "You are New to our Website Please Signup!" };
     } else {
       if (existingUser.registrationPhase === "approved") {
-        redirectURI = `http://localhost:5173/login/${parseInt(
+        redirectURI = `${DOMAIN}/login/${parseInt(
           number.split("-").join("")
         )}`;
         message = "Already A User, Redirecting to login page...";
@@ -78,13 +77,13 @@ const magicLinkController = async (req, res) => {
         existingUser.registrationPhase === "registering" &&
         existingUser.registrationPage !== ""
       ) {
-        redirectURI = `http://localhost:5173/login/${parseInt(
+        redirectURI = `${DOMAIN}/login/${parseInt(
           number.split("-").join("")
         )}`; // Change this to your registration form page
         message =
           "You are Currently in registration process Redirecting to registration form...";
       } else {
-        redirectURI = `http://localhost:5173/signup/${parseInt(
+        redirectURI = `${DOMAIN}/signup/${parseInt(
           number.split("-").join("")
         )}`;
         message =
