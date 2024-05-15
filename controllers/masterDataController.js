@@ -126,7 +126,7 @@ function generateUniqueNumber() {
 function calculateAge(birthDateStr) {
   // Parse the birth date string
   const [datePart, timePart] = birthDateStr.split(" ");
-  const [day, month, year] = datePart.split("-");
+  const [day, month, year] = datePart.split("/");
 
   // Create a new Date object with the parsed components
   const birthDate = new Date(`${year}-${month}-${day}T${timePart}`);
@@ -225,9 +225,16 @@ exports.uploadcsv = async (req, res) => {
           placeOfBirthCountry: parseInt(row["Place of Birth - Country"]) || 0,
           placeOfBirthState: parseInt(row["Place of Birth - State"]) || 0,
           placeOfBirthCity: parseInt(row["Place of Birth - City"]) || 0,
-          dateOfBirth: row["Date of birth"]?.split(" ")[0],
+          dateOfBirth: (() => {
+            const parts = row["Date of birth"]?.split(" ")[0].split("/");
+            if (parts && parts.length === 3) {
+              [parts[0], parts[2]] = [parts[2], parts[0]]; // Swap the first and last elements
+              return parts.join("-"); // Join the elements with slashes
+            }
+            return null; // Return null or handle the case where the date is not in the expected format
+          })(),
           timeOfBirth: row["Date of birth"]?.split(" ")[1] + " " + row["AM/PM"],
-          age: calculateAge(row["Date of birth"]) || 0,
+          age: calculateAge(row["Date of birth"]),
           manglik: manglik[parseInt(row["Manglik Status"]) || "yes"],
           horoscope: row["Horoscope Match"],
           userId: "",
