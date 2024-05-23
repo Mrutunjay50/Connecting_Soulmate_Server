@@ -1,6 +1,7 @@
 const {
   getUserAggregationPipeline,
 } = require("../helper/getUserAggregationPipeline");
+const { processUserDetails } = require("../helper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/registerationPageHandler");
 const User = require("../models/Users")
 const {
