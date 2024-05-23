@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .details {
+      margin-bottom: 20px;
+    }
+    .details h2 {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    .details img {
+      max-width: 150px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Details</h1>
+  <div class="details">
+    <h2>Basic Information</h2>
+    <p><strong>Name:</strong> {{name}}</p>
+    <p><strong>Email:</strong> {{email}}</p>
+  </div>
+  <div class="details">
+    <h2>Self Details</h2>
+    <p><strong>Profile Picture:</strong></p>
+    <img src="{{profilePictureUrl}}" alt="Profile Picture">
+    <p><strong>Interests:</strong> {{interestsTypes}}</p>
+    <p><strong>Fun Activities:</strong> {{funActivitiesTypes}}</p>
+    <p><strong>Fitness:</strong> {{fitnessTypes}}</p>
+    <p><strong>Other:</strong> {{otherTypes}}</p>
+  </div>
+</body>
+</html>

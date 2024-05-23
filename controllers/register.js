@@ -5,10 +5,6 @@ const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handleP
 const User = require("../models/Users")
 const {
   Proffesion,
-  FunActivity,
-  Interest,
-  Other,
-  Fitness,
   Education,
   Diet,
 } = require("../models/masterSchemas");
@@ -16,7 +12,6 @@ const {
   // resizeImage,
   uploadToS3,
   generateFileName,
-  getSignedUrlFromS3,
   deleteFromS3,
 } = require("../utils/s3Utils");
 
@@ -89,54 +84,13 @@ exports.getPageData = async (req, res) => {
 
     // Add image URL setup for page 5
     if (page === "5" && pageData.length > 0) {
-      const selfData = pageData[0].selfDetails;
-      const signedUrlsPromises = selfData.userPhotos?.map((item) =>
-        getSignedUrlFromS3(item)
-      );
       try {
-        // Use Promise.all() to wait for all promises to resolve
-        const signedUrls = await Promise.all(signedUrlsPromises);
-        selfData.userPhotosUrl = signedUrls;
+        pageData[0].selfDetails = await processUserDetails(pageData[0].selfDetails);
       } catch (error) {
-        // Handle any errors that occurred during promise resolution
         console.error("Error:", error);
       }
-      selfData.profilePictureUrl = await getSignedUrlFromS3(
-        selfData.profilePicture
-      );
-      // Assuming interests and funActivities are arrays of strings
-      // sending already populated data
-      const interests = selfData.interests
-        .split(",")
-        .map((interest) => parseInt(interest.trim()) || 0); // Add a fallback value if parsing fails
-      const funActivities = selfData.fun
-        .split(",")
-        .map((activity) => parseInt(activity.trim()) || 0); // Add a fallback value if parsing fails
-      const others = selfData.other
-        .split(",")
-        .map((other) => parseInt(other.trim()) || 0); // Add a fallback value if parsing fails
-      const fitnesses = selfData.fitness
-        .split(",")
-        .map((fitness) => parseInt(fitness.trim()) || 0);
-      //finding if the any of the strings present in the documents
-      const interest = await Interest.find({ intrest_id: { $in: interests } });
-      const funActivity = await FunActivity.find({
-        funActivity_id: { $in: funActivities },
-      });
-      const fitness = await Fitness.find({ fitness_id: { $in: fitnesses } });
-      const other = await Other.find({ other_id: { $in: others } });
-
-      selfData.interestsTypes = interest
-        ?.map((item) => item.intrest_name)
-        ?.join(", ");
-      selfData.funActivitiesTypes = funActivity
-        ?.map((item) => item.funActivity_name)
-        ?.join(", ");
-      selfData.fitnessTypes = fitness
-        ?.map((item) => item.fitness_name)
-        ?.join(", ");
-      selfData.otherTypes = other?.map((item) => item.other_name)?.join(", ");
     }
+
     if (page === "6" && pageData.length > 0) {
       const partnerPreference = pageData[0].partnerPreference;
       const educations = partnerPreference.education
@@ -146,12 +100,10 @@ exports.getPageData = async (req, res) => {
         .split(",")
         .map((other) => parseInt(other.trim()));
       //finding if the any of the strings present in the documents
-      const education = await Education.find({
-        education_id: { $in: educations },
-      });
-      const diet = await Diet.find({
-        diet_id: { $in: diets },
-      });
+      const [education, diet] = await Promise.all([
+        Education.find({ education_id: { $in: educations } }),
+        Diet.find({ diet_id: { $in: diets } }),
+      ]);
 
       partnerPreference.educationTypes = education
         ?.map((item) => item.education_name)
@@ -169,6 +121,7 @@ exports.getPageData = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
+
 
 exports.deleteImagesInUser = async (req, res) => {
   try {

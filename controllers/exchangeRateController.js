@@ -67,14 +67,16 @@ exports.updateExchangeRateByCurrency = async (req, res) => {
       return res.status(404).json({ error: 'Exchange rate not found' });
     }
     const updateResult = await User.updateMany(
-      { "annualIncomeType": currency },
-      { 
-        $set: { 
-          "annualIncomeUsd": { 
-            $multiply: ["$annualIncomeValue", rateToUSD] 
-          } 
-        } 
-      }
+      { "careerDetails.currencyType": currency },
+      [
+        {
+          $set: {
+            "careerDetails.annualIncomeUSD": {
+              $multiply: ["$careerDetails.annualIncomeValue", rateToUSD]
+            }
+          }
+        }
+      ]
     );
     console.log(updateResult);
     if (updateResult.nModified === 0) {
