@@ -1,45 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Details</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .details {
-      margin-bottom: 20px;
-    }
-    .details h2 {
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 5px;
-    }
-    .details img {
-      max-width: 150px;
-      height: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        body {
+
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-heading {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .container {
+            width: 80%;
+            margin: 10px auto;
+            background: white;
+            padding: 30px;
+
+            border-radius: 9px;
+        }
+
+        .heading-color {
+            color: #c93c3c;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .sub-container {
+            box-shadow: 0 0 10px #ce6a6a;
+            border-radius: 9px;
+            padding: 20px;
+            margin: 20px 0 20px 0;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 10px;
+        }
+
+        .profile-pic {
+            border-radius: 50%;
+            border: 1px solid #ce6a6a;
+            width: 150px;
+            height: 150px;
+            margin-right: 20px;
+        }
+
+        .profile-info h1 {
+            margin: 0;
+        }
+
+        .photos {
+            margin-top: 20px;
+        }
+
+        .photo-grid {
+            display: flex;
+            gap: 10px;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 9rem;
+
+        }
+
+        .photo-grid img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 1px solid #ce6a6a;
+            border-radius: 9px;
+        }
+
+        .about,
+        .personal-appearance {
+            margin-top: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .details {
+            margin-top: 20px;
+        }
+
+        .details-section {
+            margin-bottom: 10px;
+        }
+
+        .details-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .details-section li {
+            margin-bottom: 10px;
+        }
+
+        .details-section li strong {
+            width: 150px;
+            display: inline-block;
+        }
+
+        .profile-text {
+            font-size: 14px;
+        }
+
+        .flex-profile {
+            display: flex;
+            justify-content: space-between;
+
+        }
+
+        .highlight-text {
+            font-weight: 600
+        }
+
+        .gapo {
+            margin: 0 12rem 0 0;
+        }
+
+        .gapt {
+            margin: 0 15rem 0 0;
+        }
+
+        .gapth {
+            margin: 0 8rem 0 0;
+        }
+
+        .gapf {
+            margin: 0 10rem 0 0;
+        }
+
+        .gapfi {
+            margin: 0 18rem 0 0;
+        }
+
+        .logo {
+            position: absolute;
+            /* left: 10%;
+            top: 5%; */
+            width: 60px;
+            height: 60px;
+            margin-left: 16px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>User Details</h1>
-  <div class="details">
-    <h2>Basic Information</h2>
-    <p><strong>Name:</strong> {{name}}</p>
-    <p><strong>Email:</strong> {{email}}</p>
-  </div>
-  <div class="details">
-    <h2>Self Details</h2>
-    <p><strong>Profile Picture:</strong></p>
-    <img src="{{profilePictureUrl}}" alt="Profile Picture">
-    <p><strong>Interests:</strong> {{interestsTypes}}</p>
-    <p><strong>Fun Activities:</strong> {{funActivitiesTypes}}</p>
-    <p><strong>Fitness:</strong> {{fitnessTypes}}</p>
-    <p><strong>Other:</strong> {{otherTypes}}</p>
-  </div>
+    <img src="./logo.jpeg" alt="logo" class="logo">
+    <h1 class="main-heading">User Details</h1>
+    <div class="container">
+        <div class="sub-container">
+            <div class="profile-header">
+                <img src="{{profilePictureUrl0}}" alt="Profile Picture" class="profile-pic">
+                <div class="profile-info">
+                    <h3>{{name}}</h3>
+                    <h4>({{userId}})</h4>
+                    <span class="flex">
+                        <span class="profile-text">
+
+                            <p> {{age0}}yrs {{height0}}</p>
+                            <p> {{dateofBirth0}}</p>
+                            <p> {{maritalStatus0}}</p>
+                            <p>{{profession0}}</p>
+                        </span>
+                        <span class="profile-text">
+
+                            <p> {{currentlyLivingInCity}}, {{currentlyLivingInState}}</p>
+                            <p> {{religion}}</p>
+                            <p>{{timeofBirth0}} </p>
+                            <p> {{diet0}}</p>
+                            <p>{{community0}}</p>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="sub-container">
+            <div class="photos">
+                <h2>Photos</h2>
+                <div class="photo-grid">
+                    {{photoGrid}}
+                </div>
+            </div>
+        </div>
+        <div class="sub-container">
+            <div class="about">
+                <h2 class="heading-color">About Yourself</h2>
+                <p>{{aboutYourself}}</p>
+            </div>
+        </div>
+        <div class="sub-container">
+            <div class="personal-appearance">
+                <h2 class="heading-color">Personal Appearance</h2>
+                <p>{{personalAppearance}}</p>
+            </div>
+        </div>
+
+        <div class="page-break">
+            <div class="details">
+                <div class="sub-container">
+                    <div class="details-section">
+                        <h2 class="heading-color">Basic Details</h2>
+                        <span class="flex-profile gapt">
+                            <span>
+                                <p class="highlight-text"> Name</p>
+                                <p>{{name1}}</p>
+                                <p class="highlight-text"> Gender </p>
+                                <p>{{gender}}</p>
+                                <p class="highlight-text"> Birth Date</p>
+                                <p>{{dateofBirth}}</p>
+                            </span>
+                            <span>
+                                <p class="highlight-text">Time of Birth</p>
+                                <p>{{timeofBirth}}</p>
+                                <p class="highlight-text">Age </p>
+                                <p>{{age}}</p>
+                                <p class="highlight-text">Place of Birth</p>
+                                <p>{{palceofBirthCity}} {{palceofBirthState}} {{palceofBirthCountry}}</p>
+
+                            </span>
+
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="page-break">
+                <div class="sub-container">
+                    <div class="details-section">
+                        <h2 class="heading-color">Additional Personal Details</h2>
+                        <span class="flex-profile gapo">
+                            <span>
+
+                                <p class="highlight-text">Height</p>
+                                <p>{{height}}</p>
+                                <p class="highlight-text"> Weight</p>
+                                <p>{{weight}}</p>
+                                <p class="highlight-text"> Presently Settled in Country</p>
+                                <p>{{currentlyLivingInCountry}}</p>
+                                <p class="highlight-text">Presently Settled in State</p>
+                                <p>{{currentlyLivingInState1}}</p>
+                                <p class="highlight-text">Presently Settled in City</p>
+                                <p>{{currentlyLivingInCity1}}</p>
+                                <p class="highlight-text">Open to Relocate in Future</p>
+                                <p>{{relocationInFuture}}</p>
+                            </span>
+                            <span>
+                                <p class="highlight-text">Diet</p>
+                                <p>{{diet}}</p>
+                                <p class="highlight-text">Alcohol</p>
+                                <p>{{alcohol}}</p>
+                                <p class="highlight-text">Smoking Preference</p>
+                                <p>{{smoking}}</p>
+                                <p class="highlight-text">Marital Status</p>
+                                <p>{{maritalStatus}}</p>
+                                <p class="highlight-text">Contact Details</p>
+                                <p>+{{contact}}</p>
+                                <p class="highlight-text">Email</p>
+                                <p>{{email}}</p>
+
+                            </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-break">
+            <div class="details">
+                <div class="sub-container">
+                    <div class="details-section">
+                        <h2 class="heading-color">Career Details</h2>
+                        <span class="flex-profile gapth">
+                            <span>
+
+                                <p class="highlight-text"> Education</p>
+                                <p>{{educationName}}</p>
+                                <p class="highlight-text"> University </p>
+                                <p>{{university}}</p>
+                                <p class="highlight-text"> Highest Qualification</p>
+                                <p>{{highestQualification}}</p>
+                                <p class="highlight-text">Profession</p>
+                                <p>{{profession}}</p>
+                            </span>
+                            <span>
+                                <p class="highlight-text">Current Designation</p>
+                                <p>{{currentDesignation}}</p>
+                                <p class="highlight-text">Previous Occupation </p>
+                                <p>{{previousOccupation}}</p>
+                                <p class="highlight-text">Approximate Annual Income</p>
+                                <p>$ {{annualIncomeValue}}</p>
+
+                            </span>
+                    </div>
+                </div>
+            </div>
+            <div class="details ">
+                <div class="sub-container">
+                    <div class="details-section">
+                        <h2 class="heading-color">Additional Details & Interests</h2>
+                        <span class="flex-profile gapfi">
+                            <span>
+
+                                <p class="highlight-text"> Interests</p>
+                                <p>{{interestsTypes}}</p>
+                                <p class="highlight-text"> Fun </p>
+                                <p>{{funActivitiesTypes}}</p>
+
+                            </span>
+                            <span>
+                                <p class="highlight-text">Fitness</p>
+                                <p>{{fitnessTypes}}</p>
+                                <p class="highlight-text">Others</p>
+                                <p>{{otherTypes}}</p>
+
+
+                            </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="details ">
+            <div class="sub-container">
+                <div class="details-section">
+                    <h2 class="heading-color">Family Details</h2>
+                    <span class="flex-profile gapf">
+                        <span>
+
+                            <p class="highlight-text">Father's Name</p>
+                            <p>{{fatherName}}</p>
+                            <p class="highlight-text">Father's Occupation </p>
+                            <p>{{fatherOccupation}}</p>
+                            <p class="highlight-text">Mother's Name</p>
+                            <p>{{motherName}}</p>
+                            <p class="highlight-text">Mother's Occupation</p>
+                            <p>{{motherOccupation}}</p>
+                            <p class="highlight-text">Siblings</p>
+                            {{siblingGrid}}
+                            <p class="highlight-text">Lives with Family</p>
+                            <p>{{withFamilyStatus}}</p>
+                        </span>
+                        <span>
+                            <p class="highlight-text">Family Settled (Country)</p>
+                            <p>{{familyLocationCountry}}</p>
+                            <p class="highlight-text">Family Settled (State)</p>
+                            <p>{{familyLocationState}}</p>
+
+                            <p class="highlight-text">Family Settled (City)</p>
+                            <p>{{familyLocationCity}}</p>
+
+                            <p class="highlight-text">Religion</p>
+                            <p>Hinduism</p>
+                            <p class="highlight-text">Community</p>
+                            <p>{{community}}</p>
+                            <p class="highlight-text">Family Annual Income</p>
+                            <p>{{familyAnnualIncomeStart}}</p>
+
+                        </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </body>
+
 </html>
