@@ -71,8 +71,14 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
   
       const promises = users.map(async (user) => {
         const userIdString = String(user._id);
-        const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture || "");
-        user.selfDetails[0].profilePictureUrl = profileUrl || "";
+        if (user.selfDetails && user.selfDetails[0]) {
+          const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture || "");
+          user.selfDetails[0].profilePictureUrl = profileUrl || "";
+        } else {
+          user.selfDetails = [{}]; // Initialize selfDetails with an empty object
+          const profileUrl = await getSignedUrlFromS3(""); // Generate URL for empty profile picture
+          user.selfDetails[0].profilePictureUrl = profileUrl || "";
+        }
       
         if (user.familyDetails && user.familyDetails[0]?.community) {
           const communityData = communities.find(community => community.community_id === user.familyDetails[0]?.community);
