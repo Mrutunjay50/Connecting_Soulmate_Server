@@ -32,7 +32,7 @@ const additionalDetailsSchema = mongoose.Schema({
 });
 
 const careerDetailsSchema = mongoose.Schema({
-  highestEducation: { type: String, default: "", required: false },
+  highestEducation: { type: Number, default: "", required: false },
   highestQualification: { type: String, default: "", required: false },
   "school/university": { type: String, default: "", required: false },
   passingYear: { type: String, default: "", required: false },
