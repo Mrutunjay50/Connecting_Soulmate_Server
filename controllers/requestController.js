@@ -5,6 +5,7 @@ const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
+const { populateNotification } = require("../helper/populateNotification");
 
 // Profile Request Section
 
@@ -30,12 +31,21 @@ exports.sendProfileRequest = async (req, res) => {
       notifications = new Notifications({
         notificationTo: profileRequestTo,
         notificationBy: profileRequestBy,
-        notificationText: `You (${profileRequestBy}) have received a profile request from ${profileRequestTo}`,
+        notificationText: `You/ have received a profile request from /${profileRequestTo}`,
         notificationType: "profilesent"
       });
       await notifications.save();
     }
-    io.getIO().emit(`notification/${profileRequestTo}`, notifications);
+
+    notifications = await Notifications.findOne({
+      notificationTo: profileRequestTo,
+      notificationBy: profileRequestBy,
+      notificationType: "profilesent"
+    });
+
+    const formattedNotification = await populateNotification(notifications);
+
+    io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
     io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
     return res.status(200).json(message);
   } catch (error) {
@@ -77,17 +87,22 @@ exports.acceptProfileRequest = async (req, res) => {
       return res.status(400).json({ message: "Notification already exists" });
     }
     // Create and save notification for profile request sent
-    const notification = new Notifications({
+    let notification = new Notifications({
       notificationBy: request.profileRequestTo,
       notificationTo: request.profileRequestBy,
-      notificationText: `${request.profileRequestTo} have accepted the profile request from ${request.profileRequestBy}`,
+      notificationText: `${request.profileRequestTo}/ have accepted the profile request from /${request.profileRequestBy}`,
       notificationType : "profileaccepted"
     });
     await notification.save();
-
+    notification = await Notifications.findOne({
+      notificationBy: request.profileRequestTo,
+      notificationTo: request.profileRequestBy,
+      notificationType : "profileaccepted"
+    });
+    const formattedNotification = await populateNotification(notification);
     // Emit notification event
-    io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
-    io.getIO().emit(`notification/${request.profileRequestTo}`, notification);
+    io.getIO().emit(`notification/${request.profileRequestBy}`, formattedNotification);
+    io.getIO().emit(`notification/${request.profileRequestTo}`, formattedNotification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
     return res.status(201).json({responseMsg, notification : "also created"})
@@ -258,14 +273,21 @@ exports.sendInterestRequest = async (req, res) => {
       notification = new Notifications({
         notificationTo: interestRequestTo,
         notificationBy: interestRequestBy,
-        notificationText: `You (${interestRequestBy}) have received a Interest request from ${interestRequestTo}`,
+        notificationText: `You/ have received a Interest request from /${interestRequestTo}`,
         notificationType : "interestsent"
       });
       await notification.save();
     }
+
+    notification = await Notifications.findOne({
+      notificationTo: interestRequestTo,
+      notificationBy: interestRequestBy,
+      notificationType : "interestsent"
+    });
     // Create and save notification for profile request sent
     // io.getIO().to(interestRequestTo).emit("notification", notification);
-    io.getIO().emit(`notification/${interestRequestTo}`, notification);
+    const formattedNotification = await populateNotification(notification);
+    io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
     io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
     return res.status(200).json(message);
   } catch (error) {
@@ -306,17 +328,23 @@ exports.acceptInterestRequest = async (req, res) => {
       return res.status(400).json({ message: "Notification already exists" });
     }
     // Create and save notification for profile request sent
-    const notification = new Notifications({
+    let notification = new Notifications({
       notificationTo: request.interestRequestBy,
       notificationBy: request.interestRequestTo,
-      notificationText: `${request.interestRequestTo} have accepted the profile request from ${request.interestRequestBy}`,
+      notificationText: `${request.interestRequestTo}/ have accepted the profile request from /${request.interestRequestBy}`,
       notificationType : "interestaccepted"
     });
     await notification.save();
+    notification = await Notifications.findOne({
+      notificationTo: request.interestRequestBy,
+      notificationBy: request.interestRequestTo,
+      notificationType : "interestaccepted"
+    });
 
+    const formattedNotification = await populateNotification(notification);
     // Emit notification event
-    io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
-    io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
+    io.getIO().emit(`notification/${request.interestRequestBy}`, formattedNotification);
+    io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // io.getIO().to(admin).emit("notification", notification);
     return res.status(201).json({responseMsg, notification : "also created"})
