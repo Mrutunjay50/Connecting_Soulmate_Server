@@ -57,6 +57,6 @@ router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
 router.get("/get-all-users",isAdmin ,getAllUsers);
 router.get("/get-all-pending-users",isAdmin ,getAllPendingUsers);
-router.get("/get-user-data/:userId", getUserByIdForAdmin);
+router.get("/get-user-data-view/:userId", getUserByIdForAdmin);
 
 module.exports = router;
