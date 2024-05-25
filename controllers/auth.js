@@ -74,6 +74,15 @@ const magicLinkController = async (req, res) => {
         )}`;
         message = "Already A User, Redirecting to login page...";
       } else if (
+        existingUser.registrationPhase === "notapproved" &&
+        existingUser.registrationPage === "6"
+      ) {
+        redirectURI = `${DOMAIN}/login/${parseInt(
+          number.split("-").join("")
+        )}`; // Change this to your registration form page
+        message =
+          "You are Currently in registration process Redirecting to registration form...";
+      } else if (
         existingUser.registrationPhase === "registering" &&
         existingUser.registrationPage !== ""
       ) {
