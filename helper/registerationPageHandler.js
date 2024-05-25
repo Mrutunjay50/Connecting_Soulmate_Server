@@ -49,7 +49,26 @@ exports.handlePage1 = async (req, user) => {
 };
 
 exports.handlePage2 = async (req, user) => {
-  user.additionalDetails[0] = { ...req.body.additionalDetails };
+  const { contact } = req.body.additionalDetails;
+
+  try {
+    // Check if a user with the same email or contact number exists
+    const existingUser = await User.findOne({
+      $or: [{ 'additionalDetails.contact': contact }], _id: { $ne: user._id }
+    });
+
+    if (existingUser) {
+      throw new Error('A user with the same email or phone number already exists.');
+    }
+
+    // If no user is found, update the additional details
+    user.additionalDetails[0] = { ...req.body.additionalDetails };
+
+  } catch (err) {
+    // Handle any errors that occur
+    console.error(err);
+    return { error: 'An error occurred while updating the user.' };
+  }
 };
 
 exports.handlePage3 = async (req, user) => {
@@ -71,49 +90,53 @@ exports.handlePage4 = async (req, user) => {
 };
 
 exports.handlePage5 = async (req, user) => {
-  const userPhotos = req.files;
-  const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } =
-    JSON.parse(req.body.selfDetails);
-
-    console.log(aboutYourself, interests, fun, fitness, other, profilePicture);
-  if (!user.selfDetails || !user.selfDetails[0]) {
-    user.selfDetails = [{}];
-  }
-
-  const selfDetails = user.selfDetails[0];
-  selfDetails.profilePicture = profileImage;
-  selfDetails.aboutYourself = aboutYourself;
-  selfDetails.interests = interests;
-  selfDetails.fun = fun;
-  selfDetails.fitness = fitness;
-  selfDetails.other = other;
-
-  if (userPhotos && userPhotos.length > 0) {
-    if (
-      selfDetails.userPhotos &&
-      selfDetails.userPhotos.length + userPhotos.length > 5
-    ) {
-      const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
-      selfDetails.userPhotos.splice(0, excessCount);
+  try {
+    const userPhotos = req.files;
+    const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } =
+      JSON.parse(req.body.selfDetails);
+  
+      console.log(aboutYourself, interests, fun, fitness, other, profilePicture);
+    if (!user.selfDetails || !user.selfDetails[0]) {
+      user.selfDetails = [{}];
     }
-
-    try {
-      const uploadedPhotos = await Promise.all(
-        userPhotos.map(async (photo) => {
-          const { buffer, originalname, mimetype } = photo;
-          const resizedImageBuffer = await buffer;
-          const fileName = generateFileName(originalname);
-          await uploadToS3(resizedImageBuffer, fileName, mimetype);
-          if(originalname === profilePicture){
-            selfDetails.profilePicture = String(fileName); 
-          } 
-          return fileName;
-        })
-      );
-      selfDetails.userPhotos.push(...uploadedPhotos);
-    } catch (error) {
-      console.error("Error uploading images to S3:", error);
+  
+    const selfDetails = user.selfDetails[0];
+    selfDetails.profilePicture = profileImage;
+    selfDetails.aboutYourself = aboutYourself;
+    selfDetails.interests = interests;
+    selfDetails.fun = fun;
+    selfDetails.fitness = fitness;
+    selfDetails.other = other;
+  
+    if (userPhotos && userPhotos.length > 0) {
+      if (
+        selfDetails.userPhotos &&
+        selfDetails.userPhotos.length + userPhotos.length > 5
+      ) {
+        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+        selfDetails.userPhotos.splice(0, excessCount);
+      }
+  
+      try {
+        const uploadedPhotos = await Promise.all(
+          userPhotos.map(async (photo) => {
+            const { buffer, originalname, mimetype } = photo;
+            const resizedImageBuffer = await buffer;
+            const fileName = generateFileName(originalname);
+            await uploadToS3(resizedImageBuffer, fileName, mimetype);
+            if(originalname === profilePicture){
+              selfDetails.profilePicture = String(fileName); 
+            } 
+            return fileName;
+          })
+        );
+        selfDetails.userPhotos.push(...uploadedPhotos);
+      } catch (error) {
+        console.error("Error uploading images to S3:", error);
+      }
     }
+  }catch (err){
+    console.log(err)
   }
 };
 

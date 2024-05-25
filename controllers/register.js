@@ -57,6 +57,9 @@ exports.registerUser = async (req, res) => {
 
     res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
+    if (err.message === 'A user with the same email or phone number already exists.') {
+      return res.status(400).json({ error: err.message });
+    }
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
