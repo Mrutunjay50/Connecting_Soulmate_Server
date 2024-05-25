@@ -9,6 +9,7 @@ const {
 } = require("../controllers/auth");
 const express = require("express");
 const { isAdmin } = require("../middleware/is_auth");
+const { getUserByIdForAdmin } = require("../controllers/admin");
 const router = express.Router();
 const validateSignupInput = [
   body("email")
@@ -56,5 +57,6 @@ router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
 router.get("/get-all-users",isAdmin ,getAllUsers);
 router.get("/get-all-pending-users",isAdmin ,getAllPendingUsers);
+router.get("/get-user-data/:userId", getUserByIdForAdmin);
 
 module.exports = router;
