@@ -11,41 +11,46 @@ function generateUniqueNumber() {
 }
 
 exports.handlePage1 = async (req, user) => {
-  const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
-  const currentDate = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = currentDate.getFullYear() - birthDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const birthMonth = birthDate.getMonth();
+  try {
+    const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
+    const currentDate = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const birthMonth = birthDate.getMonth();
 
-  if (
-    currentMonth < birthMonth ||
-    (currentMonth === birthMonth && currentDate.getDate() < birthDate.getDate())
-  ) {
-    age--;
+    if (
+      currentMonth < birthMonth ||
+      (currentMonth === birthMonth && currentDate.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    if (age < 21) {
+      throw new Error("You must be at least 21 years old to register.");
+    }
+
+    user.basicDetails[0] = {
+      ...req.body.basicDetails,
+      name: `${fname} ${mname} ${lname}`,
+      gender: user.createdBy[0].gender,
+      age: age.toString(),
+    };
+    user.registrationPhase = "registering";
+
+    const genderPrefix = generateUniqueNumber();
+    const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();
+    const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
+    const dobFormatted = dob.format("YYYYMM");
+    const noOfUsers = await User.countDocuments({});
+    user.basicDetails[0].userId =
+      `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
+        ?.toUpperCase()
+        .replaceAll(" ", "");
+  } catch (err) {
+    console.error("Error in handlePage1:", err);
+    throw err;
   }
-
-  if (age < 21) {
-    throw new Error("You must be at least 21 years old to register.");
-  }
-
-  user.basicDetails[0] = {
-    ...req.body.basicDetails,
-    name: `${fname} ${mname} ${lname}`,
-    gender: user.createdBy[0].gender,
-    age: age.toString(),
-  };
-  user.registrationPhase = "registering";
-
-  const genderPrefix = generateUniqueNumber();
-  const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();
-  const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
-  const dobFormatted = dob.format("YYYYMM");
-  const noOfUsers = await User.countDocuments({});
-  user.basicDetails[0].userId =
-    `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
-      ?.toUpperCase()
-      .replaceAll(" ", "");
 };
 
 exports.handlePage2 = async (req, user) => {
@@ -72,21 +77,33 @@ exports.handlePage2 = async (req, user) => {
 };
 
 exports.handlePage3 = async (req, user) => {
-  const { annualIncomeValue, currencyType } = req.body.careerDetails;
-  const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
-  let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
-  user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
+  try {
+    const { annualIncomeValue, currencyType } = req.body.careerDetails;
+    const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
+    let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
+    user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
+
+  } catch (err) {
+    console.error("Error in handlePage3:", err);
+    throw err;
+  }
 };
 
 exports.handlePage4 = async (req, user) => {
-  const { annualIncomeValue, country, state, city } = req.body.familyDetails;
-  user.familyDetails[0] = {
-    ...req.body.familyDetails,
-    familyAnnualIncomeStart: annualIncomeValue,
-    familyLocationCountry: country,
-    familyLocationState: state,
-    familyLocationCity: city,
-  };
+  try {
+    const { annualIncomeValue, country, state, city } = req.body.familyDetails;
+    user.familyDetails[0] = {
+      ...req.body.familyDetails,
+      familyAnnualIncomeStart: annualIncomeValue,
+      familyLocationCountry: country,
+      familyLocationState: state,
+      familyLocationCity: city,
+    };
+
+  } catch (err) {
+    console.error("Error in handlePage4:", err);
+    throw err;
+  }
 };
 
 exports.handlePage5 = async (req, user) => {
@@ -141,48 +158,53 @@ exports.handlePage5 = async (req, user) => {
 };
 
 exports.handlePage6 = async (req, user) => {
-  let {
-    ageRangeStart,
-    ageRangeEnd,
-    heightRangeStart,
-    heightRangeEnd,
-    annualIncomeValue,
-    annualIncomeRangeEnd
-  } = req.body.partnerPreference;
+  try {
+    let {
+      ageRangeStart,
+      ageRangeEnd,
+      heightRangeStart,
+      heightRangeEnd,
+      annualIncomeValue,
+      annualIncomeRangeEnd
+    } = req.body.partnerPreference;
 
-  if (req.body.partnerPreference && req.body.partnerPreference.education) {
-    if (Array.isArray(req.body.partnerPreference.education)) {
-      req.body.partnerPreference.education =
-        req.body.partnerPreference.education.toString();
+    if (req.body.partnerPreference && req.body.partnerPreference.education) {
+      if (Array.isArray(req.body.partnerPreference.education)) {
+        req.body.partnerPreference.education =
+          req.body.partnerPreference.education.toString();
+      }
     }
-  }
-  if (req.body.partnerPreference && req.body.partnerPreference.maritalStatus) {
-    if (Array.isArray(req.body.partnerPreference.maritalStatus)) {
-      req.body.partnerPreference.maritalStatus =
-        req.body.partnerPreference.maritalStatus.toString();
+    if (req.body.partnerPreference && req.body.partnerPreference.maritalStatus) {
+      if (Array.isArray(req.body.partnerPreference.maritalStatus)) {
+        req.body.partnerPreference.maritalStatus =
+          req.body.partnerPreference.maritalStatus.toString();
+      }
     }
-  }
-  if (req.body.partnerPreference && req.body.partnerPreference.dietType) {
-    if (Array.isArray(req.body.partnerPreference.dietType)) {
-      req.body.partnerPreference.dietType = req.body.partnerPreference.dietType.toString();
+    if (req.body.partnerPreference && req.body.partnerPreference.dietType) {
+      if (Array.isArray(req.body.partnerPreference.dietType)) {
+        req.body.partnerPreference.dietType = req.body.partnerPreference.dietType.toString();
+      }
     }
-  }
-  if (req.body.partnerPreference && req.body.partnerPreference.profession) {
-    if (Array.isArray(req.body.partnerPreference.profession)) {
-      req.body.partnerPreference.profession = req.body.partnerPreference.profession.toString();
+    if (req.body.partnerPreference && req.body.partnerPreference.profession) {
+      if (Array.isArray(req.body.partnerPreference.profession)) {
+        req.body.partnerPreference.profession = req.body.partnerPreference.profession.toString();
+      }
     }
-  }
 
-  console.log(req.body);
-  user.partnerPreference[0] = {
-    ...req.body.partnerPreference,
-    dietType : req.body.partnerPreference.dietType,
-    profession :req.body.partnerPreference.profession,
-    ageRangeStart: ageRangeStart,
-    ageRangeEnd: ageRangeEnd,
-    heightRangeStart: heightRangeStart,
-    heightRangeEnd: heightRangeEnd,
-    annualIncomeRangeStart: annualIncomeValue,
-    annualIncomeRangeEnd: annualIncomeRangeEnd,
-  };
+    user.partnerPreference[0] = {
+      ...req.body.partnerPreference,
+      dietType: req.body.partnerPreference.dietType,
+      profession: req.body.partnerPreference.profession,
+      ageRangeStart: ageRangeStart,
+      ageRangeEnd: ageRangeEnd,
+      heightRangeStart: heightRangeStart,
+      heightRangeEnd: heightRangeEnd,
+      annualIncomeRangeStart: annualIncomeValue,
+      annualIncomeRangeEnd: annualIncomeRangeEnd,
+    };
+
+  } catch (err) {
+    console.error("Error in handlePage6:", err);
+    throw err;
+  }
 };

@@ -47,6 +47,7 @@ exports.registerUser = async (req, res) => {
         break;
       case "6":
         await handlePage6(req, user);
+        user.registrationPhase = "notapproved";
         break;
       default:
         return res.status(400).json({ error: "Invalid page number" });
