@@ -10,14 +10,14 @@ const {
   getPageData,
 } = require("../controllers/register.js");
 const searchController = require("../controllers/search.js");
-const { imageMulter, handleMulterError } = require("../multer/multerImg.js");
+const { imageMulter, handleMulterError, logImageSizes } = require("../multer/multerImg.js");
 
 module.exports = (app) => {
-  app.post("/user-data/:userId", imageMulter, handleMulterError, registerUser);
+  app.post("/user-data/:userId",logImageSizes, imageMulter, handleMulterError, registerUser);
   app.post("/add-profession", createProfession);
   app.post("/text-detail-change/:userId", changeUserDetailsText);
   app.put("/user-image-delete/:userId", deleteImagesInUser);
-  app.put("/user-image-upload/:userId", imageMulter, handleMulterError, addImagesInUser);
+  app.put("/user-image-upload/:userId",logImageSizes, imageMulter, handleMulterError, addImagesInUser);
   app.get("/user-data/:userId", getPageData);
   app.get("/get-user-data/:userId", getUserById);
   app.get("/user-dashboard-data/:userId", getUserDashboard);

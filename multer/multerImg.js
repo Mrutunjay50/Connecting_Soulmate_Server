@@ -1,5 +1,4 @@
 const multer = require("multer");
-const { v4: uuidv4 } = require("uuid");
 
 // File size limit in bytes (5MB)
 const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB in bytes
@@ -35,4 +34,13 @@ const handleMulterError = (err, req, res, next) => {
   next();
 }; 
 
-module.exports = { imageMulter, handleMulterError };
+const logImageSizes = (req, res, next) => {
+  if (req.files) {
+    req.files.forEach((file, index) => {
+      console.log(`File ${index + 1} size: ${file.size} bytes`);
+    });
+  }
+  next();
+};
+
+module.exports = { imageMulter, handleMulterError, logImageSizes };
