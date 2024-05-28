@@ -104,3 +104,148 @@ exports.getUserPDFForAdmin = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getAllPendingUsersForAdmin = async (req, res, next) => {
+  try {
+    const adminId = req.user._id;
+    let { page, limit, search } = req.query;
+    let query = {
+      registrationPhase: "notapproved",
+      _id: { $ne: adminId }, // Exclude users with _id matching adminId
+      accessType: { $ne: "0" },
+      name: { $ne: "" }
+    };
+    
+    // Apply search filter if present
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query = { ...query, $or: [{ "basicDetails.name": searchRegex },{"userId" : searchRegex}, { category: searchRegex }] };
+      // Add more fields to search in if needed, here we're searching in 'basicDetails.name' and 'category'
+    }
+    
+    limit = 10;
+    let result;
+    let totalUsersCount;
+    let endIndex;
+
+    // Pagination logic
+    if (page && limit) {
+      const pageNumber = parseInt(page);
+      const pageSize = parseInt(limit);
+      const startIndex = (pageNumber - 1) * pageSize;
+      endIndex = pageNumber * pageSize;
+
+      totalUsersCount = await User.countDocuments(query);
+      if (endIndex < totalUsersCount) {
+        result = {
+          nextPage: pageNumber + 1,
+          data: await User.find(query)
+            .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(startIndex),
+        };
+      } else {
+        result = {
+          data: await User.find(query)
+            .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(startIndex),
+        };
+      }
+    } else {
+      result = {
+        data: await User.find(query)
+          .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+          .sort({ createdAt: -1 }),
+      };
+    }
+
+    res.status(200).json({
+      result,
+      currentPage: parseInt(page),
+      hasLastPage: endIndex < totalUsersCount,
+      hasPreviousPage: parseInt(page) > 1,
+      nextPage: parseInt(page) + 1,
+      previousPage: parseInt(page) - 1,
+      lastPage: Math.ceil(totalUsersCount / parseInt(limit)),
+      totalUsersCount
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const { page, limit, search } = req.query;
+    let query = { 
+      registrationPhase: { $in: ["approved", "notapproved", "rejected"] },
+      _id: { $ne: adminId }, // Exclude users with _id matching adminId
+      accessType: { $ne: "0" },
+      name: { $ne: "" } 
+    };
+
+    // Apply search filter if present
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query = { ...query, $or: [{ "basicDetails.name": searchRegex }, { "userId": searchRegex }, { category: searchRegex }] };
+      // Add more fields to search in if needed, here we're searching in 'basicDetails.name', 'userId', and 'category'
+    }
+
+    let result;
+    let totalUsersCount;
+    let endIndex;
+
+    // Pagination logic
+    if (page && limit) {
+      const pageNumber = parseInt(page);
+      const pageSize = parseInt(limit);
+      const startIndex = (pageNumber - 1) * pageSize;
+      endIndex = pageNumber * pageSize;
+
+      totalUsersCount = await User.countDocuments(query);
+      if (endIndex < totalUsersCount) {
+        result = {
+          nextPage: pageNumber + 1,
+          data: await User.find(query)
+            .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(startIndex),
+        };
+      } else {
+        result = {
+          data: await User.find(query)
+            .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(startIndex),
+        };
+      }
+    } else {
+      result = {
+        data: await User.find(query)
+          .select("_id basicDetails.name createdBy.createdFor category gender userId createdAt")
+          .sort({ createdAt: -1 }),
+      };
+    }
+
+    res.status(200).json({
+      result,
+      currentPage: parseInt(page),
+      hasLastPage: endIndex < totalUsersCount,
+      hasPreviousPage: parseInt(page) > 1,
+      nextPage: parseInt(page) + 1,
+      previousPage: parseInt(page) - 1,
+      lastPage: Math.ceil(totalUsersCount / parseInt(limit)),
+      totalUsersCount
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

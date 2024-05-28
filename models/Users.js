@@ -1,29 +1,29 @@
 const mongoose = require("mongoose");
 
 const basicDetailsSchema = mongoose.Schema({
-  name: { type: String, required: false },
+  name: { type: String, required: true },
   gender: { type: String, required: false },
   placeOfBirthCountry: { type: Number, required: false },
   placeOfBirthState: { type: Number, required: false },
   placeOfBirthCity: { type: Number, required: false },
-  dateOfBirth: { type: String, required: false },
+  dateOfBirth: { type: String, required: true },
   timeOfBirth: { type: String, required: false },
   age: { type: String, required: false },
   manglik: { type: String, required: false },
   horoscope: { type: String, required: false, default : "" },
-  userId: { type: String, unique: true, required: true },
+  userId: { type: String, required: true },
 });
 
 const additionalDetailsSchema = mongoose.Schema({
-  height: { type: Number, required: false },
-  weight: { type: String, required: false },
-  email: { type: String, required: false },
-  contact: { type: String, required: false },
-  personalAppearance: { type: String, required: false },
+  height: { type: Number, default: "", required: false },
+  weight: { type: String, default: "", required: false },
+  email: { type: String, default: "", required: false },
+  contact: { type: String, default: "", required: false },
+  personalAppearance: { type: String, default: "", required: false },
   currentlyLivingInCountry: { type: Number, required: false },
   currentlyLivingInState: { type: Number, required: false },
   currentlyLivingInCity: { type: Number, required: false },
-  countryCode: { type: String, default: "" },
+  countryCode: { type: String, default: "", required: false  },
   relocationInFuture: { type: String, default: "", required: false },
   diet: { type: Number, default: "", required: false },
   alcohol: { type: String, default: "", required: false },
@@ -65,15 +65,15 @@ const familyDetailsSchema = mongoose.Schema({
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: { type: String, default: "" },
-  fun: { type: String, default: "" },
-  fitness: { type: String, default: "" },
-  other: { type: String, default: "" },
+  interests: { type: String, default: "", required: false  },
+  fun: { type: String, default: "", required: false  },
+  fitness: { type: String, default: "", required: false  },
+  other: { type: String, default: "", required: false  },
   profilePicture: { type: String, default: "", required: false },
-  userPhotos: [{ type: String, default: "" }],
-  userPhotosUrl: [{ type: String, default: "" }],
-  profilePictureUrl: { type: String, default: "" },
-  aboutYourself: { type: String, default: "" },
+  userPhotos: [{ type: String, default: "", required: false  }],
+  userPhotosUrl: [{ type: String, default: "", required: false  }],
+  profilePictureUrl: { type: String, default: "", required: false  },
+  aboutYourself: { type: String, default: "", required: false  },
 });
 
 const preferenceSchema = mongoose.Schema({
@@ -97,6 +97,7 @@ const preferenceSchema = mongoose.Schema({
 const createdBySchema = mongoose.Schema({
   createdFor: {
     type: String,
+    required: true,
     enum: [
       "myself",
       "myson",
@@ -114,16 +115,30 @@ const createdBySchema = mongoose.Schema({
     },
   },
   // countryCode : { type: String, required: false },
-  phone: { type: String, required: false, unique: true },
-  gender: { type: String, enum: ["F", "M"] },
+  phone: { type: String, required: true, unique: true },
+  gender: { type: String, required: true, enum: ["F", "M"] },
 });
 
 // Define indexes directly in the schema
 const userSchema = mongoose.Schema(
   {
-    userId: { type: String, default: ""},
     createdBy: [createdBySchema],
-    basicDetails: [basicDetailsSchema],
+    basicDetails: {
+      type: [basicDetailsSchema],
+      validate: {
+        validator: function (v) {
+          return v.length > 0;
+        },
+        message: "basicDetails cannot be empty.",
+      },
+    },
+    userId: {
+      type: String,
+      unique: true,
+      required: function () {
+        return this.basicDetails && this.basicDetails.length > 0;
+      },
+    },
     additionalDetails: [additionalDetailsSchema],
     careerDetails: [careerDetailsSchema],
     familyDetails: [familyDetailsSchema],
@@ -166,7 +181,7 @@ const userSchema = mongoose.Schema(
     },
     registrationPhase: {
       type: String,
-      enum: ["registering", "notapproved", "approved"],
+      enum: ["registering", "notapproved", "approved", "rejected"],
       default : "registering"
     },
     lastLogin : {
@@ -189,17 +204,6 @@ const userSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save", function (next) {
-  // Check if userId exists in basicDetailsSchema
-  const userIdExists =
-    this.basicDetails && this.basicDetails[0] && this.basicDetails[0].userId;
-  // If userId exists in basicDetailsSchema, include userId field in userSchema
-  if (userIdExists) {
-    this.userId = { type: String, default: "", required: true, unique: true };
-    this.userId = userIdExists;
-  }
-  next();
-});
 
 // Define indexes directly in the schema
 userSchema.index({ "carrierDetails.annualIncomeValue": 1 });

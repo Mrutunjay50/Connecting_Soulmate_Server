@@ -47,6 +47,9 @@ exports.handlePage1 = async (req, user) => {
       `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
         ?.toUpperCase()
         .replaceAll(" ", "");
+
+    await user.save()
+    user.userId = user.basicDetails[0].userId;
   } catch (err) {
     console.error("Error in handlePage1:", err);
     throw err;
