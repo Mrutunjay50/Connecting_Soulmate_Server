@@ -127,8 +127,10 @@ const signupController = async (req, res) => {
       1: "myself",
       2: "myson",
       3: "mydaughter",
-      4: "myrelative",
-      5: "myfriend",
+      4: "mybrother",
+      5: "mysister",
+      6: "myfriend",
+      7: "myrelative"
     };
 
     createdFor = mapFrontendToEnum[createdFor] || null;

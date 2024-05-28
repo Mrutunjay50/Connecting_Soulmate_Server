@@ -126,7 +126,6 @@ const userSchema = mongoose.Schema(
     basicDetails: [basicDetailsSchema],
     userId: {
       type: String,
-      unique: true,
       required: function () {
         return this.basicDetails && this.basicDetails.length > 0;
       },
@@ -204,7 +203,7 @@ userSchema.index({ "familyDetails.community": 1 });
 userSchema.index({ "familyDetails.caste": 1 });
 userSchema.index({ "carrierDetails.highestEducation": 1 });
 userSchema.index({ "gender": 1 });
-userSchema.index({ "userId": 1 });
+// userSchema.index({ "userId": 1 });
 userSchema.index({ "basicDetails.dateOfBirth": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });
