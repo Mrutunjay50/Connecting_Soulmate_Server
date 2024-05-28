@@ -123,15 +123,7 @@ const createdBySchema = mongoose.Schema({
 const userSchema = mongoose.Schema(
   {
     createdBy: [createdBySchema],
-    basicDetails: {
-      type: [basicDetailsSchema],
-      validate: {
-        validator: function (v) {
-          return v.length > 0;
-        },
-        message: "basicDetails cannot be empty.",
-      },
-    },
+    basicDetails: [basicDetailsSchema],
     userId: {
       type: String,
       unique: true,
@@ -145,39 +137,39 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String },
-    isDeleted : {
-      type: String,
+    isDeleted: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
-    deleteReason : {
+    deleteReason: {
       type: String,
-      default : ""
+      default: "",
     },
-    isEmailSubscribed : {
-      type: String,
+    isEmailSubscribed: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
-    isBlocked : {
-      type: String,
+    isBlocked: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
-    isShortListed : {
-      type: String,
+    isShortListed: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
-    isInterestRequest : {
-      type: String,
+    isInterestRequest: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
-    isProfileRequest : {
-      type: String,
+    isProfileRequest: {
+      type: Boolean,
       enum: [true, false],
-      default : false
+      default: false,
     },
     registrationPhase: {
       type: String,
@@ -211,8 +203,8 @@ userSchema.index({ "additionalDetails.maritalStatus": 1 });
 userSchema.index({ "familyDetails.community": 1 });
 userSchema.index({ "familyDetails.caste": 1 });
 userSchema.index({ "carrierDetails.highestEducation": 1 });
-userSchema.index({ gender: 1 });
-userSchema.index({ "basicDetails.userId": 1 });
+userSchema.index({ "gender": 1 });
+userSchema.index({ "userId": 1 });
 userSchema.index({ "basicDetails.dateOfBirth": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
 userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });

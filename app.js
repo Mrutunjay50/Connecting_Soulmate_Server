@@ -29,7 +29,7 @@ async function connectToMongoDB() {
     // // const userCollection = mongoose.connection.collection("users");
     // const indexes = await userCollection.indexes();
     // // // Drop all indexes
-    // // await userCollection.dropIndexes();
+    // await userCollection.dropIndexes();
 
     // console.log("Indexes on Users collection:", indexes);
     console.log("MongoDB connected successfully with indexes");

@@ -43,13 +43,12 @@ exports.handlePage1 = async (req, user) => {
     const dob = moment(user.basicDetails[0].dateOfBirth, "YYYY-MM-DD");
     const dobFormatted = dob.format("YYYYMM");
     const noOfUsers = await User.countDocuments({});
-    user.basicDetails[0].userId =
-      `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
-        ?.toUpperCase()
-        .replaceAll(" ", "");
+    const generatedUserId = `CS${namePrefix}${genderPrefix}${noOfUsers}${dobFormatted}`
+      .toUpperCase()
+      .replaceAll(" ", "");
 
-    await user.save()
-    user.userId = user.basicDetails[0].userId;
+    user.basicDetails[0].userId = generatedUserId;
+    user.userId = generatedUserId;
   } catch (err) {
     console.error("Error in handlePage1:", err);
     throw err;
