@@ -196,24 +196,24 @@ const userSchema = mongoose.Schema(
 );
 
 
-// Define indexes directly in the schema
-userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
-userSchema.index({ "additionalDetails.maritalStatus": 1 });
-userSchema.index({ "familyDetails.community": 1 });
-userSchema.index({ "familyDetails.caste": 1 });
-userSchema.index({ "carrierDetails.highestEducation": 1 });
-userSchema.index({ "gender": 1 });
 // userSchema.index({ "userId": 1 });
-userSchema.index({ "basicDetails.dateOfBirth": 1 });
-userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
-userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });
-userSchema.index({ "additionalDetails.currentlyLivingInCity": 1 });
-userSchema.index({ "basicDetails.age": 1 });
-userSchema.index({ "basicDetails.gender": 1 });
-userSchema.index({ "additionalDetails.height": 1 });
-userSchema.index({ "careerDetails.profession": 1 });
-userSchema.index({ "careerDetails.currentDesignation": 1 });
-userSchema.index({ "additionalDetails.diet": 1 });
+// Define indexes directly in the schema
+// userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
+// userSchema.index({ "additionalDetails.maritalStatus": 1 });
+// userSchema.index({ "familyDetails.community": 1 });
+// userSchema.index({ "familyDetails.caste": 1 });
+// userSchema.index({ "carrierDetails.highestEducation": 1 });
+// userSchema.index({ "gender": 1 });
+// userSchema.index({ "basicDetails.dateOfBirth": 1 });
+// userSchema.index({ "additionalDetails.currentlyLivingInCountry": 1 });
+// userSchema.index({ "additionalDetails.currentlyLivingInState": 1 });
+// userSchema.index({ "additionalDetails.currentlyLivingInCity": 1 });
+// userSchema.index({ "basicDetails.age": 1 });
+// userSchema.index({ "basicDetails.gender": 1 });
+// userSchema.index({ "additionalDetails.height": 1 });
+// userSchema.index({ "careerDetails.profession": 1 });
+// userSchema.index({ "careerDetails.currentDesignation": 1 });
+// userSchema.index({ "additionalDetails.diet": 1 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
