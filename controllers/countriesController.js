@@ -109,3 +109,29 @@ exports.getCitiesById = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// Fetch states by multiple IDs
+exports.getMultipleStatesById = async (req, res) => {
+  const { state } = req.query;
+  try {
+    const stateIds = state.split(',').map(id => id.trim());
+    const states = await State.find({ state_id: { $in: stateIds } });
+    res.status(200).json(states);
+  } catch (error) {
+    console.error('Error fetching states:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Fetch cities by multiple IDs
+exports.getMultipleCitiesById = async (req, res) => {
+  const { city } = req.query;
+  try {
+    const cityIds = city.split(',').map(id => id.trim());
+    const cities = await City.find({ city_id: { $in: cityIds } });
+    res.status(200).json(cities);
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
