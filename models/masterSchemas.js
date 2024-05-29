@@ -30,7 +30,7 @@ const CountrySchema = mongoose.Schema({
     require: true,
   },
   country_name: { type: String, require: true },
-  country_code: { type: Number, require: true },
+  country_code: { type: String, require: true },
 });
 
 const DietSchema = mongoose.Schema({

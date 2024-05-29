@@ -44,12 +44,12 @@ function generateUniqueNumber() {
 //       //   state_name: response[i]?.state_name,
 //       // });
 //       //city
-//         // masterData.push({
-//         //   city_id: response[i]?.city_id,
-//         //   city_name: response[i]?.city_name,
-//         //   country_id: response[i]?.country_id,
-//         //   state_id: response[i]?.state_id
-//         // });
+//       // masterData.push({
+//       //     city_id: response[i]?.city_id,
+//       //     city_name: response[i]?.city_name,
+//       //     country_id: response[i]?.country_id,
+//       //     state_id: response[i]?.state_id
+//       //   });
 //       //country
 //         // masterData.push({
 //         //   country_id: response[i]?.country_id,
@@ -64,12 +64,12 @@ function generateUniqueNumber() {
 //         // });
 //       //Interest
 //         // masterData.push({
-//         //   intrest_id: response[i]?.interest_id,
-//         //   intrest_name: response[i]?.interest_name,
+//         //     intrest_id: response[i]?.interest_id,
+//         //     intrest_name: response[i]?.interest_name,
 //         // });
 //       //funactivity
 //         // masterData.push({
-//         //   funActivity_id: response[i]?.fun_id,
+//         //     funActivity_id: response[i]?.fun_id,
 //         //   funActivity_name: response[i]?.fun_name,
 //         // });
 //       //otherInterest
@@ -87,27 +87,27 @@ function generateUniqueNumber() {
 //         //   diet_id: response[i]?.diet_id,
 //         //   diet_name: response[i]?.diet_name,
 //         // });
-//       // education
+//         // education
 //         // masterData.push({
-//         //   education_id: response[i]?.education_id,
-//         //   education_name: response[i]?.education_name,
+//         //     education_id: response[i]?.education_id,
+//         //     education_name: response[i]?.education_name,
 //         // });
 //       // religion
 //         // masterData.push({
 //         //   religion_id: response[i]?.religion_id,
 //         //   religion_name: response[i]?.religion_name,
 //         // });
-//       // community
+//         // community
 //         // masterData.push({
-//         //   community_id: response[i]?.community_id,
-//         //   community_name: response[i]?.community_name,
-//         // });
-//     }
-
-//     // await State.insertMany(masterData);
-//     // await City.insertMany(masterData);
-//     // await Country.insertMany(masterData);
-//     // await Proffesion.insertMany(masterData);
+//         //     community_id: response[i]?.community_id,
+//         //     community_name: response[i]?.community_name,
+//         //   });
+//         // }
+        
+//         // await State.insertMany(masterData);
+//         // await City.insertMany(masterData);
+//         // await Country.insertMany(masterData);
+//         // await Proffesion.insertMany(masterData);
 //     // await Interest.insertMany(masterData);
 //     // await FunActivity.insertMany(masterData);
 //     // await Other.insertMany(masterData);
@@ -115,7 +115,7 @@ function generateUniqueNumber() {
 //     // await Diet.insertMany(masterData);
 //     // await Education.insertMany(masterData);
 //     // await Religion.insertMany(masterData);
-//     await Community.insertMany(masterData);
+//     // await Community.insertMany(masterData);
 //     res.status(201).json({ message: "uploaded", masterData });
 //   } catch (err) {
 //     console.log(err);
