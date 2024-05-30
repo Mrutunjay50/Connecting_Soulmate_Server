@@ -114,7 +114,8 @@ exports.getCitiesById = async (req, res) => {
 exports.getMultipleStatesById = async (req, res) => {
   const { state } = req.query;
   try {
-    const stateIds = state.split(',').map(id => id.trim());
+    const stateIds = state.split(',').map(id => parseInt(id.trim()));
+    console.log(stateIds);
     const states = await State.find({ state_id: { $in: stateIds } });
     res.status(200).json(states);
   } catch (error) {
