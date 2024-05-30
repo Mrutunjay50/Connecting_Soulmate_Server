@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 
 const basicDetailsSchema = mongoose.Schema({
-  name: { type: String, required: true },
-  gender: { type: String, required: false },
-  placeOfBirthCountry: { type: Number, required: false },
-  placeOfBirthState: { type: Number, required: false },
-  placeOfBirthCity: { type: Number, required: false },
-  dateOfBirth: { type: String, required: true },
-  timeOfBirth: { type: String, required: false },
-  age: { type: String, required: false },
-  manglik: { type: String, required: false },
+  name: { type: String, required: true, default : "" },
+  gender: { type: String, required: false, default : "" },
+  placeOfBirthCountry: { type: Number, required: false, default : 0 },
+  placeOfBirthState: { type: Number, required: false, default : 0 },
+  placeOfBirthCity: { type: Number, required: false, default : 0 },
+  dateOfBirth: { type: String, required: true, default : "" },
+  timeOfBirth: { type: String, required: false, default : "" },
+  age: { type: String, required: false, default : "" },
+  manglik: { type: String, required: false, default : "" },
   horoscope: { type: String, required: false, default : "" },
-  userId: { type: String, required: true },
+  userId: { type: String, required: false, default : "" },
 });
 
 const additionalDetailsSchema = mongoose.Schema({
@@ -20,9 +20,9 @@ const additionalDetailsSchema = mongoose.Schema({
   email: { type: String, default: "", required: false },
   contact: { type: String, default: "", required: false },
   personalAppearance: { type: String, default: "", required: false },
-  currentlyLivingInCountry: { type: Number, required: false },
-  currentlyLivingInState: { type: Number, required: false },
-  currentlyLivingInCity: { type: Number, required: false },
+  currentlyLivingInCountry: { type: Number, required: false, default : 0 },
+  currentlyLivingInState: { type: Number, required: false, default : 0 },
+  currentlyLivingInCity: { type: Number, required: false, default : 0 },
   countryCode: { type: String, default: "", required: false  },
   relocationInFuture: { type: String, default: "", required: false },
   diet: { type: Number, default: "", required: false },
@@ -32,11 +32,11 @@ const additionalDetailsSchema = mongoose.Schema({
 });
 
 const careerDetailsSchema = mongoose.Schema({
-  highestEducation: { type: Number, default: "", required: false },
+  highestEducation: { type: Number, default: 0, required: false },
   highestQualification: { type: String, default: "", required: false },
   "school/university": { type: String, default: "", required: false },
   passingYear: { type: String, default: "", required: false },
-  profession: { type: Number, default: "", required: false },
+  profession: { type: Number, default: 0, required: false },
   currentDesignation: { type: String, default: "", required: false },
   previousOccupation: { type: String, default: "", required: false },
   annualIncomeUSD : { type: String, default: "", required: false },
@@ -55,7 +55,7 @@ const familyDetailsSchema = mongoose.Schema({
   familyLocationCity: { type: Number, default: 0, required: false },
   religion: { type: Number, default: 0, required: false },
   caste: { type: String, default: "", required: false },
-  community: { type: Number, default: "", required: false },
+  community: { type: Number, default: 0, required: false },
   familyAnnualIncomeStart: { type: Number, default: 0, required: false },
   familyAnnualIncomeEnd: { type: Number, default: 0, required: false },
   users: [{
@@ -196,8 +196,8 @@ const userSchema = mongoose.Schema(
 );
 
 
-// userSchema.index({ "userId": 1 });
 // Define indexes directly in the schema
+// userSchema.index({ "userId": 1 });
 // userSchema.index({ "carrierDetails.annualIncomeValue": 1 });
 // userSchema.index({ "additionalDetails.maritalStatus": 1 });
 // userSchema.index({ "familyDetails.community": 1 });

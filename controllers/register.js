@@ -100,10 +100,10 @@ exports.getPageData = async (req, res) => {
       const partnerPreference = pageData[0].partnerPreference;
       const educations = partnerPreference.education
         .split(",")
-        .map((interest) => parseInt(interest.trim()));
+        .map((interest) => parseInt(interest.trim()) || 0);
       const diets = partnerPreference.dietType
         .split(",")
-        .map((other) => parseInt(other.trim()));
+        .map((other) => parseInt(other.trim()) || 0);
       //finding if the any of the strings present in the documents
       const [education, diet] = await Promise.all([
         Education.find({ education_id: { $in: educations } }),
