@@ -6,8 +6,8 @@ const countriesController = require("../controllers/countriesController");
 const { isAdmin } = require("../middleware/is_auth");
 
 const router = (app) => {
-  app.post("/masterDataUploader", fileMulter, masterController.masterDataCSV);
-  // app.post("/masterDataUploader", fileMulter, masterController.uploadcsv);
+  // app.post("/masterDataUploader", fileMulter, masterController.masterDataCSV);
+  app.post("/masterDataUploader", fileMulter, masterController.uploadcsv);
   app.get("/getMasterData/:type", getMasterController.getMasterData);
   app.get("/getMasterData/:type/:id", getMasterController.getMasterDataById);
   app.get("/countries", countriesController.getCountries);

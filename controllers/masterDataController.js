@@ -360,7 +360,7 @@ exports.uploadcsv = async (req, res) => {
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
-        regiaterationPhase: row["notapproved"],
+        registrationPhase: "notapproved",
         registrationPage: row[""],
         annualIncomeType:
           row["Approximate Annual Income"].split("(")[1]?.replace(")", "") ||
