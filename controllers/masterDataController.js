@@ -22,106 +22,106 @@ function generateUniqueNumber() {
   return uniqueNumber;
 }
 
-// exports.masterDataCSV = async (req, res) => {
-//   let masterData = [];
-//   try {
-//     const response = await csv().fromFile(req.file.path);
+exports.masterDataCSV = async (req, res) => {
+  let masterData = [];
+  try {
+    const response = await csv().fromFile(req.file.path);
 
-//     for (var i = 0; i < response.length; i++) {
-//       // Check if any of the properties in the response object is an empty string
-//       if (
-//         Object.values(response[i]).some(
-//           (value) => typeof value === "string" && value.trim() === ""
-//         )
-//       ) {
-//         // Skip this iteration if any property has an empty string
-//         continue;
-//       }
-//       // state
-//       // masterData.push({
-//       //   state_id: response[i]?.state_id,
-//       //   country_id: response[i]?.country_id,
-//       //   state_name: response[i]?.state_name,
-//       // });
-//       //city
-//       // masterData.push({
-//       //     city_id: response[i]?.city_id,
-//       //     city_name: response[i]?.city_name,
-//       //     country_id: response[i]?.country_id,
-//       //     state_id: response[i]?.state_id
-//       //   });
-//       //country
-//         // masterData.push({
-//         //   country_id: response[i]?.country_id,
-//         //   country_name: response[i]?.country_name,
-//         //   country_code: response[i]?.country_code
-//         // });
-//       //profession
-//         // masterData.push({
-//         //   proffesion_id: response[i]?.profession_id,
-//         //   proffesion_name: response[i]?.profession_name,
-//         //   proffesion_type: response[i]?.type,
-//         // });
-//       //Interest
-//         // masterData.push({
-//         //     intrest_id: response[i]?.interest_id,
-//         //     intrest_name: response[i]?.interest_name,
-//         // });
-//       //funactivity
-//         // masterData.push({
-//         //     funActivity_id: response[i]?.fun_id,
-//         //   funActivity_name: response[i]?.fun_name,
-//         // });
-//       //otherInterest
-//         // masterData.push({
-//         //   other_id: response[i]?.oi_id,
-//         //   other_name: response[i]?.oi_name,
-//         // });
-//       // fitnessActivity
-//       // masterData.push({
-//       //   fitness_id: response[i]?.fa_id,
-//       //   fitness_name: response[i]?.fa_name,
-//       // });
-//       // diet
-//         // masterData.push({
-//         //   diet_id: response[i]?.diet_id,
-//         //   diet_name: response[i]?.diet_name,
-//         // });
-//         // education
-//         // masterData.push({
-//         //     education_id: response[i]?.education_id,
-//         //     education_name: response[i]?.education_name,
-//         // });
-//       // religion
-//         // masterData.push({
-//         //   religion_id: response[i]?.religion_id,
-//         //   religion_name: response[i]?.religion_name,
-//         // });
-//         // community
-//         // masterData.push({
-//         //     community_id: response[i]?.community_id,
-//         //     community_name: response[i]?.community_name,
-//         //   });
-//         // }
+    for (var i = 0; i < response.length; i++) {
+      // Check if any of the properties in the response object is an empty string
+      if (
+        Object.values(response[i]).some(
+          (value) => typeof value === "string" && value.trim() === ""
+        )
+      ) {
+        // Skip this iteration if any property has an empty string
+        continue;
+      }
+      // state
+      // masterData.push({
+      //   state_id: response[i]?.state_id,
+      //   country_id: response[i]?.country_id,
+      //   state_name: response[i]?.state_name,
+      // });
+      //city
+      // masterData.push({
+      //     city_id: response[i]?.city_id,
+      //     city_name: response[i]?.city_name,
+      //     country_id: response[i]?.country_id,
+      //     state_id: response[i]?.state_id
+      //   });
+      //country
+        // masterData.push({
+        //   country_id: response[i]?.country_id,
+        //   country_name: response[i]?.country_name,
+        //   country_code: response[i]?.country_code
+        // });
+      //profession
+        masterData.push({
+          proffesion_id: parseInt(response[i]?.profession_id),
+          proffesion_name: response[i]?.profession_name,
+          proffesion_type: response[i]?.type,
+        });
+      //Interest
+        // masterData.push({
+        //     intrest_id: response[i]?.interest_id,
+        //     intrest_name: response[i]?.interest_name,
+        // });
+      //funactivity
+        // masterData.push({
+        //     funActivity_id: response[i]?.fun_id,
+        //   funActivity_name: response[i]?.fun_name,
+        // });
+      //otherInterest
+        // masterData.push({
+        //   other_id: response[i]?.oi_id,
+        //   other_name: response[i]?.oi_name,
+        // });
+      // fitnessActivity
+      // masterData.push({
+      //   fitness_id: response[i]?.fa_id,
+      //   fitness_name: response[i]?.fa_name,
+      // });
+      // diet
+        // masterData.push({
+        //   diet_id: response[i]?.diet_id,
+        //   diet_name: response[i]?.diet_name,
+        // });
+        // education
+        // masterData.push({
+        //     education_id: response[i]?.education_id,
+        //     education_name: response[i]?.education_name,
+        // });
+      // religion
+        // masterData.push({
+        //   religion_id: response[i]?.religion_id,
+        //   religion_name: response[i]?.religion_name,
+        // });
+        // community
+        // masterData.push({
+        //     community_id: response[i]?.community_id,
+        //     community_name: response[i]?.community_name,
+        //   });
+        }
         
-//         // await State.insertMany(masterData);
-//         // await City.insertMany(masterData);
-//         // await Country.insertMany(masterData);
-//         // await Proffesion.insertMany(masterData);
-//     // await Interest.insertMany(masterData);
-//     // await FunActivity.insertMany(masterData);
-//     // await Other.insertMany(masterData);
-//     // await Fitness.insertMany(masterData);
-//     // await Diet.insertMany(masterData);
-//     // await Education.insertMany(masterData);
-//     // await Religion.insertMany(masterData);
-//     // await Community.insertMany(masterData);
-//     res.status(201).json({ message: "uploaded", masterData });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ message: err.message });
-//   }
-// };
+        // await State.insertMany(masterData);
+        // await City.insertMany(masterData);
+        // await Country.insertMany(masterData);
+        await Proffesion.insertMany(masterData);
+    // await Interest.insertMany(masterData);
+    // await FunActivity.insertMany(masterData);
+    // await Other.insertMany(masterData);
+    // await Fitness.insertMany(masterData);
+    // await Diet.insertMany(masterData);
+    // await Education.insertMany(masterData);
+    // await Religion.insertMany(masterData);
+    // await Community.insertMany(masterData);
+    res.status(201).json({ message: "uploaded", masterData });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 function calculateAge(birthDateStr) {
   // Parse the birth date string

@@ -114,7 +114,7 @@ exports.handlePage5 = async (req, user) => {
     const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } =
       JSON.parse(req.body.selfDetails);
   
-      console.log(aboutYourself, interests, fun, fitness, other, profilePicture);
+      console.log(aboutYourself, interests, fun, fitness, other, profilePicture, profileImage);
     if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
     }
@@ -167,7 +167,8 @@ exports.handlePage6 = async (req, user) => {
       heightRangeStart,
       heightRangeEnd,
       annualIncomeValue,
-      annualIncomeRangeEnd
+      annualIncomeRangeEnd,
+      // community
     } = req.body.partnerPreference;
 
     if (req.body.partnerPreference && req.body.partnerPreference.education) {
@@ -192,6 +193,11 @@ exports.handlePage6 = async (req, user) => {
         req.body.partnerPreference.profession = req.body.partnerPreference.profession.toString();
       }
     }
+    // if (req.body.partnerPreference && req.body.partnerPreference.community) {
+    //   if (Array.isArray(req.body.partnerPreference.community)) {
+    //     req.body.partnerPreference.community = req.body.partnerPreference.community.toString();
+    //   }
+    // }
 
     user.partnerPreference[0] = {
       ...req.body.partnerPreference,

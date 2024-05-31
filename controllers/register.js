@@ -234,22 +234,32 @@ exports.addImagesInUser = async (req, res) => {
 exports.createProfession = async (req, res) => {
   try {
     const { professionName } = req.body;
-    const count = await Proffesion.countDocuments();
 
-    const professionId = count + 1;
-    let profession;
-    if (professionName !== "") {
-      profession = new Proffesion({
-        proffesion_name: professionName,
-        proffesion_id: parseInt(professionId),
-      });
+    // Check if the professionName is provided
+    if (!professionName) {
+      return res.status(400).json({ error: "Profession name is required" });
     }
+
+    // Check if a profession with the same name already exists
+    const existingProfession = await Proffesion.findOne({ proffesion_name: professionName });
+
+    if (existingProfession) {
+      return res.status(200).json({ message: "Profession already exists", profession: existingProfession });
+    }
+
+    // Count the number of professions to set a new profession ID
+    const count = await Proffesion.countDocuments();
+    const professionId = count + 1;
+
+    // Create a new profession if the name is unique
+    const profession = new Proffesion({
+      proffesion_name: professionName,
+      proffesion_id: parseInt(professionId),
+    });
 
     await profession.save();
 
-    res
-      .status(201)
-      .json({ message: "Profession created successfully", profession });
+    res.status(201).json({ message: "Profession created successfully", profession });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
