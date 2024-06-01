@@ -48,76 +48,70 @@ const magicLinkController = async (req, res) => {
   try {
     const { number, email } = req.body;
 
-    let redirectURI;
-    let message;
-    let notFound;
-
-    if (!number.trim())
+    if (!number.trim()) {
       return res.status(400).json({ message: "Invalid field!" });
+    }
 
     const mobile = number.split("-")[1].trim();
     const countryCode = number.split("-")[0].trim();
     const existingUser = await User.findOne({
       "createdBy.phone": countryCode + mobile,
     });
-    console.log(existingUser);
 
     if (!existingUser) {
-      redirectURI = `${DOMAIN}/signup/${parseInt(
-        number.split("-").join("")
-      )}`;
-      notFound = { notFound: "You are New to our Website Please Signup!" };
-    } else {
-      if (existingUser.registrationPhase === "approved") {
-        redirectURI = `${DOMAIN}/login/${parseInt(
-          number.split("-").join("")
-        )}`;
-        message = "Already A User, Redirecting to login page...";
-      } else if (
-        existingUser.registrationPhase === "notapproved" &&
-        existingUser.registrationPage === "6"
-      ) {
-        redirectURI = `${DOMAIN}/login/${parseInt(
-          number.split("-").join("")
-        )}`; // Change this to your registration form page
-        message =
-          "You are Currently in registration process Redirecting to registration form...";
-      } else if (
-        existingUser.registrationPhase === "registering" &&
-        existingUser.registrationPage !== ""
-      ) {
-        redirectURI = `${DOMAIN}/login/${parseInt(
-          number.split("-").join("")
-        )}`; // Change this to your registration form page
-        message =
-          "You are Currently in registration process Redirecting to registration form...";
-      } else {
-        redirectURI = `${DOMAIN}/signup/${parseInt(
-          number.split("-").join("")
-        )}`;
-        message =
-          "You have Once visited to our Website Please Continue the registeration Process, Redirecting to signup page...";
+      const redirectURI = `${DOMAIN}/signup/${parseInt(number.split("-").join(""))}`;
+      const notFound = { notFound: "You are New to our Website Please Signup!" };
+
+      const magicLinkTokens = await UserDetail.magicLink(
+        parseInt(number.split("-").join("")),
+        email,
+        redirectURI,
+        "",
+        client_id,
+        client_secret,
+        channel
+      );
+
+      if (magicLinkTokens) {
+        return res.status(200).json({ message: "Magic link created for new user", notFound });
       }
-    }
+    } else {
+      let message;
+      if (existingUser.accessType === "0" || existingUser.accessType === "1") {
+        message = "Redirecting to login page...";
+      } else if (existingUser.registrationPhase === "approved") {
+        message = "Already A User, Redirecting to login page...";
+      } else if (existingUser.registrationPhase === "notapproved") {
+        message = "Your Approval request has been declined";
+        return res.status(200).json({ message, user: existingUser });
+      } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
+        message = "You are currently in the registration process. Redirecting to registration form...";
+        return res.status(200).json({ message, user: existingUser });
+      } else {
+        message = "You have once visited our website. Please continue the registration process. Redirecting to signup page...";
+      }
 
-    const magicLinkTokens = await UserDetail.magicLink(
-      parseInt(number.split("-").join("")),
-      email,
-      redirectURI,
-      "",
-      client_id,
-      client_secret,
-      channel
-    );
+      const redirectURI = `${DOMAIN}/login/${parseInt(number.split("-").join(""))}`;
+      const magicLinkTokens = await UserDetail.magicLink(
+        parseInt(number.split("-").join("")),
+        email,
+        redirectURI,
+        "",
+        client_id,
+        client_secret,
+        channel
+      );
 
-    if (magicLinkTokens) {
-      res.status(200).json({ message, notFound });
+      if (magicLinkTokens) {
+        return res.status(200).json({ message });
+      }
     }
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const signupController = async (req, res) => {
   try {
