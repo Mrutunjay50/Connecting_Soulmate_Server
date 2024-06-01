@@ -82,11 +82,13 @@ const magicLinkController = async (req, res) => {
       } else if (existingUser.registrationPhase === "approved") {
         message = "Already A User, Redirecting to login page...";
       } else if (existingUser.registrationPhase === "notapproved") {
+        message = "Your Approval request has been Submitted wait until your request get accepted";
+        return res.status(200).json({ message, user: existingUser });
+      } else if (existingUser.registrationPhase === "rejected") {
         message = "Your Approval request has been declined";
         return res.status(200).json({ message, user: existingUser });
       } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
         message = "You are currently in the registration process. Redirecting to registration form...";
-        return res.status(200).json({ message, user: existingUser });
       } else {
         message = "You have once visited our website. Please continue the registration process. Redirecting to signup page...";
       }
