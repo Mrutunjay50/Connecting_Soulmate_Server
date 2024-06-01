@@ -85,8 +85,7 @@ const magicLinkController = async (req, res) => {
         message = "Your Approval request has been Submitted wait until your request get accepted";
         return res.status(200).json({ message, user: existingUser });
       } else if (existingUser.registrationPhase === "rejected") {
-        message = "Your Approval request has been declined";
-        return res.status(200).json({ message, user: existingUser });
+        message = "Your Approval request has been declined, Kindly checkout whether your information is valid or not";
       } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
         message = "You are currently in the registration process. Redirecting to registration form...";
       } else {
