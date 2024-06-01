@@ -13,8 +13,10 @@ const client_secret = process.env.CLIENT_SECRET;
 const channel = "WHATSAPP";
 const DOMAIN = process.env.FRONTEND_URL;
 
+const threeMonthsInSeconds = 3 * 30 * 24 * 60 * 60;
+
 const signinController = async (req, res) => {
-  const { code } = req.body;
+  const { code, expiryTime } = req.body;
   console.log(req.body);
   try {
     const user = await UserDetail.verifyCode(code, client_id, client_secret);
@@ -33,7 +35,7 @@ const signinController = async (req, res) => {
         id: existingUser._id,
       },
       process.env.SECRET_KEY,
-      { expiresIn: "30d" }
+      { expiresIn: expiryTime || threeMonthsInSeconds }
     );
     return res
       .status(200)
@@ -58,6 +60,8 @@ const magicLinkController = async (req, res) => {
       "createdBy.phone": countryCode + mobile,
     });
 
+    let expiryTime;
+
     if (!existingUser) {
       const redirectURI = `${DOMAIN}/signup/${parseInt(number.split("-").join(""))}`;
       const notFound = { notFound: "You are New to our Website Please Signup!" };
@@ -79,20 +83,26 @@ const magicLinkController = async (req, res) => {
       let message;
       if (existingUser.accessType === "0" || existingUser.accessType === "1") {
         message = "Redirecting to login page...";
+        expiryTime = threeMonthsInSeconds;
       } else if (existingUser.registrationPhase === "approved") {
         message = "Already A User, Redirecting to login page...";
+        expiryTime = threeMonthsInSeconds;
       } else if (existingUser.registrationPhase === "notapproved") {
         message = "Your Approval request has been Submitted wait until your request get accepted";
-        return res.status(200).json({ message, user: existingUser });
+        expiryTime = "1h";
+        return res.status(200).json({ message, user: existingUser, expiryTime });
       } else if (existingUser.registrationPhase === "rejected") {
         message = "Your Approval request has been declined, Kindly checkout whether your information is valid or not";
+        expiryTime = "1h";
       } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
         message = "You are currently in the registration process. Redirecting to registration form...";
+        expiryTime = "1h";
       } else {
         message = "You have once visited our website. Please continue the registration process. Redirecting to signup page...";
+        expiryTime = "1h";
       }
 
-      const redirectURI = `${DOMAIN}/login/${parseInt(number.split("-").join(""))}`;
+      const redirectURI = `${DOMAIN}/login/${parseInt(number.split("-").join(""))}?expiryTime=${expiryTime}`;
       const magicLinkTokens = await UserDetail.magicLink(
         parseInt(number.split("-").join("")),
         email,
