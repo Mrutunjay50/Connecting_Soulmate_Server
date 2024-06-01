@@ -356,7 +356,7 @@ exports.uploadcsv = async (req, res) => {
             row["Contact Number - Mobile Number (Country Code)"].replace(
               "+",
               ""
-            ) + row["Contact Number - Mobile Number"],
+            ) + row["Contact Number - Registration Number"],
           gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
         },
         gender: row["Bride/Groom Gender"] === "2" ? "F" : "M",
