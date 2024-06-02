@@ -37,6 +37,43 @@ exports.updateRegistrationPhase = async (req, res) => {
   }
 };
 
+
+exports.updateUserCategory = async (req, res) => {
+  try {
+    const { categoryType } = req.body;
+    console.log(categoryType);
+    const { userId } = req.params;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let categories = user.category.split(',').filter(Boolean); // Split and filter out empty strings
+
+    if (categories.includes(categoryType)) {
+      // Remove the category if it already exists
+      categories = categories.filter(cat => cat !== categoryType);
+    } else {
+      // Add the category if it doesn't exist
+      categories.push(categoryType);
+    }
+
+    user.category = categories.join(',');
+
+    user = await user.save();
+
+    res.status(200).json({
+      message: `Category updated successfully for user ${user?.basicDetails[0]?.name}`,
+      user,
+    });
+  } catch (error) {
+    console.error("Error updating category and registration phase:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 exports.getUserByIdForAdmin = async (req, res, next) => {
   try {
     const userData = await User.findById(req.params.userId);
