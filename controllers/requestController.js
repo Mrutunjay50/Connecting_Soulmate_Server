@@ -6,6 +6,7 @@ const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/populateNotification");
+const { sendNotificationToAdmins } = require("../helper/sendNotificationsToAdmin");
 
 // Profile Request Section
 
@@ -47,6 +48,8 @@ exports.sendProfileRequest = async (req, res) => {
 
     io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
     io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
+    // Send formatted notification to admin and users with accessType 0 or 1
+    sendNotificationToAdmins(formattedNotification);
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending profile request:", error);
@@ -104,7 +107,8 @@ exports.acceptProfileRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.profileRequestTo}`, formattedNotification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
-    // io.getIO().to(admin).emit("notification", notification);
+    // Send formatted notification to admin and users with accessType 0 or 1
+    sendNotificationToAdmins(formattedNotification);
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting profile request:", error);
@@ -136,9 +140,9 @@ exports.declineProfileRequest = async (req, res) => {
     );
 
     // Emit notification event
-    // io.getIO().emit(`notification/${request.profileRequestBy}`, notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
-    // io.getIO().to(admin).emit("notification", notification);
+    // Send formatted notification to admin and users with accessType 0 or 1
+    sendNotificationToAdmins(formattedNotification);
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining profile request:", error);
@@ -284,11 +288,11 @@ exports.sendInterestRequest = async (req, res) => {
       notificationBy: interestRequestBy,
       notificationType : "interestsent"
     });
-    // Create and save notification for profile request sent
-    // io.getIO().to(interestRequestTo).emit("notification", notification);
     const formattedNotification = await populateNotification(notification);
     io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
     io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
+    // Send formatted notification to admin and users with accessType 0 or 1
+    sendNotificationToAdmins(formattedNotification);
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending interest request:", error);
@@ -346,7 +350,8 @@ exports.acceptInterestRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
-    // io.getIO().to(admin).emit("notification", notification);
+    // Send formatted notification to admin and users with accessType 0 or 1
+    sendNotificationToAdmins(formattedNotification);
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting interest request:", error);
@@ -379,10 +384,7 @@ exports.declineInterestRequest = async (req, res) => {
     );
 
     // Emit notification event
-    // io.getIO().emit(`notification/${request.interestRequestBy}`, notification);
-    // io.getIO().emit(`notification/${request.interestRequestTo}`, notification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
-    // io.getIO().to(admin).emit("notification", notification);
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining interest request:", error);
@@ -555,6 +557,10 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
     const request = await Model.findById(requestId);
     if (!request) {
       return res.status(404).json({ error: "Request not found" });
+    }
+    if (status === "cancelled") {
+      await Model.findByIdAndDelete(requestId);
+      return res.status(200).json({ message: `${type} request has been cancelled and deleted` });
     }
     request.action = status;
 
