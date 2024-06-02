@@ -57,30 +57,56 @@ exports.updateExchangeRateByCurrency = async (req, res) => {
     const { currency } = req.params;
     const { rateToUSD } = req.body;
 
+    // Validate rateToUSD is a number
+    if (typeof rateToUSD !== 'number') {
+      return res.status(400).json({ error: 'rateToUSD must be a number' });
+    }
+
+    // Find and update the exchange rate
     const exchangeRate = await ExchangeRate.findOneAndUpdate(
       { currency },
       { rateToUSD },
       { new: true }
     );
-    
+
     if (!exchangeRate) {
       return res.status(404).json({ error: 'Exchange rate not found' });
     }
+
+    // Update user's annual income in USD
     const updateResult = await User.updateMany(
       { "careerDetails.currencyType": currency },
       [
         {
           $set: {
-            "careerDetails.annualIncomeUSD": {
-              $multiply: ["$careerDetails.annualIncomeValue", rateToUSD]
+            "careerDetails": {
+              $map: {
+                input: "$careerDetails",
+                as: "careerDetail",
+                in: {
+                  $mergeObjects: [
+                    "$$careerDetail",
+                    {
+                      annualIncomeUSD: {
+                        $multiply: [
+                          { $toDouble: { $ifNull: ["$$careerDetail.annualIncomeValue", 0] } },
+                          rateToUSD
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
             }
           }
         }
       ]
     );
+
     console.log(updateResult);
-    if (updateResult.nModified === 0) {
-      return res.status(404).json({ error: 'No users found with matching annualCurrency' });
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(200).json({ message: 'No users found with matching currency type' });
     }
 
     return res.status(200).json(exchangeRate);
@@ -89,6 +115,8 @@ exports.updateExchangeRateByCurrency = async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 // Controller to delete exchange rate by currency
 exports.deleteExchangeRateByCurrency = async (req, res) => {
