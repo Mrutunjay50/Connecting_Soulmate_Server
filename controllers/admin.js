@@ -73,6 +73,100 @@ exports.updateUserCategory = async (req, res) => {
   }
 };
 
+// exports.getUserStatisticsForAdmin = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     const pastDate = new Date();
+//     pastDate.setDate(currentDate.getDate() - 15);
+    
+//     const totalUsers = await User.countDocuments({});
+//     const totalMaleUsers = await User.countDocuments({ gender: 'M' });
+//     const totalFemaleUsers = await User.countDocuments({ gender: 'F' });
+//     const totalUsersCategoryA = await User.countDocuments({ category: /A/ });
+//     const totalUsersCategoryB = await User.countDocuments({ category: /B/ });
+//     const totalUsersCategoryC = await User.countDocuments({ category: /C/ });
+//     const totalUsersUnCategorised = await User.countDocuments({ category: "" });
+//     const totalActiveUsers = await User.countDocuments({ lastLogin: { $gte: pastDate } });
+//     console.log("fkjghkjdfbgkjdfhgkjdfkjdhfvkj");
+//     console.timeEnd('getUserStatisticsForAdmin'); // End timing
+//     console.log("fkjghkjdfbgkjdfhgkjdfkjdhfvkj");
+//     res.status(200).json({
+//       totalUsers,
+//       totalMaleUsers,
+//       totalFemaleUsers,
+//       totalUsersCategoryA,
+//       totalUsersCategoryB,
+//       totalUsersCategoryC,
+//       totalUsersUnCategorised,
+//       totalActiveUsers,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching user statistics:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
+
+// with aggregation just testing whether this is faster or the above
+exports.getUserStatisticsForAdmin = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const pastDate = new Date();
+    pastDate.setDate(currentDate.getDate() - 15);
+
+    // console.log("----------------");
+    // console.time('getUserStatisticsForAdmin'); // Start timing
+    // console.log("----------------");
+
+    const statistics = await User.aggregate([
+      {
+        $facet: {
+          totalUsers: [{ $count: "count" }],
+          totalMaleUsers: [{ $match: { gender: 'M' } }, { $count: "count" }],
+          totalFemaleUsers: [{ $match: { gender: 'F' } }, { $count: "count" }],
+          totalUsersCategoryA: [{ $match: { category: /A/ } }, { $count: "count" }],
+          totalUsersCategoryB: [{ $match: { category: /B/ } }, { $count: "count" }],
+          totalUsersCategoryC: [{ $match: { category: /C/ } }, { $count: "count" }],
+          totalUsersUnCategorised: [{ $match: { category: "" } }, { $count: "count" }],
+          totalActiveUsers: [{ $match: { lastLogin: { $gte: pastDate } } }, { $count: "count" }],
+        }
+      },
+      {
+        $project: {
+          totalUsers: { $arrayElemAt: ["$totalUsers.count", 0] },
+          totalMaleUsers: { $arrayElemAt: ["$totalMaleUsers.count", 0] },
+          totalFemaleUsers: { $arrayElemAt: ["$totalFemaleUsers.count", 0] },
+          totalUsersCategoryA: { $arrayElemAt: ["$totalUsersCategoryA.count", 0] },
+          totalUsersCategoryB: { $arrayElemAt: ["$totalUsersCategoryB.count", 0] },
+          totalUsersCategoryC: { $arrayElemAt: ["$totalUsersCategoryC.count", 0] },
+          totalUsersUnCategorised: { $arrayElemAt: ["$totalUsersUnCategorised.count", 0] },
+          totalActiveUsers: { $arrayElemAt: ["$totalActiveUsers.count", 0] },
+        }
+      }
+    ]);
+    
+    // console.log("----------------");
+    // console.timeEnd('getUserStatisticsForAdmin'); // End timing
+    // console.log("----------------");
+
+    const stats = statistics[0];
+
+    res.status(200).json({
+      totalUsers: stats.totalUsers || 0,
+      totalMaleUsers: stats.totalMaleUsers || 0,
+      totalFemaleUsers: stats.totalFemaleUsers || 0,
+      totalUsersCategoryA: stats.totalUsersCategoryA || 0,
+      totalUsersCategoryB: stats.totalUsersCategoryB || 0,
+      totalUsersCategoryC: stats.totalUsersCategoryC || 0,
+      totalUsersUnCategorised: stats.totalUsersUnCategorised || 0,
+      totalActiveUsers: stats.totalActiveUsers || 0,
+    });
+  } catch (error) {
+    console.error("Error fetching user statistics:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 exports.getUserByIdForAdmin = async (req, res, next) => {
   try {
