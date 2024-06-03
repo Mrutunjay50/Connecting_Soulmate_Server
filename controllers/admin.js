@@ -73,6 +73,28 @@ exports.updateUserCategory = async (req, res) => {
   }
 };
 
+exports.softDeleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.isDeleted = true;
+    user = await user.save();
+
+    res.status(200).json({
+      message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
+      user,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // exports.getUserStatisticsForAdmin = async (req, res) => {
 //   try {
 //     const currentDate = new Date();
@@ -244,7 +266,8 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
       registrationPhase: "notapproved",
       _id: { $ne: adminId }, // Exclude users with _id matching adminId
       accessType: { $ne: "0" },
-      name: { $ne: "" }
+      name: { $ne: "" },
+      isDeleted : false
     };
     
     // Apply search filter if present
@@ -254,7 +277,6 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
       // Add more fields to search in if needed, here we're searching in 'basicDetails.name' and 'category'
     }
     
-    limit = 10;
     let result;
     let totalUsersCount;
     let endIndex;
@@ -313,11 +335,13 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
 exports.getAllUsers = async (req, res, next) => {
   try {
     const { page, limit, search } = req.query;
+    const adminId = req.user._id;
     let query = { 
-      registrationPhase: { $in: ["approved", "notapproved", "rejected"] },
+      registrationPhase: { $in: ["approved", "notapproved", "rejected", "registering"] },
       _id: { $ne: adminId }, // Exclude users with _id matching adminId
       accessType: { $ne: "0" },
-      name: { $ne: "" } 
+      name: { $ne: "" },
+      isDeleted : false
     };
 
     // Apply search filter if present
