@@ -556,17 +556,18 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
   try {
     const request = await Model.findById(requestId);
     if (!request) {
-      return res.status(404).json({ error: "Request not found" });
+      return { error: "Request not found" };
     }
     if (status === "cancelled") {
       await Model.findByIdAndDelete(requestId);
-      return res.status(200).json({ message: `${type} request has been cancelled and deleted` });
+      return { message: `${type} request has been cancelled and deleted` };
     }
     request.action = status;
 
     return await processRequest(Model, request[`${type.toLowerCase()}RequestBy`], request[`${type.toLowerCase()}RequestTo`], type, status, res);
   } catch (error) {
     console.error(`Error updating ${type} request status:`, error);
+    // console.error("Error processing request:", flatted.stringify(error));
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
