@@ -36,6 +36,37 @@ exports.getCitiesByState = async (req, res) => {
     }
 };
 
+exports.getStatesByMultipleCountry = async (req, res) => {
+  const { country } = req.query;
+  // Split the comma-separated string into an array and convert to numbers
+  const countryIds = country.split(',').map(id => Number(id.trim()));
+
+  try {
+    const states = await State.find({ country_id: { $in: countryIds } });
+    res.status(200).json(states);
+  } catch (error) {
+    console.error('Error fetching states:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.getCitiesByMultipleState = async (req, res) => {
+  const { state } = req.query;
+
+  // Split the comma-separated string into an array and convert to numbers
+  const stateIds = state.split(',').map(id => Number(id.trim()));
+
+  try {
+    const cities = await City.find({ state_id: { $in: stateIds } });
+    res.status(200).json(cities);
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
 const fetchDataById = async (Model, type, id) => {
   try {
     const query = {};

@@ -16,6 +16,8 @@ const router = (app) => {
   app.get("/cities", countriesController.getCitiesByState);
   app.get("/multiple-states", countriesController.getMultipleStatesById);
   app.get("/muliple-cities", countriesController.getMultipleCitiesById);
+  app.get("/multiple-states-by-multiple-countries", countriesController.getStatesByMultipleCountry);
+  app.get("/muliple-cities-by-multiple-states", countriesController.getCitiesByMultipleState);
   app.get("/country", countriesController.getCountriesById);
   app.get("/state", countriesController.getStatesById);
   app.get("/city", countriesController.getCitiesById);
