@@ -16,6 +16,8 @@ module.exports = (app) => {
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   app.get("/download-single-user-data/pdf/:userId", getUserPDFForAdmin);
+  app.get("/downloadUsers", downloadAllUsersAsCSV);
+  app.get("/downloadUser/:userId", downloadUserAsCSV);
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);
   app.get("/get-user-data-admin", isAdmin, getAllPendingUsersForAdmin);
   app.get("/get-all-user-data-admin", isAdmin, getAllUsers);
