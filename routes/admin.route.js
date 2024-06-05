@@ -14,7 +14,7 @@ module.exports = (app) => {
   app.put("/approve-or-decline/:userId", isAdmin, updateRegistrationPhase);
   app.put("/update-user-category/:userId", isAdmin, updateUserCategory);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
-  app.get("/get-user-view-data/:userId", isAdmin, getUserByIdForAdmin);
+  app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   app.get("/download-single-user-data/pdf/:userId", getUserPDFForAdmin);
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);
   app.get("/get-user-data-admin", isAdmin, getAllPendingUsersForAdmin);
