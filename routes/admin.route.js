@@ -7,6 +7,8 @@ const {
   updateUserCategory,
   getUserStatisticsForAdmin,
   softDeleteUser,
+  downloadAllUsersAsCSV,
+  downloadUserAsCSV,
 } = require("../controllers/admin");
 const { isAdmin } = require("../middleware/is_auth");
 
