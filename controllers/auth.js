@@ -81,7 +81,11 @@ const magicLinkController = async (req, res) => {
       }
     } else {
       let message;
-      if (existingUser.accessType === "0" || existingUser.accessType === "1") {
+      if (existingUser.isDeleted === true) {
+        message = "Your account is deleted";
+        expiryTime = "1h";
+        return res.status(200).json({ message, user: existingUser, expiryTime });
+      }else if (existingUser.accessType === "0" || existingUser.accessType === "1") {
         message = "Redirecting to login page...";
         expiryTime = threeMonthsInSeconds;
       } else if (existingUser.registrationPhase === "approved") {
