@@ -186,7 +186,7 @@ const userSchema = mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["", "A", "B", "C", "A,B", "A,C", "B,C", "A,B,C"],
+      enum: ["", "A", "B", "C", "A,B", "B,A", "A,C", "C,A", "B,C", "C,B", "A,B,C", "A,C,B", "B,A,C", "B,C,A", "C,A,B", "C,B,A"],
       default : ""
     },
     annualIncomeType: { type: String },
