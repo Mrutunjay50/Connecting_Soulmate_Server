@@ -24,54 +24,54 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
   caste && orConditions.push({ "familyDetails.caste": caste });
 
   // Dynamically construct the country filter object
-  if (country) {
-      const countryFilter = { "additionalDetails.currentlyLivingInCountry": country };
-      orConditions.push(countryFilter);
-  }
+  // if (country) {
+  //     const countryFilter = { "additionalDetails.currentlyLivingInCountry": country };
+  //     orConditions.push(countryFilter);
+  // }
   
-  if (state) {
-      const stateFilter = { "additionalDetails.currentlyLivingInState": state };
-      orConditions.push(stateFilter);
-  }
+  // if (state) {
+  //     const stateFilter = { "additionalDetails.currentlyLivingInState": state };
+  //     orConditions.push(stateFilter);
+  // }
   
-  if (city) {
-      const cityFilter = { "additionalDetails.currentlyLivingInCity": city };
-      orConditions.push(cityFilter);
-  }
+  // if (city) {
+  //     const cityFilter = { "additionalDetails.currentlyLivingInCity": city };
+  //     orConditions.push(cityFilter);
+  // }
   
   if (maritalStatus) {
       const maritalStatusArray = maritalStatus.trim().split(",").map(val => val.trim());
       orConditions.push({ "additionalDetails.maritalStatus": { $in: maritalStatusArray } });
   }
- // if (country) {
-      //   const countryArray = country.trim().split(",").map(val => val.trim());
-      //   const countryFilter = { "additionalDetails.currentlyLivingInCountry": { $in: countryArray } };
-      //   orConditions.push(countryFilter);
-      // }
+ if (country) {
+        const countryArray = country.trim().split(",").map(val => val.trim());
+        const countryFilter = { "additionalDetails.currentlyLivingInCountry": { $in: countryArray } };
+        orConditions.push(countryFilter);
+      }
     
-      // if (state) {
-      //   const stateArray = state.trim().split(",").map(val => val.trim());
-      //   const stateFilter = { "additionalDetails.currentlyLivingInState": { $in: stateArray } };
-      //   orConditions.push(stateFilter);
-      // }
+      if (state) {
+        const stateArray = state.trim().split(",").map(val => val.trim());
+        const stateFilter = { "additionalDetails.currentlyLivingInState": { $in: stateArray } };
+        orConditions.push(stateFilter);
+      }
     
-      // if (city) {
-      //   const cityArray = city.trim().split(",").map(val => val.trim());
-      //   const cityFilter = { "additionalDetails.currentlyLivingInCity": { $in: cityArray } };
-      //   orConditions.push(cityFilter);
-      // }
+      if (city) {
+        const cityArray = city.trim().split(",").map(val => val.trim());
+        const cityFilter = { "additionalDetails.currentlyLivingInCity": { $in: cityArray } };
+        orConditions.push(cityFilter);
+      }
     
-      // if (community) {
-      //   const communityArray = community.trim().split(",").map(val => val.trim());
-      //   const communityFilter = { "familyDetails.community": { $in: communityArray } };
-      //   orConditions.push(communityFilter);
-      // }
+      if (community) {
+        const communityArray = community.trim().split(",").map(val => val.trim());
+        const communityFilter = { "familyDetails.community": { $in: communityArray } };
+        orConditions.push(communityFilter);
+      }
   // Dynamically construct the $or conditions
   if (education) {
       const educationArray = education.trim().split(",").map(val => val.trim());
       orConditions.push({ "careerDetails.highestEducation": { $in: educationArray } });
   }
-  community && orConditions.push({ "familyDetails.community": community });
+  // community && orConditions.push({ "familyDetails.community": community });
   if (profession) {
       const professionTypeArray = profession.trim().split(",").map(val => val.trim());
       orConditions.push({ "careerDetails.profession": { $in: professionTypeArray } });
