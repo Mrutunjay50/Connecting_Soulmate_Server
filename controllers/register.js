@@ -8,6 +8,10 @@ const {
   Proffesion,
   Education,
   Diet,
+  Country,
+  City,
+  State,
+  Community,
 } = require("../models/masterSchemas");
 const {
   // resizeImage,
@@ -100,14 +104,35 @@ exports.getPageData = async (req, res) => {
       const partnerPreference = pageData[0].partnerPreference;
       const educations = partnerPreference.education
         .split(",")
-        .map((interest) => parseInt(interest.trim()) || 0);
+        .map((education) => parseInt(education.trim()) || 0);
       const diets = partnerPreference.dietType
         .split(",")
-        .map((other) => parseInt(other.trim()) || 0);
+        .map((dietType) => parseInt(dietType.trim()) || 0);
+      const communities = partnerPreference.community
+        .split(",")
+        .map((community) => parseInt(community.trim()) || 0);
+      const professions = partnerPreference.profession
+        .split(",")
+        .map((profession) => parseInt(profession.trim()) || 0);
+      const states = partnerPreference.state
+        .split(",")
+        .map((state) => parseInt(state.trim()) || 0);
+      const cities = partnerPreference.city
+        .split(",")
+        .map((city) => parseInt(city.trim()) || 0);
+      const countries = partnerPreference.country
+        .split(",")
+        .map((country) => parseInt(country.trim()) || 0);
+
       //finding if the any of the strings present in the documents
-      const [education, diet] = await Promise.all([
+      const [education, diet, community, profession, state, city, country] = await Promise.all([
         Education.find({ education_id: { $in: educations } }),
         Diet.find({ diet_id: { $in: diets } }),
+        Community.find({ community_id: { $in: communities } }),
+        Proffesion.find({ proffesion_id: { $in: professions } }),
+        State.find({ state_id: { $in: states } }),
+        City.find({ city_id: { $in: cities } }),
+        Country.find({ country_id: { $in: countries } }),
       ]);
 
       partnerPreference.educationTypes = education
@@ -115,6 +140,21 @@ exports.getPageData = async (req, res) => {
         ?.join(", ");
       partnerPreference.dietTypes = diet
         ?.map((item) => item.diet_name)
+        ?.join(", ");
+      partnerPreference.communityTypes = community
+        ?.map((item) => item.community_name)
+        ?.join(", ");
+      partnerPreference.professionTypes = profession
+        ?.map((item) => item.proffesion_name)
+        ?.join(", ");
+      partnerPreference.stateTypes = state
+        ?.map((item) => item.state_name)
+        ?.join(", ");
+      partnerPreference.cityTypes = city
+        ?.map((item) => item.city_name)
+        ?.join(", ");
+      partnerPreference.countryTypes = country
+        ?.map((item) => item.country_name)
         ?.join(", ");
     }
 
