@@ -497,23 +497,37 @@ exports.getInterestRequestsReceived = async (req, res) => {
 
 async function processRequest(Model, requestBy, requestTo, type, action, res) {
   try {
+    // Check for an existing request from requestBy to requestTo
     const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
       [`${type.toLowerCase()}RequestTo`]: requestTo,
     });
 
+    // Check for an existing request from requestTo to requestBy (vice versa)
+    const viceVersaRequest = await Model.findOne({
+      [`${type.toLowerCase()}RequestBy`]: requestTo,
+      [`${type.toLowerCase()}RequestTo`]: requestBy,
+    });
+
+    // If vice versa request exists, return the appropriate message
+    if (viceVersaRequest) {
+      return `This person has already sent an ${type} request to you`;
+    }
+
+    // Handle existing request from requestBy to requestTo
     if (existingRequest) {
       if (existingRequest.action === 'pending' && action === 'pending') {
-        return `${type} request already sent`
+        return `${type} request already sent`;
       } else if (existingRequest.action === 'blocked') {
-        return `${type}: request can't be sent as you have blocked the user`
+        return `${type}: request can't be sent as you have blocked the user`;
       } else {
         existingRequest.action = action; // Change the action to 'pending'
         await existingRequest.save();
-        return `${type} request updated to ${action}`
+        return `${type} request updated to ${action}`;
       }
     }
 
+    // Create a new request
     const newRequest = new Model({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
       [`${type.toLowerCase()}RequestTo`]: requestTo,
