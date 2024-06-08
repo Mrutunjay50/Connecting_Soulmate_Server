@@ -3,7 +3,7 @@ const {
   signinController,
   signupController,
   getUser,
-  magicLinkController
+  // magicLinkController
 } = require("../controllers/auth");
 const express = require("express");
 const { isAdmin } = require("../middleware/is_auth");
@@ -49,7 +49,7 @@ const validateSignupInput = [
 ];
 
 // const router = (app) => {
-router.post("/createMagicLink", magicLinkController);
+// router.post("/createMagicLink", magicLinkController);
 router.post("/signup", signupController);
 router.post("/signin", signinController);
 router.get("/getUser/:userId", getUser);
