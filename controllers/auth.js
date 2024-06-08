@@ -222,6 +222,6 @@ const getUser = async (req, res, next) => {
 module.exports = {
   signinController,
   signupController,
-  magicLinkController,
+  // magicLinkController,
   getUser,
 };
