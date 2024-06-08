@@ -4,30 +4,30 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const User = require("../models/Users");
-const { UserDetail } = require("otpless-node-js-auth-sdk");
+// const { UserDetail } = require("otpless-node-js-auth-sdk");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const { getAggregationPipelineForUsers } = require("../helper/aggregationPipelineForUsers");
 
-const client_id = process.env.CLIENT_ID;
-const client_secret = process.env.CLIENT_SECRET;
-const channel = "WHATSAPP";
-const DOMAIN = process.env.FRONTEND_URL;
+// const client_id = process.env.CLIENT_ID;
+// const client_secret = process.env.CLIENT_SECRET;
+// const channel = "WHATSAPP";
+// const DOMAIN = process.env.FRONTEND_URL;
 
 const threeMonthsInSeconds = 3 * 30 * 24 * 60 * 60;
 
 const signinController = async (req, res) => {
-  const { code, expiryTime } = req.body;
+  const { num, expiryTime } = req.body;
   console.log(req.body);
   try {
-    const user = await UserDetail.verifyCode(code, client_id, client_secret);
-    console.log(user);
-    const num = user.name;
+    // const user = await UserDetail.verifyCode(code, client_id, client_secret);
+    // console.log(user);
+    // const num = user.name;
     const existingUser = await User.findOne({
       "createdBy.phone": num,
     });
 
     if (!existingUser)
-      return res.status(404).json({ message: "User doesn't exist!" });
+      return res.status(200).json({ message: "User doesn't exist! Redirecting to Signup Page" });
 
     const token = jwt.sign(
       {
@@ -46,86 +46,86 @@ const signinController = async (req, res) => {
   }
 };
 
-const magicLinkController = async (req, res) => {
-  try {
-    const { number, email } = req.body;
+// const magicLinkController = async (req, res) => {
+//   try {
+//     const { number, email } = req.body;
 
-    if (!number.trim()) {
-      return res.status(400).json({ message: "Invalid field!" });
-    }
+//     if (!number.trim()) {
+//       return res.status(400).json({ message: "Invalid field!" });
+//     }
 
-    const mobile = number.split("-")[1].trim();
-    const countryCode = number.split("-")[0].trim();
-    const existingUser = await User.findOne({
-      "createdBy.phone": countryCode + mobile,
-    });
+//     const mobile = number.split("-")[1].trim();
+//     const countryCode = number.split("-")[0].trim();
+//     const existingUser = await User.findOne({
+//       "createdBy.phone": countryCode + mobile,
+//     });
 
-    let expiryTime;
+//     let expiryTime;
 
-    if (!existingUser) {
-      const redirectURI = `${DOMAIN}/signup/${parseInt(number.split("-").join(""))}`;
-      const notFound = { notFound: "You are New to our Website Please Signup!" };
+//     if (!existingUser) {
+//       const redirectURI = `${DOMAIN}/signup/${parseInt(number.split("-").join(""))}`;
+//       const notFound = { notFound: "You are New to our Website Please Signup!" };
 
-      const magicLinkTokens = await UserDetail.magicLink(
-        parseInt(number.split("-").join("")),
-        email,
-        redirectURI,
-        "",
-        client_id,
-        client_secret,
-        channel
-      );
+//       const magicLinkTokens = await UserDetail.magicLink(
+//         parseInt(number.split("-").join("")),
+//         email,
+//         redirectURI,
+//         "",
+//         client_id,
+//         client_secret,
+//         channel
+//       );
 
-      if (magicLinkTokens) {
-        return res.status(200).json({ message: "Magic link created for new user", notFound });
-      }
-    } else {
-      let message;
-      if (existingUser.isDeleted === true) {
-        message = "Your account is deleted";
-        expiryTime = "1h";
-        return res.status(200).json({ message, user: existingUser, expiryTime });
-      }else if (existingUser.accessType === "0" || existingUser.accessType === "1") {
-        message = "Redirecting to login page...";
-        expiryTime = threeMonthsInSeconds;
-      } else if (existingUser.registrationPhase === "approved") {
-        message = "Already A User, Redirecting to login page...";
-        expiryTime = threeMonthsInSeconds;
-      } else if (existingUser.registrationPhase === "notapproved") {
-        message = "Your Approval request has been Submitted wait until your request get accepted";
-        expiryTime = "1h";
-        return res.status(200).json({ message, user: existingUser, expiryTime });
-      } else if (existingUser.registrationPhase === "rejected") {
-        message = "Your Approval request has been declined, Kindly checkout whether your information is valid or not";
-        expiryTime = "1h";
-      } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
-        message = "You are currently in the registration process. Redirecting to registration form...";
-        expiryTime = "1h";
-      } else {
-        message = "You have once visited our website. Please continue the registration process. Redirecting to signup page...";
-        expiryTime = "1h";
-      }
+//       if (magicLinkTokens) {
+//         return res.status(200).json({ message: "Magic link created for new user", notFound });
+//       }
+//     } else {
+//       let message;
+//       if (existingUser.isDeleted === true) {
+//         message = "Your account is deleted";
+//         expiryTime = "1h";
+//         return res.status(200).json({ message, user: existingUser, expiryTime });
+//       }else if (existingUser.accessType === "0" || existingUser.accessType === "1") {
+//         message = "Redirecting to login page...";
+//         expiryTime = threeMonthsInSeconds;
+//       } else if (existingUser.registrationPhase === "approved") {
+//         message = "Already A User, Redirecting to login page...";
+//         expiryTime = threeMonthsInSeconds;
+//       } else if (existingUser.registrationPhase === "notapproved") {
+//         message = "Your Approval request has been Submitted wait until your request get accepted";
+//         expiryTime = "1h";
+//         return res.status(200).json({ message, user: existingUser, expiryTime });
+//       } else if (existingUser.registrationPhase === "rejected") {
+//         message = "Your Approval request has been declined, Kindly checkout whether your information is valid or not";
+//         expiryTime = "1h";
+//       } else if (existingUser.registrationPhase === "registering" && existingUser.registrationPage !== "") {
+//         message = "You are currently in the registration process. Redirecting to registration form...";
+//         expiryTime = "1h";
+//       } else {
+//         message = "You have once visited our website. Please continue the registration process. Redirecting to signup page...";
+//         expiryTime = "1h";
+//       }
 
-      const redirectURI = `${DOMAIN}/login/${parseInt(number.split("-").join(""))}?expiryTime=${expiryTime}`;
-      const magicLinkTokens = await UserDetail.magicLink(
-        parseInt(number.split("-").join("")),
-        email,
-        redirectURI,
-        "",
-        client_id,
-        client_secret,
-        channel
-      );
+//       const redirectURI = `${DOMAIN}/login/${parseInt(number.split("-").join(""))}?expiryTime=${expiryTime}`;
+//       const magicLinkTokens = await UserDetail.magicLink(
+//         parseInt(number.split("-").join("")),
+//         email,
+//         redirectURI,
+//         "",
+//         client_id,
+//         client_secret,
+//         channel
+//       );
 
-      if (magicLinkTokens) {
-        return res.status(200).json({ message });
-      }
-    }
-  } catch (err) {
-    console.error("Error:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+//       if (magicLinkTokens) {
+//         return res.status(200).json({ message });
+//       }
+//     }
+//   } catch (err) {
+//     console.error("Error:", err);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 
 
 const signupController = async (req, res) => {
@@ -170,7 +170,7 @@ const signupController = async (req, res) => {
         id: savedUser._id,
       },
       process.env.SECRET_KEY,
-      { expiresIn: "30d" }
+      { expiresIn: threeMonthsInSeconds || '30d' }
     );
 
     res.status(201).json({ savedUser, token });
