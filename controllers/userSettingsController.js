@@ -63,7 +63,7 @@ exports.changeRegisteredNumber = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     const alreadyUserWithNumber = await User.find({"createdBy.phone" : number});
     if (alreadyUserWithNumber) {
       return res.status(403).json({ error: "User with this number already exists try another number" });
@@ -245,7 +245,34 @@ exports.deleteProfile = async (req, res) => {
     // Set isDeleted to true and deleteReason
     user.isDeleted = true;
     user.deleteReason = deleteReason;
+    user.deletedStatus = "This profile has been deleted."
+    // Save the updated user
+    await user.save();
 
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+exports.reApprovalRequest = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Set isDeleted to true and deleteReason
+    user.isDeleted = false;
+    user.deleteReason = `peviously deleted for the reason : ${user.deleteReason}`;
+    user.deletedStatus = "This profile has been deleted. User request for re-approval.";
+    user.registrationPhase = "notapproved"
+    user.registrationPage = "6"
     // Save the updated user
     await user.save();
 

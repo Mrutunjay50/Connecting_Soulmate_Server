@@ -141,6 +141,11 @@ const userSchema = mongoose.Schema(
       enum: [true, false],
       default: false,
     },
+    deletedStatus : {
+      type: String,
+      default: "", 
+      required: false
+    },
     deleteReason: {
       type: String,
       default: "",
