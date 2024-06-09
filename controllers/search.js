@@ -23,8 +23,8 @@ exports.searchById = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     const filters = {
-      category: { $in: [category || "", new RegExp(`^${category || ""}$`, "i")] },
-      userId : userIds
+      category: category === "" ? { $exists: true } : { $in: [category, ""] },
+      userId: userIds
     };
 
     await getFilteredProfiles(req, res, filters, "findOne");

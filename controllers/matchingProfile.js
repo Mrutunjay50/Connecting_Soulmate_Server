@@ -88,7 +88,7 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
 
   // Category filtering as an AND condition
   if (category) {
-      filterConditions.push({ "category": { $in: [category, new RegExp(`^${category}$`, "i")] } });
+      filterConditions.push({ category: category === "" ? { $exists: true } : { $in: [category, ""] } });
   }
 
   await getFilteredProfiles(req, res, {$and : filterConditions});
