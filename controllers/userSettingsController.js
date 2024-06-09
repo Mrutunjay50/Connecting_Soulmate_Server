@@ -276,7 +276,7 @@ exports.reApprovalRequest = async (req, res) => {
     // Save the updated user
     await user.save();
 
-    res.status(200).json({ message: "Profile deleted successfully" });
+    res.status(200).json({ message: "Profile resent for approval successfully" });
   } catch (error) {
     console.error("Error deleting profile:", error);
     res.status(500).json({ error: "Internal Server Error" });
