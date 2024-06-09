@@ -195,8 +195,12 @@ exports.getProfileRequestsAccepted = async (req, res) => {
     const { userId } = req.params;
     const requests = await getRequests(ProfileRequests, userId, "Profile", "accepted", res);
     await Promise.all(requests.map(async (item) => {
-      item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.publicRequestTo?.selfDetails[0]?.profilePicture);
-      item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.publicRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.publicRequestTo?.selfDetails?.[0]) {
+        item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestTo.selfDetails[0].profilePicture);
+      }
+      if (item?.publicRequestBy?.selfDetails?.[0]) {
+        item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestBy.selfDetails[0].profilePicture);
+      }
     }));
     return res.status(200).json({ requests });
   } catch (error) {
@@ -211,8 +215,12 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     const requests = await getRequests(ProfileRequests, userId, "Profile", "declined", res);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.publicRequestTo?.selfDetails[0]?.profilePicture);
-      item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.publicRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.publicRequestTo?.selfDetails?.[0]) {
+        item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestTo.selfDetails[0].profilePicture);
+      }
+      if (item?.publicRequestBy?.selfDetails?.[0]) {
+        item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestBy.selfDetails[0].profilePicture);
+      }
     }));
     return res.status(200).json({ requests });
   } catch (error) {
@@ -439,8 +447,12 @@ exports.getInterestRequestsAccepted = async (req, res) => {
     const requests = await getRequests(InterestRequests, userId, "Interest", "accepted", res);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
-      item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.interestRequestTo?.selfDetails?.[0]) {
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+      }
+      if (item?.interestRequestBy?.selfDetails?.[0]) {
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+      }
     }));
     return res.status(200).json({ requests });
   } catch (error) {
@@ -455,8 +467,12 @@ exports.getInterestRequestsDeclined = async (req, res) => {
     const requests = await getRequests(InterestRequests, userId, "Interest", "declined", res);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
-      item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.interestRequestTo?.selfDetails?.[0]) {
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+      }
+      if (item?.interestRequestBy?.selfDetails?.[0]) {
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+      }
     }));
     return res.status(200).json({ requests });
   } catch (error) {
