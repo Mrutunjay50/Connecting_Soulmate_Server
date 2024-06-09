@@ -63,7 +63,11 @@ exports.changeRegisteredNumber = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
+    
+    const alreadyUserWithNumber = await User.find({"createdBy.phone" : number});
+    if (alreadyUserWithNumber) {
+      return res.status(403).json({ error: "User with this number already exists try another number" });
+    }
     // Set isDeleted to true and deleteReason
     user.createdBy[0].phone = number;
 
