@@ -30,7 +30,7 @@ const interestRequestSchema = mongoose.Schema({
   interestRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   interestRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   action: {
-    type: Boolean,
+    type: String,
     enum: ["pending", "accepted", "declined", "cancelled"],
   },
   isShortListedTo: { type: Boolean, enum: [true, false], default: false },
