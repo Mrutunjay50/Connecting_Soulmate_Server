@@ -579,8 +579,86 @@ async function processRequest(Model, requestBy, requestTo, type, action, res) {
 }
 
 async function sendRequest(Model, requestBy, requestTo, type, action, res) {
-  return await processRequest(Model, requestBy, requestTo, type, action, res);
+  let Type;
+    if(type === "Interest"){
+      Type = "Profile"
+      await updateExistingAndViceVersaRequest(ProfileRequests, requestBy, requestTo, Type, action, res);
+    }else{
+      Type = "Interest"
+      await updateExistingAndViceVersaRequest(InterestRequests, requestBy, requestTo, Type, action, res);
+    }
+    
+    return await processRequest(Model, requestBy, requestTo, type, action, res);
+  // return await processRequest(Model, requestBy, requestTo, type, action, res);
 }
+
+async function updateExistingAndViceVersaRequest(Model, requestBy, requestTo, type, action, res) {
+  try {
+    // Check for an existing request from requestBy to requestTo
+    const existingRequest = await Model.findOne({
+      [`${type.toLowerCase()}RequestBy`]: requestBy,
+      [`${type.toLowerCase()}RequestTo`]: requestTo,
+    });
+
+    // Check for an existing request from requestTo to requestBy (vice versa)
+    const viceVersaRequest = await Model.findOne({
+      [`${type.toLowerCase()}RequestBy`]: requestTo,
+      [`${type.toLowerCase()}RequestTo`]: requestBy,
+    });
+
+    // Create an array of promises for batch processing
+    const promises = [
+      ShortList.findOne({ user: requestBy, shortlistedUser: requestTo }),
+      ShortList.findOne({ user: requestTo, shortlistedUser: requestBy }),
+      InterestRequests.findOne({ interestRequestBy: requestBy, interestRequestTo: requestTo }),
+      InterestRequests.findOne({ interestRequestBy: requestTo, interestRequestTo: requestBy }),
+      ProfileRequests.findOne({ profileRequestBy: requestBy, profileRequestTo: requestTo }),
+      ProfileRequests.findOne({ profileRequestBy: requestTo, profileRequestTo: requestBy }),
+    ];
+
+    // Execute all promises in parallel
+    const [shortlistBy, shortlistTo, interestlistBy, interestlistTo, profilelistBy, profilelistTo] = await Promise.all(promises);
+
+    const flags = {
+      isShortListedBy: !!shortlistBy,
+      isShortListedTo: !!shortlistTo,
+      isInterestRequestBy: !!interestlistBy,
+      isInterestRequestTo: !!interestlistTo,
+      isProfileRequestBy: !!profilelistBy,
+      isProfileRequestTo: !!profilelistTo
+    };
+
+    let updated = false;
+
+    // Update existing request from requestBy to requestTo
+    if (existingRequest) {
+      Object.assign(existingRequest, flags);
+      await existingRequest.save();
+      updated = true;
+    }
+
+    // Update vice versa request from requestTo to requestBy
+    if (viceVersaRequest) {
+      Object.assign(viceVersaRequest, flags);
+      await viceVersaRequest.save();
+      updated = true;
+    }
+
+    console.log(viceVersaRequest, existingRequest);
+    
+    if (updated) {
+      console.log(`${type} request(s) updated to ${action}`);
+      return `${type} request(s) updated to ${action}`;
+      } else {
+      console.log(`No existing ${type} request(s) found to update`);
+      return `No existing ${type} request(s) found to update`;
+    }
+  } catch (error) {
+    console.error("Error updating existing and vice versa request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 
 async function updateRequestStatus(Model, requestId, type, status, res) {
   try {
@@ -588,7 +666,15 @@ async function updateRequestStatus(Model, requestId, type, status, res) {
     if (!request) {
       return { error: "Request not found" };
     }
+    let Type;
     if (status === "cancelled") {
+      if(type === "Interest"){
+        Type = "Profile"
+        await updateExistingAndViceVersaRequest(ProfileRequests, request[`${Type.toLowerCase()}RequestBy`], request[`${Type.toLowerCase()}RequestTo`], Type, status, res);
+      }else{
+        Type = "Interest"
+        await updateExistingAndViceVersaRequest(InterestRequests, request[`${Type.toLowerCase()}RequestBy`], request[`${Type.toLowerCase()}RequestTo`], Type, status, res);
+      }
       await Model.findByIdAndDelete(requestId);
       return { message: `${type} request has been cancelled and deleted` };
     }

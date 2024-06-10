@@ -18,7 +18,11 @@ exports.handlePage1 = async (req, user) => {
     let age = currentDate.getFullYear() - birthDate.getFullYear();
     const currentMonth = currentDate.getMonth();
     const birthMonth = birthDate.getMonth();
+    // // Get current date and time as a formatted string
+    // const formattedDatessss = currentDate.toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
+    // // Log user basicDetails with the current date and time
+    // console.log(`[${formattedDatessss}] User basicDetails:`, req.body.basicDetails);
     if (
       currentMonth < birthMonth ||
       (currentMonth === birthMonth && currentDate.getDate() < birthDate.getDate())

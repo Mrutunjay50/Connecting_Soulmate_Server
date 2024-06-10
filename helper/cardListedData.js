@@ -15,6 +15,7 @@ exports.ListData = {
   "selfDetails.profilePictureUrl": 1,
   "selfDetails.userPhotos": 1,
   "selfDetails.profilePicture": 1,
+  "selfDetails.profilePictureUrl": 1,
   "additionalDetails.diet": 1,
   "familyDetails.community": 1,
   "familyDetails.caste": 1,
