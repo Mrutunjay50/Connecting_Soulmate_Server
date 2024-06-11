@@ -47,14 +47,14 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
       const users = JSON.parse(JSON.stringify(usersData));
   
       // Fetch additional data for users
-      const communityIds = users.map(user => user.familyDetails[0]?.community || "");
-      const professionIds = users.map(user => user.careerDetails[0]?.profession || "");
-      const dietIds = users.map(user => user.additionalDetails[0]?.diet || "");
-      const countryIds = users.map(user => user.additionalDetails[0]?.currentlyLivingInCountry || "");
-      const stateIds = users.map(user => user.additionalDetails[0]?.currentlyLivingInState || "");
-      const borncountryIds = users.map(user => user.basicDetails[0]?.placeOfBirthCountry || "");
-      const bornstateIds = users.map(user => user.basicDetails[0]?.placeOfBirthState || "");
-      const cityIds = users.map(user => user.additionalDetails[0]?.currentlyLivingInCity || "");
+      const communityIds = users.map(user => user?.familyDetails[0]?.community || "");
+      const professionIds = users.map(user => user?.careerDetails[0]?.profession || "");
+      const dietIds = users.map(user => user?.additionalDetails[0]?.diet || "");
+      const countryIds = users.map(user => user?.additionalDetails[0]?.currentlyLivingInCountry || "");
+      const stateIds = users.map(user => user?.additionalDetails[0]?.currentlyLivingInState || "");
+      const borncountryIds = users.map(user => user?.basicDetails[0]?.placeOfBirthCountry || "");
+      const bornstateIds = users.map(user => user?.basicDetails[0]?.placeOfBirthState || "");
+      const cityIds = users.map(user => user?.additionalDetails[0]?.currentlyLivingInCity || "");
   
       const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests, blocked] = await Promise.all([
         Community.find({ community_id: { $in: communityIds } }),

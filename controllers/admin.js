@@ -417,7 +417,8 @@ exports.getUserByIdForAdmin = async (req, res, next) => {
     let user = aggregatedData[0]; // Get the first element of the aggregated result
 
     try {
-      user.selfDetails = await processUserDetails(user.selfDetails);
+      let data = await processUserDetails(user.selfDetails)
+      user.selfDetails = {...data};
     } catch (error) {
       console.error("Error:", error);
     }
