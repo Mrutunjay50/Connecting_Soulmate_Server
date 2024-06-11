@@ -7,6 +7,7 @@ const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
 const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 
 // Profile Request Section
 
@@ -140,7 +141,7 @@ exports.declineProfileRequest = async (req, res) => {
     );
 
     // Emit notification event
-    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
+    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotification);
     return res.status(200).json({responseMsg, msg : "message declined"})

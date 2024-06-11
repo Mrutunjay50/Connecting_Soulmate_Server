@@ -1,8 +1,8 @@
 const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
-const { ListData } = require("../helper/cardListedData");
+const { ListData } = require("../cardListedData");
 
-exports.processRequest = async (Model, requestBy, requestTo, type, action, res) => {
+const processRequest = async (Model, requestBy, requestTo, type, action, res) => {
     try {
       // Check for an existing request from requestBy to requestTo
       const existingRequest = await Model.findOne({
@@ -131,7 +131,7 @@ exports.processRequest = async (Model, requestBy, requestTo, type, action, res) 
     }
   }
   
-  exports.setRequestFlags = async (request, requestBy, requestTo) => {
+  const setRequestFlags = async (request, requestBy, requestTo) => {
     const [shortlistBy, shortlistTo, interestlistBy, interestlistTo, profilelistBy, profilelistTo] = await Promise.all([
       ShortList.findOne({ user: requestBy, shortlistedUser: requestTo }),
       ShortList.findOne({ user: requestTo, shortlistedUser: requestBy }),
