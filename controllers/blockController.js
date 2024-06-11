@@ -96,38 +96,38 @@ exports.getBlockedUsers = async (req, res) => {
     ]);
 
     const promises = user.map(async (user) => {
-      const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture || "");
+      const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
       user.selfDetails[0].profilePictureUrl = profileUrl || "";
     
-      if (user.familyDetails && user.familyDetails[0]?.community) {
-        const communityData = communities.find(community => community.community_id === user.familyDetails[0]?.community);
+      if (user?.familyDetails && user?.familyDetails[0]?.community) {
+        const communityData = communities.find(community => community.community_id === user?.familyDetails[0]?.community);
         user.familyDetails[0].communityName = communityData?.community_name || "";
       }
-      if (user.careerDetails && user.careerDetails[0]?.profession) {
-        const professionData = professions.find(profession => profession.proffesion_id === user.careerDetails[0]?.profession);
+      if (user?.careerDetails && user?.careerDetails[0]?.profession) {
+        const professionData = professions.find(profession => profession.proffesion_id === user?.careerDetails[0]?.profession);
         user.careerDetails[0].professionName = professionData?.proffesion_name || "";
       }
-      if (user.additionalDetails && user.additionalDetails[0]?.diet) {
-        const dietData = diets.find(diet => diet.diet_id === user.additionalDetails[0]?.diet);
+      if (user?.additionalDetails && user?.additionalDetails[0]?.diet) {
+        const dietData = diets.find(diet => diet.diet_id === user?.additionalDetails[0]?.diet);
         user.additionalDetails[0].dietName = dietData?.diet_name || "";
       }
-      if (user.additionalDetails && user.additionalDetails[0]?.currentlyLivingInCountry) {
-        const countryData = countries.find(country => country.country_id === user.additionalDetails[0]?.currentlyLivingInCountry);
+      if (user?.additionalDetails && user?.additionalDetails[0]?.currentlyLivingInCountry) {
+        const countryData = countries.find(country => country.country_id === user?.additionalDetails[0]?.currentlyLivingInCountry);
         user.additionalDetails[0].currentCountryName = countryData?.country_name || "";
-        if (user.additionalDetails[0]?.currentlyLivingInState) {
-          const stateData = states.find(state => state.state_id === user.additionalDetails[0]?.currentlyLivingInState);
+        if (user?.additionalDetails[0]?.currentlyLivingInState) {
+          const stateData = states.find(state => state.state_id === user?.additionalDetails[0]?.currentlyLivingInState);
           user.additionalDetails[0].currentStateName = stateData?.state_name || "";
-          if (user.additionalDetails[0]?.currentlyLivingInCity) {
-            const cityData = cities.find(city => city.city_id === user.additionalDetails[0]?.currentlyLivingInCity);
+          if (user?.additionalDetails[0]?.currentlyLivingInCity) {
+            const cityData = cities.find(city => city.city_id === user?.additionalDetails[0]?.currentlyLivingInCity);
             user.additionalDetails[0].currentCityName = cityData?.city_name || "";
           }
         }
       }
-      if (user.basicDetails && user.basicDetails[0]?.placeOfBirthCountry) {
-        const countryData = bornCoutnry.find(country => country.country_id === user.basicDetails[0]?.placeOfBirthCountry);
+      if (user?.basicDetails && user?.basicDetails[0]?.placeOfBirthCountry) {
+        const countryData = bornCoutnry.find(country => country.country_id === user?.basicDetails[0]?.placeOfBirthCountry);
         user.basicDetails[0].currentCountryName = countryData?.country_name || "";
-        if (user.basicDetails[0]?.placeOfBirthState) {
-          const stateData = bornState.find(state => state.state_id === user.basicDetails[0]?.placeOfBirthState);
+        if (user?.basicDetails[0]?.placeOfBirthState) {
+          const stateData = bornState.find(state => state.state_id === user?.basicDetails[0]?.placeOfBirthState);
           user.basicDetails[0].currentStateName = stateData?.state_name || "";
         }
       }
