@@ -1,5 +1,5 @@
-const User = require("../models/Users");
-const io = require("../socket");
+const User = require("../../models/Users");
+const io = require("../../socket");
 
 exports.sendNotificationToAdmins = async (formattedNotification) => {
     try {

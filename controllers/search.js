@@ -1,6 +1,5 @@
 const User = require("../models/Users");
-const { ListData } = require("../helper/cardListedData");
-const { getFilteredProfiles } = require("../helper/getFilteredUsers");
+const { getFilteredProfiles } = require("../helper/RegistrationHelper/getFilteredUsers");
 
 exports.searchById = async (req, res) => {
   try {

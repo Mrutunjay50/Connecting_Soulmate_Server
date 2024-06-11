@@ -1,7 +1,7 @@
-const User = require("../models/Users");
-const ExchangeRate = require("../models/exchangeRate");
+const User = require("../../models/Users");
+const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
-const { generateFileName, uploadToS3 } = require("../utils/s3Utils");
+const { generateFileName, uploadToS3 } = require("../../utils/s3Utils");
 
 
 function generateUniqueNumber() {

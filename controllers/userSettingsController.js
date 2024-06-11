@@ -1,5 +1,4 @@
 const User = require("../models/Users");
-const brevo = require("@getbrevo/brevo");
 const dotenv = require("dotenv");
 
 dotenv.config();

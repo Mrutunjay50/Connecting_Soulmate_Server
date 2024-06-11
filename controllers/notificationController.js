@@ -1,6 +1,6 @@
-const { populateNotification } = require("../helper/populateNotification");
+const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
 const Notifications = require("../models/notifications");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+// const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 
 exports.getNotificationsForUser = async (req, res) => {
   try {

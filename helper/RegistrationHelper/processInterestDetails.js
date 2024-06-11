@@ -3,8 +3,8 @@ const {
     FunActivity,
     Fitness,
     Other,
-  } = require("../models/masterSchemas");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+  } = require("../../models/masterSchemas");
+const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
 
 exports.processUserDetails = async (selfDetails) => {
     // Fetch signed URLs for profile picture and user photos

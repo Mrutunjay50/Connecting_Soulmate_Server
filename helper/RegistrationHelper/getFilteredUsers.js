@@ -1,10 +1,10 @@
-const User = require("../models/Users");
-const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
-const ShortList = require("../models/shortlistUsers");
-const { ProfileRequests, InterestRequests } = require("../models/interests");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-const { ListData } = require("./cardListedData");
-const BlockedUser = require("../models/blockedUser");
+const User = require("../../models/Users");
+const { Country, State, City, Diet, Proffesion, Community } = require("../../models/masterSchemas");
+const ShortList = require("../../models/shortlistUsers");
+const { ProfileRequests, InterestRequests } = require("../../models/interests");
+const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const { ListData } = require("../cardListedData");
+const BlockedUser = require("../../models/blockedUser");
 
 
 const PAGE_LIMIT = 10;

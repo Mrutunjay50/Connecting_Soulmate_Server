@@ -2,9 +2,9 @@ const fs = require("fs");
 const fastcsv = require("fast-csv");
 const {
   getAggregationPipelineForUsers,
-} = require("../helper/aggregationPipelineForUsers");
+} = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
 const { generateUserPDFForAdmin } = require("../helper/generatePDF");
-const { processUserDetails } = require("../helper/processInterestDetails");
+const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
 
 

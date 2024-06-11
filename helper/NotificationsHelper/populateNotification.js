@@ -1,5 +1,5 @@
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-const Notifications = require("../models/notifications");
+const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const Notifications = require("../../models/notifications");
 
 const populateNotification = async (notification) => {
   const populatedNotification = await Notifications.findById(notification._id)
