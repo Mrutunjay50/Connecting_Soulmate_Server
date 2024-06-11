@@ -141,9 +141,9 @@ exports.declineProfileRequest = async (req, res) => {
     );
 
     // Emit notification event
-    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
+    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // Send formatted notification to admin and users with accessType 0 or 1
-    sendNotificationToAdmins(formattedNotification);
+    // sendNotificationToAdmins(formattedNotification);
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining profile request:", error);
@@ -196,11 +196,11 @@ exports.getProfileRequestsAccepted = async (req, res) => {
     const { userId } = req.params;
     const requests = await getRequests(ProfileRequests, userId, "Profile", "accepted", res);
     await Promise.all(requests.map(async (item) => {
-      if (item?.publicRequestTo?.selfDetails?.[0]) {
-        item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestTo.selfDetails[0].profilePicture);
+      if (item?.profileRequestTo?.selfDetails?.[0]) {
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
       }
-      if (item?.publicRequestBy?.selfDetails?.[0]) {
-        item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestBy.selfDetails[0].profilePicture);
+      if (item?.profileRequestBy?.selfDetails?.[0]) {
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({ requests });
@@ -216,11 +216,11 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     const requests = await getRequests(ProfileRequests, userId, "Profile", "declined", res);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.publicRequestTo?.selfDetails?.[0]) {
-        item.publicRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestTo.selfDetails[0].profilePicture);
+      if (item?.profileRequestTo?.selfDetails?.[0]) {
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
       }
-      if (item?.publicRequestBy?.selfDetails?.[0]) {
-        item.publicRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.publicRequestBy.selfDetails[0].profilePicture);
+      if (item?.profileRequestBy?.selfDetails?.[0]) {
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({ requests });
