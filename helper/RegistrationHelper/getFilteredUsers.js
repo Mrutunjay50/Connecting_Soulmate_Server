@@ -73,8 +73,8 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
   
       const promises = users.map(async (user) => {
         const userIdString = String(user._id);
-        if (user.selfDetails && user.selfDetails[0]) {
-          const profileUrl = await getSignedUrlFromS3(user.selfDetails[0]?.profilePicture || "");
+        if (user?.selfDetails && user?.selfDetails[0]) {
+          const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
           user.selfDetails[0].profilePictureUrl = profileUrl || "";
         } else {
           user.selfDetails = [{}]; // Initialize selfDetails with an empty object
@@ -82,15 +82,15 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
           user.selfDetails[0].profilePictureUrl = profileUrl || "";
         }
       
-        if (user.familyDetails && user.familyDetails[0]?.community) {
-          const communityData = communities.find(community => community.community_id === user.familyDetails[0]?.community);
+        if (user?.familyDetails && user?.familyDetails[0]?.community) {
+          const communityData = communities.find(community => community.community_id === user?.familyDetails[0]?.community);
           user.familyDetails[0].communityName = communityData?.community_name || "";
         }
-        if (user.careerDetails && user.careerDetails[0]?.profession) {
-          const professionData = professions.find(profession => profession.proffesion_id === user.careerDetails[0]?.profession);
+        if (user?.careerDetails && user?.careerDetails[0]?.profession) {
+          const professionData = professions.find(profession => profession.proffesion_id === user?.careerDetails[0]?.profession);
           user.careerDetails[0].professionName = professionData?.proffesion_name || "";
         }
-        if (user.additionalDetails && user.additionalDetails[0]?.diet) {
+        if (user?.additionalDetails && user?.additionalDetails[0]?.diet) {
           const dietData = diets.find(diet => diet.diet_id === user.additionalDetails[0]?.diet);
           user.additionalDetails[0].dietName = dietData?.diet_name || "";
         }
