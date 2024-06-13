@@ -7,7 +7,7 @@ exports.blockUser = async (req, res) => {
   try {
     const { blockBy, blockUserId } = req.body;
 
-    if(!blockBy && !blockUserId){
+    if(!blockBy && !blockUserId && blockBy === "" && blockUserId === ""){
       return res.status(400).json({ error: "both blockBy and blockUserId is needed" });
     }
 

@@ -65,7 +65,7 @@ exports.changeRegisteredNumber = async (req, res) => {
 
     // Check if the number is already used by another user
     const alreadyUserWithNumber = await User.find({"createdBy.phone" : number, _id: { $ne: userId } });
-    if (alreadyUserWithNumber) {
+    if (alreadyUserWithNumber.length > 0) {
       return res.status(403).json({ error: "User with this number already exists try another number" });
     }
     // Set isDeleted to true and deleteReason
