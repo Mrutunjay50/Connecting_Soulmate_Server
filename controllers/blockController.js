@@ -7,6 +7,10 @@ exports.blockUser = async (req, res) => {
   try {
     const { blockBy, blockUserId } = req.body;
 
+    if(!blockBy && !blockUserId){
+      return res.status(400).json({ error: "both blockBy and blockUserId is needed" });
+    }
+
     // Check if the user is already blocked
     const existingBlockedUser = await BlockedUser.findOne({ blockedBy : blockBy, blockedUser: blockUserId });
     console.log(existingBlockedUser);
