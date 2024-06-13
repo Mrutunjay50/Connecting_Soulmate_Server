@@ -22,30 +22,27 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
-    const existingNotification = await Notifications.findOne({
-      notificationTo: profileRequestTo,
-      notificationBy: profileRequestBy,
-      notificationType: "profilesent"
-    });
-    // Create and save notification for profile request sent
-    let notifications;
-    if (!existingNotification) {
-      notifications = new Notifications({
+    // Create or update notification for profile request sent
+    const notification = await Notifications.findOneAndUpdate(
+      {
         notificationTo: profileRequestTo,
         notificationBy: profileRequestBy,
-        notificationText: `You/ have received a profile request from /${profileRequestTo}`,
         notificationType: "profilesent"
-      });
-      await notifications.save();
-    }
+      },
+      {
+        notificationTo: profileRequestTo,
+        notificationBy: profileRequestBy,
+        notificationText: `You have sent a profile request from /${profileRequestTo}`,
+        notificationType: "profilesent"
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create the document if it doesn't exist
+        setDefaultsOnInsert: true // Apply default values if creating
+      }
+    );
 
-    notifications = await Notifications.findOne({
-      notificationTo: profileRequestTo,
-      notificationBy: profileRequestBy,
-      notificationType: "profilesent"
-    });
-
-    const formattedNotification = await populateNotification(notifications);
+    const formattedNotification = await populateNotification(notification);
 
     io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
     io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
@@ -80,29 +77,27 @@ exports.acceptProfileRequest = async (req, res) => {
       "accepted",
       res
     );
-        // Check if a notification with the same fields already exists
-    const existingNotification = await Notifications.findOne({
-      notificationBy: request.profileRequestTo,
-      notificationTo: request.profileRequestBy,
-      notificationType : "profileaccepted"
-    });
+    // Check if a notification with the same fields already exists
+    // Create or update notification for profile request accepted
+    const notification = await Notifications.findOneAndUpdate(
+      {
+        notificationBy: request.profileRequestTo,
+        notificationTo: request.profileRequestBy,
+        notificationType: "profileaccepted"
+      },
+      {
+        notificationBy: request.profileRequestTo,
+        notificationTo: request.profileRequestBy,
+        notificationText: `${request.profileRequestTo}/ have accepted the profile request from /${request.profileRequestBy}`,
+        notificationType: "profileaccepted"
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create the document if it doesn't exist
+        setDefaultsOnInsert: true // Apply default values if creating
+      }
+    );
 
-    if (existingNotification) {
-      return res.status(400).json({ message: "Notification already exists" });
-    }
-    // Create and save notification for profile request sent
-    let notification = new Notifications({
-      notificationBy: request.profileRequestTo,
-      notificationTo: request.profileRequestBy,
-      notificationText: `${request.profileRequestTo}/ have accepted the profile request from /${request.profileRequestBy}`,
-      notificationType : "profileaccepted"
-    });
-    await notification.save();
-    notification = await Notifications.findOne({
-      notificationBy: request.profileRequestTo,
-      notificationTo: request.profileRequestBy,
-      notificationType : "profileaccepted"
-    });
     const formattedNotification = await populateNotification(notification);
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, formattedNotification);
@@ -276,27 +271,26 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-    const existingNotification = await Notifications.findOne({
-      notificationTo: interestRequestTo,
-      notificationBy: interestRequestBy,
-      notificationType : "interestsent"
-    });
-    let notification;
-    if (!existingNotification) {
-      notification = new Notifications({
+    // Create or update notification for interest request sent
+    const notification = await Notifications.findOneAndUpdate(
+      {
         notificationTo: interestRequestTo,
         notificationBy: interestRequestBy,
-        notificationText: `You/ have received a Interest request from /${interestRequestTo}`,
-        notificationType : "interestsent"
-      });
-      await notification.save();
-    }
+        notificationType: "interestsent"
+      },
+      {
+        notificationTo: interestRequestTo,
+        notificationBy: interestRequestBy,
+        notificationText: `You have sent an Interest request from ${interestRequestBy}`,
+        notificationType: "interestsent"
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create the document if it doesn't exist
+        setDefaultsOnInsert: true // Apply default values if creating
+      }
+    );
 
-    notification = await Notifications.findOne({
-      notificationTo: interestRequestTo,
-      notificationBy: interestRequestBy,
-      notificationType : "interestsent"
-    });
     const formattedNotification = await populateNotification(notification);
     io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
     io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
@@ -331,30 +325,28 @@ exports.acceptInterestRequest = async (req, res) => {
       "accepted",
       res
     );
-    const existingNotification = await Notifications.findOne({
-      notificationTo: request.interestRequestBy,
-      notificationBy: request.interestRequestTo,
-      notificationType : "interestaccepted"
-    });
-
-    if (existingNotification) {
-      return res.status(400).json({ message: "Notification already exists" });
-    }
-    // Create and save notification for profile request sent
-    let notification = new Notifications({
-      notificationTo: request.interestRequestBy,
-      notificationBy: request.interestRequestTo,
-      notificationText: `${request.interestRequestTo}/ have accepted the profile request from /${request.interestRequestBy}`,
-      notificationType : "interestaccepted"
-    });
-    await notification.save();
-    notification = await Notifications.findOne({
-      notificationTo: request.interestRequestBy,
-      notificationBy: request.interestRequestTo,
-      notificationType : "interestaccepted"
-    });
+    // Create or update notification for interest request accepted
+    const notification = await Notifications.findOneAndUpdate(
+      {
+        notificationTo: request.interestRequestBy,
+        notificationBy: request.interestRequestTo,
+        notificationType: "interestaccepted"
+      },
+      {
+        notificationTo: request.interestRequestBy,
+        notificationBy: request.interestRequestTo,
+        notificationText: `${request.interestRequestTo} has accepted the interest request from ${request.interestRequestBy}`,
+        notificationType: "interestaccepted"
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create the document if it doesn't exist
+        setDefaultsOnInsert: true // Apply default values if creating
+      }
+    );
 
     const formattedNotification = await populateNotification(notification);
+
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);

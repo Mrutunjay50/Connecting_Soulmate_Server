@@ -6,7 +6,7 @@ const notificationSchema = mongoose.Schema({
     notificationText: { type: String , default : ""},
     notificationType : {type: String , default : "sent", enum :["", "profilesent", "profileaccepted", "interestsent", "interestaccepted"]},
     notificationView : {type: String , default : "unseen", enum :["seen", "unseen"]}
-});
+}, { timestamps: true });
 
 const Notifications = mongoose.model("notifications", notificationSchema);
 
