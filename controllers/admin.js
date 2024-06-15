@@ -55,6 +55,7 @@ exports.reviewRequest = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     user.registrationPhase = "rejected"
+    user.category = ""
     user.reviewReason = reviewReason;
     user.registrationPage = "1"
     // Save the updated user
