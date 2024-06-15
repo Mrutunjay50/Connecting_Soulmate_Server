@@ -61,7 +61,7 @@ exports.reviewRequest = async (req, res) => {
     await user.save();
     await sendReviewEmail(user.additionalDetails[0].email, reviewReason?.split(","));
 
-    res.status(200).json({ message: "Profile resent for approval successfully" });
+    res.status(200).json({ message: "Profile resent for review successfully" });
   } catch (error) {
     console.error("Error deleting profile:", error);
     res.status(500).json({ error: "Internal Server Error" });
