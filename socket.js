@@ -15,10 +15,11 @@ module.exports = {
 
 
 // const { Server } = require('socket.io');
-// const getUserDetailsFromToken = require('../helpers/getUserDetailsFromToken');
+// const getUserDetailsFromToken = require('./helper/getUserDetailsFromToken');
 // const User = require('./models/Users');
-// const { ConversationModel, MessageModel } = require('../models/ConversationModel');
-// const getConversation = require('../helpers/getConversation');
+// const { ConversationModel, MessageModel } = require('./models/ConversationModel');
+// const getConversation = require('./helper/getConversation');
+// const { checkAcceptedInterestRequest } = require('./middleware/checkAcceptedInterestRequest');
 
 // let io;
 
@@ -27,6 +28,11 @@ module.exports = {
 //     io = new Server(httpServer, corsOption);
 
 //     const onlineUser = new Set();
+
+//     io.use(async (socket, next) => {
+//       // Middleware to check accepted interest request status
+//       await checkAcceptedInterestRequest(socket, next);
+//     });
 
 //     io.on('connection', async (socket) => {
 //       console.log("connect User ", socket.id);

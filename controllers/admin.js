@@ -23,8 +23,9 @@ exports.updateRegistrationPhase = async (req, res) => {
       user.registrationPhase = registrationPhase;
       user.registrationPage = "";
     } else {
-      user.registrationPhase = "notapproved";
-      user.registrationPage = "6";
+      user.registrationPhase = "rejected";
+      user.category = "";
+      user.registrationPage = "";
     }
 
     user = await user.save();
