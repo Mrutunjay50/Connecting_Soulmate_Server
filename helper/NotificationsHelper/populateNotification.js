@@ -3,8 +3,8 @@ const Notifications = require("../../models/notifications");
 
 const populateNotification = async (notification) => {
   const populatedNotification = await Notifications.findById(notification._id)
-    .populate('notificationBy', 'basicDetails.name selfDetails.profilePicture')
-    .populate('notificationTo', 'basicDetails.name selfDetails.profilePicture');
+    .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
+    .populate('notificationTo', 'basicDetails.name userId selfDetails.profilePicture');
 
   const profilePictureUrlBy = await getSignedUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
   populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
