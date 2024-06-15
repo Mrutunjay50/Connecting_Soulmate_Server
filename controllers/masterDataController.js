@@ -213,6 +213,13 @@ exports.uploadcsv = async (req, res) => {
         default:
           exchangeRate = 1; // Default exchange rate
       }
+
+      // Check for existing user by phone number
+      const existingUser = await User.findOne({ 'createdBy.phone': row["Contact Number - Mobile Number (Country Code)"].replace("+", "") + row["Contact Number - Registration Number"] });
+      if (existingUser) {
+        console.log(`User with phone number ${row["Contact Number - Mobile Number (Country Code)"].replace("+", "") + row["Contact Number - Registration Number"]} already exists. Skipping.`);
+        continue; // Skip this iteration if the user already exists
+      }
       const newUser = new User({
         basicDetails: {
           name:
@@ -268,11 +275,11 @@ exports.uploadcsv = async (req, res) => {
           previousOccupation: row["Previous Occupation"],
           annualIncomeUSD: (parseInt(
             row["Approximate Annual Income value"]?.split("-")[1]?.trim()
-          ) * exchangeRate) || 0,
+          ) * exchangeRate) || "0",
           annualIncomeValue:
             parseInt(
               row["Approximate Annual Income value"]?.split("-")[1]?.trim()
-            ) || 0,
+            ) || "0",
           currencyType:currencyType,
         },
         familyDetails: {
@@ -333,20 +340,20 @@ exports.uploadcsv = async (req, res) => {
           ageRangeEnd: parseInt(row["To"]) || 0,
           heightRangeStart: parseInt(row["Height (Feet) Range"]) || 0,
           heightRangeEnd: parseInt(row["To Range"]) || 0,
-          maritalStatus: maritalstatus[parseInt(row["P Martial Status"]) || "single"],
-          community: parseInt(row["Community"]) || 0,
           caste: parseInt(row[""]) || 0,
-          country: parseInt(row["Country"]) || 0,
-          state: parseInt(row["State"]) || 0,
-          city: parseInt(row["City"]) || 0,
-          education: row["Qualification"],
-          workingpreference: row["Working Preference"],
-          profession: parseInt(row["P Profession"]) || 0,
           annualIncomeRangeStart:
             parseInt(row["Annual Income Range"]?.split("-")[0]?.trim()) || 0,
           annualIncomeRangeEnd:
             parseInt(row["Annual Income Range"]?.split("-")[1]?.trim()) || 0,
-          dietType: row["Other Details - Diet"] || "",
+          maritalStatus: row["P Martial Status"] === "Open to all" ? "" : (maritalstatus[parseInt(row["P Martial Status"])]) || "single",
+          community: row["Community"] === "Open to all" ? "" : (row["Community"]) || "",
+          country: row["Country"] === "Open to all" ? "" : (row["Country"]) || "",
+          state: row["State"] === "Open to all" ? "" : (row["State"]) || "",
+          city: row["City"] === "Open to all" ? "" : (row["City"]) || "",
+          education: row["Qualification"] === "Open to all" ? "" : row["Qualification"] || "",
+          workingpreference: row["Working Preference"] === "Open to all" ? "" : row["Working Preference"] || "",
+          profession: row["P Profession"] === "Open to all" ? "" : (row["P Profession"]) || "",
+          dietType: row["Other Details - Diet"] === "Open to all" ? "" : row["Other Details - Diet"] || "",
         },
         // Populate createdBySchema fields
         createdBy: {

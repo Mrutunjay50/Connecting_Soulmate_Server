@@ -39,8 +39,8 @@ const careerDetailsSchema = mongoose.Schema({
   profession: { type: Number, default: 0, required: false },
   currentDesignation: { type: String, default: "", required: false },
   previousOccupation: { type: String, default: "", required: false },
-  annualIncomeUSD : { type: String, default: "", required: false },
-  annualIncomeValue: { type: String, default: "", required: false },
+  annualIncomeUSD : { type: String, default: "0", required: false },
+  annualIncomeValue: { type: String, default: "0", required: false },
   currencyType: { type: String, default: "", required: true },
 });
 
