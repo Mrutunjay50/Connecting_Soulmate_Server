@@ -1,4 +1,5 @@
-const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
+const { populateNotification, populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
+const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
 // const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 
@@ -12,6 +13,21 @@ exports.getNotificationsForUser = async (req, res) => {
 
     const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
       return await populateNotification(notification);
+    }));
+
+    res.status(200).json(populatedNotifications);
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAdminNotificationsForUser = async (req, res) => {
+  try {
+    const notifications = await AdminNotifications.find();
+
+    const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
+      return await populateAdminNotification(notification);
     }));
 
     res.status(200).json(populatedNotifications);

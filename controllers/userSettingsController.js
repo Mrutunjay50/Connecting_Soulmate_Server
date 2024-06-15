@@ -1,26 +1,16 @@
 const User = require("../models/Users");
 const dotenv = require("dotenv");
+const { sendEmail } = require("../utils/emailUtils");
 
 dotenv.config();
 
-const BREVO_API = process.env.BREVO_API_KEY;
-const EMAIL_FROM = process.env.DOMAIN_EMAIL;
 const DOMAIN = process.env.FRONTEND_URL;
-
-const SibApiV3Sdk = require("@getbrevo/brevo");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-
-let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-
-let apiKey = apiInstance.authentications["apiKey"];
-apiKey.apiKey = BREVO_API;
-
-let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
     const { userId, email } = req.body;
-
+    const restrict = false;
     // Check if the user exists
     const user = await User.findById(userId);
     if (!user) {
@@ -29,25 +19,15 @@ exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
 
     const verificationLink = `${DOMAIN}/change-register-number/${userId}/${email}`;
 
-    sendSmtpEmail.subject = "Change Registered Number Verification";
-    sendSmtpEmail.htmlContent = `<p>Click the link below to change your registered number:</p><p><a href="${verificationLink}">Verify Email Address amd Change Your Number</a></p>`;
-    sendSmtpEmail.sender = { name: "Your Sender Name", email: EMAIL_FROM }; // Replace with your sender details
-    sendSmtpEmail.to = [{ email: email }];
+    const subject = "Change Registered Number";
+    const htmlContent = `<p>Click the link below to change your registered number:</p><p><a href="${verificationLink}">Verify Email Address and Change Your Number</a></p>`;
 
-    // Send the email
-    apiInstance
-      .sendTransacEmail(sendSmtpEmail)
-      .then(function (data) {
-        console.log("Email sent successfully");
-        res
-          .status(200)
-          .json({ message: "Verification link sent successfully" });
-      })
-      .catch(function (error) {
-        console.error("Error sending email:", error);
-        res.status(500).json({ error: "Failed to send verification link" });
-      });
+    await sendEmail({ to: email, subject, htmlContent, restrict });
+    return res
+    .status(200)
+    .json({ message: "Verification link sent successfully" });
   } catch (error) {
+    console.log(error);
     console.error("Error changing registered number:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -106,10 +86,11 @@ exports.subscribeEveryFifteenDays = async (req, res) => {
 
 exports.sendLatestUserDetails = async () => {
     try {
+      const restrict = true;
         // Retrieve all users' email and gender who are subscribed to emails
         const users = await User.find(
             { isEmailSubscribed: true },
-            "additionalDetails.email gender"
+            "additionalDetails.email gender basicDetails.name"
         ).sort({ createdAt: -1 });
 
         // Iterate over each user
@@ -144,11 +125,7 @@ exports.sendLatestUserDetails = async () => {
             )).join('');
 
             // Send the email to the user's email address
-            const sendSmtpEmail = {
-                sender: { name: "Your Sender Name", email: EMAIL_FROM }, // Replace with your sender details
-                to: [{ email: "gauravsrivastava0451@gmail.com" }], // Send email to user's email address
-                subject: "Latest User Details",
-                htmlContent: `
+            const htmlContent = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -218,10 +195,14 @@ exports.sendLatestUserDetails = async () => {
                         ${emailContent}
                     </div>
                 </body>
-                </html>`
-            };
+                </html>`;
 
-            await apiInstance.sendTransacEmail(sendSmtpEmail)
+          await sendEmail({
+            to: additionalDetails.email,
+            subject,
+            htmlContent,
+            restrict
+          });
         }
 
         console.log("Latest user details sent successfully");

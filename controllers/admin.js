@@ -6,6 +6,7 @@ const {
 const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
+const { sendReviewEmail, sendApprovalEmail, sendRejectionEmail } = require("../helper/emailGenerator/emailHelper");
 
 
 exports.updateRegistrationPhase = async (req, res) => {
@@ -22,11 +23,14 @@ exports.updateRegistrationPhase = async (req, res) => {
     if (registrationPhase === "approved") {
       user.registrationPhase = registrationPhase;
       user.registrationPage = "";
+      await sendApprovalEmail(user.additionalDetails[0].email);
     } else {
-      user.registrationPhase = "rejected";
+      user.registrationPhase = "deleted";
       user.category = "";
       user.registrationPage = "";
+      await sendRejectionEmail(user.additionalDetails[0].email);
     }
+
 
     user = await user.save();
 
@@ -39,6 +43,31 @@ exports.updateRegistrationPhase = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.reviewRequest = async (req, res) => {
+  try {
+    const { reviewReason } = req.body;
+    const { userId } = req.params;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    user.registrationPhase = "rejected"
+    user.reviewReason = reviewReason;
+    user.registrationPage = "1"
+    // Save the updated user
+    await user.save();
+    await sendReviewEmail(user.additionalDetails[0].email, reviewReason?.split(","));
+
+    res.status(200).json({ message: "Profile resent for approval successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 
 exports.updateUserCategory = async (req, res) => {

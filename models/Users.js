@@ -135,7 +135,7 @@ const userSchema = mongoose.Schema(
     familyDetails: [familyDetailsSchema],
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
-    gender: { type: String },
+    gender: { type: String, enum:["F", "M"] },
     isDeleted: {
       type: Boolean,
       enum: [true, false],
@@ -177,12 +177,17 @@ const userSchema = mongoose.Schema(
     },
     registrationPhase: {
       type: String,
-      enum: ["registering", "notapproved", "approved", "rejected"],
+      enum: ["registering", "notapproved", "approved", "rejected", "deleted"],
       default : "registering"
     },
     lastLogin : {
       type: Date,
       default : new Date().toISOString()
+    },
+    reviewReason : {
+      type: String,
+      default: "", 
+      required: false
     },
     registrationPage: {
       type: String,

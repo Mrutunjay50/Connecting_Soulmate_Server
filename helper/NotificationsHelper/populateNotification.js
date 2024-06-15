@@ -1,5 +1,6 @@
 const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
 const Notifications = require("../../models/notifications");
+const AdminNotifications = require("../../models/adminNotification");
 
 const populateNotification = async (notification) => {
   const populatedNotification = await Notifications.findById(notification._id)
@@ -37,4 +38,29 @@ const populateNotification = async (notification) => {
   return formattedNotification;
 };
 
-module.exports = { populateNotification };
+const populateAdminNotification = async (notification) => {
+  const populatedNotification = await AdminNotifications.findById(notification._id)
+    .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
+
+  const profilePictureUrlBy = await getSignedUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
+  populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+
+
+  const formattedNotification = {
+    notificationBy: {
+      ...populatedNotification.notificationBy.toObject(),
+      selfDetails: {
+        ...populatedNotification.notificationBy?.selfDetails[0].toObject(),
+        profilePictureUrl: profilePictureUrlBy,
+      },
+      basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name
+    },
+    notificationText: populatedNotification.notificationText,
+    notificationType: populatedNotification.notificationType,
+    _id: populatedNotification._id,
+  };
+
+  return formattedNotification;
+};
+
+module.exports = { populateNotification, populateAdminNotification };

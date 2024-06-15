@@ -3,7 +3,9 @@ const {
 } = require("../helper/AggregationOfUserData/getUserAggregationPipeline");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/RegistrationHelper/registerationPageHandler");
-const User = require("../models/Users")
+// const { sendApprovalRequestToAdmin } = require("../helper/emailGenerator/emailHelper");
+const User = require("../models/Users");
+const io = require("../socket");
 const {
   Proffesion,
   Education,
@@ -19,6 +21,8 @@ const {
   generateFileName,
   deleteFromS3,
 } = require("../utils/s3Utils");
+const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
+const AdminNotifications = require("../models/adminNotification");
 
 
 exports.registerUser = async (req, res) => {
@@ -57,8 +61,46 @@ exports.registerUser = async (req, res) => {
         return res.status(400).json({ error: "Invalid page number" });
     }
     user.registrationPage = page;
+    user.reviewReason = "";
     // Save the updated user document
     await user.save();
+
+    if(page === "6"){
+      // Find users with accessType 0 or 1 and select only the email field
+      // const Admins = await User.find(
+      //   { accessType: { $in: [0, 1] } },
+      //   { "additionalDetails.email": 1 }
+      // );
+
+      //for notifications
+      // Create or update notification for profile request sent
+      const notification = await AdminNotifications.findOneAndUpdate(
+        {
+          notificationBy: userId,
+        },
+        {
+          notificationBy: userId,
+        },
+        {
+          new: true, // Return the updated document
+          upsert: true, // Create the document if it doesn't exist
+          setDefaultsOnInsert: true // Apply default values if creating
+        }
+      );
+
+      const formattedNotification = await populateAdminNotification(notification);
+
+      io.getIO().emit(`notification/Admin`, formattedNotification);
+      // Send approval emails to each user's email address
+      // const approvalPromises = Admins.map(async (user) => {
+      //   const email = user.additionalDetails[0]?.email;
+      //   if (email) {
+      //     await sendApprovalRequestToAdmin(email);
+      //   }
+      // });
+      // await Promise.all(approvalPromises);
+      // await sendApprovalEmail(user.additionalDetails[0].email);
+    }
 
     res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {

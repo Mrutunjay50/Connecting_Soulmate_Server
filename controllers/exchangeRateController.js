@@ -111,6 +111,7 @@ exports.updateExchangeRateByCurrency = async (req, res) => {
 
     return res.status(200).json(exchangeRate);
   } catch (error) {
+    console.log(error);
     console.error('Error updating exchange rate by currency:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
