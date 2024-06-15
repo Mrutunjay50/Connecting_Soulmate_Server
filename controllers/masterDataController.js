@@ -22,103 +22,128 @@ function generateUniqueNumber() {
   return uniqueNumber;
 }
 
-exports.masterDataCSV = async (req, res) => {
-  let masterData = [];
-  try {
-    const response = await csv().fromFile(req.file.path);
+const modelMapping = {
+  state: State,
+  city: City,
+  country: Country,
+  profession: Proffesion,
+  interest: Interest,
+  funactivity: FunActivity,
+  other: Other,
+  fitness: Fitness,
+  diet: Diet,
+  education: Education,
+  religion: Religion,
+  community: Community,
+};
 
-    for (var i = 0; i < response.length; i++) {
-      // Check if any of the properties in the response object is an empty string
-      if (
-        Object.values(response[i]).some(
-          (value) => typeof value === "string" && value.trim() === ""
-        )
-      ) {
-        // Skip this iteration if any property has an empty string
-        continue;
+exports.masterDataCSV = async (req, res) => {
+  try {
+    const { type } = req.params;
+    const Model = modelMapping[type];
+
+    if (!Model) {
+      return res.status(400).json({ message: "Invalid type parameter" });
+    }
+
+    const response = await csv().fromFile(req.file.path);
+    const masterData = [];
+
+    for (const row of response) {
+      if (Object.values(row).some(value => typeof value === "string" && value.trim() === "")) {
+        continue; // Skip rows with empty fields
       }
-      // state
-      // masterData.push({
-      //   state_id: response[i]?.state_id,
-      //   country_id: response[i]?.country_id,
-      //   state_name: response[i]?.state_name,
-      // });
-      //city
-      // masterData.push({
-      //     city_id: response[i]?.city_id,
-      //     city_name: response[i]?.city_name,
-      //     country_id: response[i]?.country_id,
-      //     state_id: response[i]?.state_id
-      //   });
-      //country
-        // masterData.push({
-        //   country_id: response[i]?.country_id,
-        //   country_name: response[i]?.country_name,
-        //   country_code: response[i]?.country_code
-        // });
-      //profession
-        masterData.push({
-          proffesion_id: parseInt(response[i]?.profession_id),
-          proffesion_name: response[i]?.profession_name,
-          proffesion_type: response[i]?.type,
-        });
-      //Interest
-        // masterData.push({
-        //     intrest_id: response[i]?.interest_id,
-        //     intrest_name: response[i]?.interest_name,
-        // });
-      //funactivity
-        // masterData.push({
-        //     funActivity_id: response[i]?.fun_id,
-        //   funActivity_name: response[i]?.fun_name,
-        // });
-      //otherInterest
-        // masterData.push({
-        //   other_id: response[i]?.oi_id,
-        //   other_name: response[i]?.oi_name,
-        // });
-      // fitnessActivity
-      // masterData.push({
-      //   fitness_id: response[i]?.fa_id,
-      //   fitness_name: response[i]?.fa_name,
-      // });
-      // diet
-        // masterData.push({
-        //   diet_id: response[i]?.diet_id,
-        //   diet_name: response[i]?.diet_name,
-        // });
-        // education
-        // masterData.push({
-        //     education_id: response[i]?.education_id,
-        //     education_name: response[i]?.education_name,
-        // });
-      // religion
-        // masterData.push({
-        //   religion_id: response[i]?.religion_id,
-        //   religion_name: response[i]?.religion_name,
-        // });
-        // community
-        // masterData.push({
-        //     community_id: response[i]?.community_id,
-        //     community_name: response[i]?.community_name,
-        //   });
-        }
-        
-        // await State.insertMany(masterData);
-        // await City.insertMany(masterData);
-        // await Country.insertMany(masterData);
-        await Proffesion.insertMany(masterData);
-    // await Interest.insertMany(masterData);
-    // await FunActivity.insertMany(masterData);
-    // await Other.insertMany(masterData);
-    // await Fitness.insertMany(masterData);
-    // await Diet.insertMany(masterData);
-    // await Education.insertMany(masterData);
-    // await Religion.insertMany(masterData);
-    // await Community.insertMany(masterData);
-    res.status(201).json({ message: "uploaded", masterData });
+
+      let data;
+      switch (type) {
+        case 'state':
+          data = {
+            state_id: row?.state_id,
+            country_id: row?.country_id,
+            state_name: row?.state_name,
+          };
+          break;
+        case 'city':
+          data = {
+            city_id: row?.city_id,
+            city_name: row?.city_name,
+            country_id: row?.country_id,
+            state_id: row?.state_id,
+          };
+          break;
+        case 'country':
+          data = {
+            country_id: row?.country_id,
+            country_name: row?.country_name,
+            country_code: row?.country_code,
+          };
+          break;
+        case 'profession':
+          data = {
+            proffesion_id: parseInt(row?.profession_id),
+            proffesion_name: row?.profession_name,
+            proffesion_type: row?.type,
+          };
+          break;
+        case 'interest':
+          data = {
+            intrest_id: row?.interest_id,
+            intrest_name: row?.interest_name,
+          };
+          break;
+        case 'funactivity':
+          data = {
+            funActivity_id: row?.fun_id,
+            funActivity_name: row?.fun_name,
+          };
+          break;
+        case 'other':
+          data = {
+            other_id: row?.oi_id,
+            other_name: row?.oi_name,
+          };
+          break;
+        case 'fitness':
+          data = {
+            fitness_id: row?.fa_id,
+            fitness_name: row?.fa_name,
+          };
+          break;
+        case 'diet':
+          data = {
+            diet_id: row?.diet_id,
+            diet_name: row?.diet_name,
+          };
+          break;
+        case 'education':
+          data = {
+            education_id: row?.education_id,
+            education_name: row?.education_name,
+          };
+          break;
+        case 'religion':
+          data = {
+            religion_id: row?.religion_id,
+            religion_name: row?.religion_name,
+          };
+          break;
+        case 'community':
+          data = {
+            community_id: row?.community_id,
+            community_name: row?.community_name,
+          };
+          break;
+        default:
+          continue; // Skip if type doesn't match any case
+      }
+
+      masterData.push(data);
+    }
+
+    await Model.insertMany(masterData);
+    res.status(201).json({ message: "Data uploaded successfully", masterData });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
