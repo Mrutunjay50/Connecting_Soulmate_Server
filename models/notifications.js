@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const notificationSchema = mongoose.Schema({
-    notificationBy : { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    notificationTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    notificationBy : { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true },
+    notificationTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true },
     notificationText: { type: String , default : ""},
     notificationType : {type: String , default : "sent", enum :["", "profilesent", "profileaccepted", "interestsent", "interestaccepted"]},
     notificationView : {type: String , default : "unseen", enum :["seen", "unseen"]}

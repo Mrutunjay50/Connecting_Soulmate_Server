@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const profileRequestSchema = mongoose.Schema({
-  profileRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  profileRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  profileRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
+  profileRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
   action: {
     type: String,
     enum: ["pending", "accepted", "declined", "cancelled"],
@@ -27,8 +27,8 @@ const profileRequestSchema = mongoose.Schema({
 });
 
 const interestRequestSchema = mongoose.Schema({
-  interestRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  interestRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  interestRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
+  interestRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
   action: {
     type: String,
     enum: ["pending", "accepted", "declined", "cancelled"],
