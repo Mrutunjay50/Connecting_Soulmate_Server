@@ -26,9 +26,10 @@ exports.updateRegistrationPhase = async (req, res) => {
       user.registrationPage = "";
       await sendApprovalEmail(user.additionalDetails[0].email);
     } else {
-      user.registrationPhase = "deleted";
+      // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
+      // user.registrationPage = "1";
+      user.registrationPhase = "rejected";
       user.category = "";
-      user.registrationPage = "";
       await sendRejectionEmail(user.additionalDetails[0].email);
     }
 
