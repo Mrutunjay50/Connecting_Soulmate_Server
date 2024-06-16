@@ -6,6 +6,7 @@ dotenv.config();
 
 const DOMAIN = process.env.FRONTEND_URL;
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+const SuccessfulMarriage = require("../models/successFullMarraige");
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
@@ -215,7 +216,7 @@ exports.sendLatestUserDetails = async () => {
 
 exports.deleteProfile = async (req, res) => {
   try {
-    const { userId, deleteReason } = req.body;
+    const { userId, deleteReason, isSuccessFulMarraige } = req.body;
 
     // Find the user by userId
     const user = await User.findById(userId);
@@ -230,6 +231,11 @@ exports.deleteProfile = async (req, res) => {
     // Save the updated user
     await user.save();
 
+    // Increment the count of successful marriages if applicable
+    if (isSuccessFulMarraige) {
+      await incrementSuccessfulMarriages();
+    }
+
     res.status(200).json({ message: "Profile deleted successfully" });
   } catch (error) {
     console.error("Error deleting profile:", error);
@@ -237,6 +243,19 @@ exports.deleteProfile = async (req, res) => {
   }
 };
 
+// Function to increment the count of successful marriages
+const incrementSuccessfulMarriages = async () => {
+  let record = await SuccessfulMarriage.findOne();
+
+  if (!record) {
+    record = new SuccessfulMarriage({ count: 1 });
+  } else {
+    record.count += 1;
+  }
+
+  await record.save();
+  return record.count;
+};
 
 exports.reApprovalRequest = async (req, res) => {
   try {

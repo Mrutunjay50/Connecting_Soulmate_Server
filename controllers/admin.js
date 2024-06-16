@@ -7,6 +7,7 @@ const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
 const { sendReviewEmail, sendApprovalEmail, sendRejectionEmail } = require("../helper/emailGenerator/emailHelper");
+const SuccessfulMarriage = require("../models/successFullMarraige");
 
 
 exports.updateRegistrationPhase = async (req, res) => {
@@ -176,14 +177,42 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
     const statistics = await User.aggregate([
       {
         $facet: {
-          totalUsers: [{ $count: "count" }],
-          totalMaleUsers: [{ $match: { gender: 'M' } }, { $count: "count" }],
-          totalFemaleUsers: [{ $match: { gender: 'F' } }, { $count: "count" }],
-          totalUsersCategoryA: [{ $match: { category: /A/ } }, { $count: "count" }],
-          totalUsersCategoryB: [{ $match: { category: /B/ } }, { $count: "count" }],
-          totalUsersCategoryC: [{ $match: { category: /C/ } }, { $count: "count" }],
-          totalUsersUnCategorised: [{ $match: { category: "" } }, { $count: "count" }],
-          totalActiveUsers: [{ $match: { lastLogin: { $gte: pastDate } } }, { $count: "count" }],
+          totalUsers: [
+            { $match: { accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalMaleUsers: [
+            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalFemaleUsers: [
+            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalDeletedUsers: [
+            { $match: { isDeleted: true, accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalUsersCategoryA: [
+            { $match: { category: /A/, accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalUsersCategoryB: [
+            { $match: { category: /B/, accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalUsersCategoryC: [
+            { $match: { category: /C/, accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalUsersUnCategorised: [
+            { $match: { category: "", accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
+          totalActiveUsers: [
+            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] } } },
+            { $count: "count" }
+          ],
         }
       },
       {
@@ -191,6 +220,7 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
           totalUsers: { $arrayElemAt: ["$totalUsers.count", 0] },
           totalMaleUsers: { $arrayElemAt: ["$totalMaleUsers.count", 0] },
           totalFemaleUsers: { $arrayElemAt: ["$totalFemaleUsers.count", 0] },
+          totalDeletedUsers: { $arrayElemAt: ["$totalDeletedUsers.count", 0] },
           totalUsersCategoryA: { $arrayElemAt: ["$totalUsersCategoryA.count", 0] },
           totalUsersCategoryB: { $arrayElemAt: ["$totalUsersCategoryB.count", 0] },
           totalUsersCategoryC: { $arrayElemAt: ["$totalUsersCategoryC.count", 0] },
@@ -199,7 +229,11 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
         }
       }
     ]);
-    
+
+    // Query for the count of successful marriages
+    const successfulMarriageRecord = await SuccessfulMarriage.findOne();
+    const totalSuccessfulMarriages = successfulMarriageRecord ? successfulMarriageRecord.count : 0;
+
     // console.log("----------------");
     // console.timeEnd('getUserStatisticsForAdmin'); // End timing
     // console.log("----------------");
@@ -210,17 +244,20 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       totalUsers: stats.totalUsers || 0,
       totalMaleUsers: stats.totalMaleUsers || 0,
       totalFemaleUsers: stats.totalFemaleUsers || 0,
+      totalDeletedUsers: stats.totalDeletedUsers || 0,
       totalUsersCategoryA: stats.totalUsersCategoryA || 0,
       totalUsersCategoryB: stats.totalUsersCategoryB || 0,
       totalUsersCategoryC: stats.totalUsersCategoryC || 0,
       totalUsersUnCategorised: stats.totalUsersUnCategorised || 0,
       totalActiveUsers: stats.totalActiveUsers || 0,
+      totalSuccessfulMarriages: totalSuccessfulMarriages || 0
     });
   } catch (error) {
     console.error("Error fetching user statistics:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 exports.downloadAllUsersAsCSV = async (req, res) => {
@@ -500,7 +537,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
     const adminId = req.user._id;
     let { page, limit, search } = req.query;
     let query = {
-      registrationPhase: "notapproved",
+      registrationPhase: {$in: ["notapproved", "rejected"]},
       _id: { $ne: adminId }, // Exclude users with _id matching adminId
       accessType: { $ne: "0" },
       name: { $ne: "" },
@@ -577,8 +614,7 @@ exports.getAllUsers = async (req, res, next) => {
       registrationPhase: { $in: ["approved", "notapproved", "rejected", "registering"] },
       _id: { $ne: adminId }, // Exclude users with _id matching adminId
       accessType: { $ne: "0" },
-      name: { $ne: "" },
-      isDeleted : false
+      name: { $ne: "" }
     };
 
     // Apply search filter if present
@@ -604,7 +640,7 @@ exports.getAllUsers = async (req, res, next) => {
         result = {
           nextPage: pageNumber + 1,
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -612,7 +648,7 @@ exports.getAllUsers = async (req, res, next) => {
       } else {
         result = {
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -621,7 +657,7 @@ exports.getAllUsers = async (req, res, next) => {
     } else {
       result = {
         data: await User.find(query)
-          .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+          .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
           .sort({ createdAt: -1 }),
       };
     }
