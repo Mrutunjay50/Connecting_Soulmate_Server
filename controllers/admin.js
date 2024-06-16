@@ -538,7 +538,8 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
     const adminId = req.user._id;
     let { page, limit, search } = req.query;
     let query = {
-      registrationPhase: {$in: ["notapproved", "rejected"]},
+      registrationPhase: "notapproved",
+      // registrationPhase: {$in: ["notapproved", "rejected"]},
       _id: { $ne: adminId }, // Exclude users with _id matching adminId
       accessType: { $ne: "0" },
       name: { $ne: "" },
