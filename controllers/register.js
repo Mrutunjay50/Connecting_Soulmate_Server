@@ -28,7 +28,7 @@ const AdminNotifications = require("../models/adminNotification");
 exports.registerUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page } = req.query; // Assuming you have a userId to identify the user
+    const { page, type } = req.query; // Assuming you have a userId to identify the user
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
@@ -51,7 +51,7 @@ exports.registerUser = async (req, res) => {
         await handlePage4(req, user);
         break;
       case "5":
-        await handlePage5(req, user);
+        await handlePage5(req, user, type);
         break;
       case "6":
         await handlePage6(req, user);

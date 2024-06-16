@@ -112,56 +112,65 @@ exports.handlePage4 = async (req, user) => {
   }
 };
 
-exports.handlePage5 = async (req, user) => {
+exports.handlePage5 = async (req, user, type) => {
   try {
     const userPhotos = req.files;
-    const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } =
-      JSON.parse(req.body.selfDetails);
+    const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } = JSON.parse(req.body.selfDetails);
   
-      console.log(aboutYourself, interests, fun, fitness, other, profilePicture, profileImage);
+    console.log(aboutYourself, interests, fun, fitness, other, profilePicture, profileImage);
+
     if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
     }
-  
+
     const selfDetails = user.selfDetails[0];
-    selfDetails.profilePicture = profileImage;
-    selfDetails.aboutYourself = aboutYourself;
-    selfDetails.interests = interests;
-    selfDetails.fun = fun;
-    selfDetails.fitness = fitness;
-    selfDetails.other = other;
+
+    if (type === "edit") {
+      // Only update the interests, fun, fitness, and other fields
+      // selfDetails.aboutYourself = aboutYourself;
+      selfDetails.interests = interests;
+      selfDetails.fun = fun;
+      selfDetails.fitness = fitness;
+      selfDetails.other = other;
+    } else {
+      // Update all fields, including profilePicture and userPhotos
+      selfDetails.profilePicture = profileImage;
+      selfDetails.aboutYourself = aboutYourself;
+      selfDetails.interests = interests;
+      selfDetails.fun = fun;
+      selfDetails.fitness = fitness;
+      selfDetails.other = other;
   
-    if (userPhotos && userPhotos.length > 0) {
-      if (
-        selfDetails.userPhotos &&
-        selfDetails.userPhotos.length + userPhotos.length > 5
-      ) {
-        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
-        selfDetails.userPhotos.splice(0, excessCount);
-      }
+      if (userPhotos && userPhotos.length > 0) {
+        if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
+          const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
+          selfDetails.userPhotos.splice(0, excessCount);
+        }
   
-      try {
-        const uploadedPhotos = await Promise.all(
-          userPhotos.map(async (photo) => {
-            const { buffer, originalname, mimetype } = photo;
-            const resizedImageBuffer = await buffer;
-            const fileName = generateFileName(originalname);
-            await uploadToS3(resizedImageBuffer, fileName, mimetype);
-            if(originalname === profilePicture){
-              selfDetails.profilePicture = String(fileName); 
-            } 
-            return fileName;
-          })
-        );
-        selfDetails.userPhotos.push(...uploadedPhotos);
-      } catch (error) {
-        console.error("Error uploading images to S3:", error);
+        try {
+          const uploadedPhotos = await Promise.all(
+            userPhotos.map(async (photo) => {
+              const { buffer, originalname, mimetype } = photo;
+              const resizedImageBuffer = await buffer;
+              const fileName = generateFileName(originalname);
+              await uploadToS3(resizedImageBuffer, fileName, mimetype);
+              if (originalname === profilePicture) {
+                selfDetails.profilePicture = String(fileName); 
+              } 
+              return fileName;
+            })
+          );
+          selfDetails.userPhotos.push(...uploadedPhotos);
+        } catch (error) {
+          console.error("Error uploading images to S3:", error);
+        }
       }
     }
-  }catch (err){
-    console.log(err)
+  } catch (err) {
+    console.error("Error in handlePage5:", err);
   }
 };
+
 
 exports.handlePage6 = async (req, user) => {
   try {
