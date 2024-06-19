@@ -201,7 +201,7 @@ const userSchema = mongoose.Schema(
     },
     approvedAt: {
       type: Date,
-      default : user.approvedAt = new Date();,
+      default : new Date().toISOString(),
       required : false
     },
     annualIncomeType: { type: String },
