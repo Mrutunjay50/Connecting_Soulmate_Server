@@ -82,13 +82,28 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
 
 
 
+  // exports.getNewlyJoinedProfiles = async (req, res) => {
+  //   const fifteenDaysAgo = new Date();
+  //   fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+  //   const mongoDbDate = fifteenDaysAgo.toISOString();
+  //   const queryParams = {
+  //     createdAt: { $gte: mongoDbDate }
+  //   };
+  //   await getFilteredProfiles(req, res, queryParams);
+  // };
+
   exports.getNewlyJoinedProfiles = async (req, res) => {
-    const fifteenDaysAgo = new Date();
-    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-    const mongoDbDate = fifteenDaysAgo.toISOString();
+    const {page} = req.query
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const mongoDbDate = threeMonthsAgo.toISOString();
     const queryParams = {
-      createdAt: { $gte: mongoDbDate }
+      approvedAt: { $gte: mongoDbDate }
     };
+    if(page) {
+      await getFilteredProfiles(req, res, queryParams, page);
+      return;
+    }
     await getFilteredProfiles(req, res, queryParams);
   };
   

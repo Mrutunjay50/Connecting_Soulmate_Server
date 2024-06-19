@@ -199,6 +199,11 @@ const userSchema = mongoose.Schema(
       enum: ["", "A", "B", "C", "A,B", "B,A", "A,C", "C,A", "B,C", "C,B", "A,B,C", "A,C,B", "B,A,C", "B,C,A", "C,A,B", "C,B,A"],
       default : ""
     },
+    approvedAt: {
+      type: Date,
+      default : user.approvedAt = new Date();,
+      required : false
+    },
     annualIncomeType: { type: String },
     accessType : { type: String, required: false, enum :["0", "1", "2"], default : "2"}
   },

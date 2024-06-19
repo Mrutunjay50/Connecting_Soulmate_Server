@@ -24,6 +24,7 @@ exports.updateRegistrationPhase = async (req, res) => {
     if (registrationPhase === "approved") {
       user.registrationPhase = registrationPhase;
       user.registrationPage = "";
+      user.approvedAt = new Date().toISOString();
       await sendApprovalEmail(user.additionalDetails[0].email);
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;

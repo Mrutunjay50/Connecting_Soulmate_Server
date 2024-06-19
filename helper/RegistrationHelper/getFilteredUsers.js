@@ -7,9 +7,9 @@ const { ListData } = require("../cardListedData");
 const BlockedUser = require("../../models/blockedUser");
 
 
-const PAGE_LIMIT = 10;
+const DEFAULT_PAGE_LIMIT = 10;
 
-exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
+exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT = DEFAULT_PAGE_LIMIT) => {
     try {
       const { userId } = req.params;
       // console.log(userId);
@@ -24,9 +24,10 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
         usersData = await User.find({
           gender: queryGender,
           ...queryParams,
+          registrationPhase : "approved",
           isDeleted : false
         })
-        .sort({ createdAt: 1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .select(ListData);
@@ -34,9 +35,10 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne) => {
         usersData = await User.find({
           gender: queryGender,
           ...queryParams,
+          registrationPhase : "approved",
           isDeleted : false
         })
-        .sort({ createdAt: 1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .select(ListData);

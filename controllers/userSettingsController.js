@@ -10,12 +10,18 @@ const SuccessfulMarriage = require("../models/successFullMarraige");
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
-    const { userId, email } = req.body;
+    const { userId } = req.body;
     const restrict = false;
     // Check if the user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the user has provided an email
+    const email = user?.additionalDetails[0]?.email;
+    if (!email || email.trim() === "") {
+      return res.status(400).json({ error: "You have not provided an email for this account." });
     }
 
     const verificationLink = `${DOMAIN}/change-register-number/${userId}/${email}`;
