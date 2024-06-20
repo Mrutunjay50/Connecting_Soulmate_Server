@@ -93,17 +93,13 @@ exports.getMatchesAccordingToPreference = async (req, res) => {
   // };
 
   exports.getNewlyJoinedProfiles = async (req, res) => {
-    const {page} = req.query
+    // const {limit} = req.query
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     const mongoDbDate = threeMonthsAgo.toISOString();
     const queryParams = {
       approvedAt: { $gte: mongoDbDate }
     };
-    if(page) {
-      await getFilteredProfiles(req, res, queryParams, page);
-      return;
-    }
     await getFilteredProfiles(req, res, queryParams);
   };
   

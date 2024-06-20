@@ -294,20 +294,20 @@ exports.updateContactInfo = async (req, res) => {
     const { userId, email, phone } = req.body;
 
     // Find the user by userId
-    const countryCode = phone.split("-")[0];
-    const num = phone.split("-")[1];
+    const countryCode = phone?.split("-")[0] || "";
+    const num = phone?.split("-")[1] || "";
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Update email if it's not empty
-    if (email.trim() !== "") {
+    if (email?.trim() !== "") {
       user.additionalDetails[0].email = email;
     }
 
     // Update contact if it's not empty
-    if (num.trim() !== "") {
+    if (num?.trim() !== "") {
       user.additionalDetails[0].contact = num;
       user.additionalDetails[0].countryCode = countryCode;
     }

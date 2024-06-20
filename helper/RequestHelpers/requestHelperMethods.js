@@ -117,30 +117,40 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
   }
 };
 
-exports.getPendingRequests = async (Model, userId, type, res, received) => {
-  // console.log(received);
-  const requests = await Model.find({
-    [`${type.toLowerCase()}Request${received == true ? "To" : "By"}`]: userId,
-    action: "pending",
-    isBlocked: false,
-  }).populate({
-    path: `${type.toLowerCase()}Request${received == true ? "By" : "To"}`,
-    select: ListData,
-  });
+exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  try {
+    const requests = await Model.find({
+      [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
+      action: "pending",
+      isBlocked: false,
+    })
+      .populate({
+        path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
+        select: ListData,
+      })
+      .skip(skip)
+      .limit(limit);
 
-  const promises = requests.map(async (request) => {
-    return setRequestFlags(
-      request,
-      request[type.toLowerCase() + "RequestBy"],
-      request[type.toLowerCase() + "RequestTo"]
-    );
-  });
+    const promises = requests.map(async (request) => {
+      return setRequestFlags(
+        request,
+        request[type.toLowerCase() + "RequestBy"],
+        request[type.toLowerCase() + "RequestTo"]
+      );
+    });
 
-  return await Promise.all(promises);
+    return await Promise.all(promises);
+  } catch (error) {
+    console.error(`Error getting pending ${type} requests:`, error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
-exports.getRequests = async (Model, userId, type, status, res) => {
+
+exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 10) => {
   try {
+    const skip = (page - 1) * limit;
     let requests;
 
     if (status === "pending") {
@@ -153,9 +163,11 @@ exports.getRequests = async (Model, userId, type, status, res) => {
           },
         ],
       }).populate([
-        { path: `${type.toLowerCase()}RequestBy`, select: ListData },
-        { path: `${type.toLowerCase()}RequestTo`, select: ListData },
-      ]);
+          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
+          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
+        ])
+        .skip(skip)
+        .limit(limit);
     } else {
       requests = await Model.find({
         $or: [
@@ -171,9 +183,11 @@ exports.getRequests = async (Model, userId, type, status, res) => {
           },
         ],
       }).populate([
-        { path: `${type.toLowerCase()}RequestBy`, select: ListData },
-        { path: `${type.toLowerCase()}RequestTo`, select: ListData },
-      ]);
+          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
+          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
+        ])
+        .skip(skip)
+        .limit(limit);
     }
 
     const promises = requests.map(async (request) => {
@@ -190,6 +204,7 @@ exports.getRequests = async (Model, userId, type, status, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const setRequestFlags = async (request, requestBy, requestTo) => {
   const [
