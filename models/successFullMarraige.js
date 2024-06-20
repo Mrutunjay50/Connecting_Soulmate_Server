@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const SuccessfulMarriageSchema = new mongoose.Schema({
-  count: {
-    type: Number,
+  userIds: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'users',
     required: false,
-    default: 0,
+    default: [],
   },
 });
 

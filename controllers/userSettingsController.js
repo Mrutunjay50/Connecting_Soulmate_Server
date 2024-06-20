@@ -239,7 +239,7 @@ exports.deleteProfile = async (req, res) => {
 
     // Increment the count of successful marriages if applicable
     if (isSuccessFulMarraige) {
-      await incrementSuccessfulMarriages();
+      await addToSuccessfulMarriages(userId);
     }
 
     res.status(200).json({ message: "Profile deleted successfully" });
@@ -250,17 +250,17 @@ exports.deleteProfile = async (req, res) => {
 };
 
 // Function to increment the count of successful marriages
-const incrementSuccessfulMarriages = async () => {
+const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
 
   if (!record) {
-    record = new SuccessfulMarriage({ count: 1 });
+    record = new SuccessfulMarriage({ userIds: [userId] });
   } else {
-    record.count += 1;
+    record.userIds.push(userId);
   }
 
   await record.save();
-  return record.count;
+  return record.userIds.length;
 };
 
 exports.reApprovalRequest = async (req, res) => {

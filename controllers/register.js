@@ -3,7 +3,7 @@ const {
 } = require("../helper/AggregationOfUserData/getUserAggregationPipeline");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/RegistrationHelper/registerationPageHandler");
-// const { sendApprovalRequestToAdmin } = require("../helper/emailGenerator/emailHelper");
+const { sendApprovalRequestToAdmin, sendApprovalEmail } = require("../helper/emailGenerator/emailHelper");
 const User = require("../models/Users");
 const io = require("../socket");
 const {
@@ -72,7 +72,15 @@ exports.registerUser = async (req, res) => {
       //   { "additionalDetails.email": 1 }
       // );
 
-      //for notifications
+      // Send approval emails to each user's email address
+      // const approvalPromises = Admins.map(async (user) => {
+      //   const email = user.additionalDetails[0]?.email;
+      //   if (email) {
+      //     await sendApprovalRequestToAdmin(email);
+      //   }
+      // });
+      // await Promise.all(approvalPromises);
+      // for notifications
       // Create or update notification for profile request sent
       const notification = await AdminNotifications.findOneAndUpdate(
         {
@@ -91,15 +99,7 @@ exports.registerUser = async (req, res) => {
       const formattedNotification = await populateAdminNotification(notification);
 
       io.getIO().emit(`notification/Admin`, formattedNotification);
-      // Send approval emails to each user's email address
-      // const approvalPromises = Admins.map(async (user) => {
-      //   const email = user.additionalDetails[0]?.email;
-      //   if (email) {
-      //     await sendApprovalRequestToAdmin(email);
-      //   }
-      // });
-      // await Promise.all(approvalPromises);
-      // await sendApprovalEmail(user.additionalDetails[0].email);
+      await sendApprovalEmail(user.additionalDetails[0].email);
     }
 
     res.status(200).json({ message: "Data added successfully", user });
