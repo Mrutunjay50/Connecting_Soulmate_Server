@@ -5,7 +5,7 @@ dotenv.config();
 
 const BREVO_API = process.env.BREVO_API_KEY;
 const EMAIL_FROM = process.env.DOMAIN_EMAIL;
-const senderName = "CoSoulmate Administrator"
+const senderName = process.env.SENDER_IDENTITY;
 
 let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
