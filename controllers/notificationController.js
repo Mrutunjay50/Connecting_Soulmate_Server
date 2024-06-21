@@ -9,7 +9,7 @@ exports.getNotificationsForUser = async (req, res) => {
 
     const notifications = await Notifications.find({
       $or: [{ notificationTo: userId }, { notificationBy: userId }],
-    });
+    }).sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
       return await populateNotification(notification);
@@ -24,7 +24,7 @@ exports.getNotificationsForUser = async (req, res) => {
 
 exports.getAdminNotificationsForUser = async (req, res) => {
   try {
-    const notifications = await AdminNotifications.find();
+    const notifications = await AdminNotifications.find().sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
       return await populateAdminNotification(notification);
