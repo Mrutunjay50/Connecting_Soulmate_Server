@@ -21,7 +21,7 @@ module.exports = (app) => {
   app.put("/admin-notifications", isAdmin, getAdminNotificationsForUser);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
-  app.get("/download-single-user-data/pdf/:userId", getUserPDFForAdmin);
+  // app.get("/download-single-user-data/pdf/:userId", getUserPDFForAdmin);
   app.get("/downloadUsers", downloadAllUsersAsCSV);
   app.get("/downloadUser/:userId", downloadUserAsCSV);
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);

@@ -500,39 +500,39 @@ exports.getUserByIdForAdmin = async (req, res, next) => {
   }
 };
 
-exports.getUserPDFForAdmin = async (req, res, next) => {
-  try {
-    const userData = await User.findById(req.params.userId);
-    if (!userData) {
-      return res.status(404).json({ error: "User not found." });
-    }
+// exports.getUserPDFForAdmin = async (req, res, next) => {
+//   try {
+//     const userData = await User.findById(req.params.userId);
+//     if (!userData) {
+//       return res.status(404).json({ error: "User not found." });
+//     }
 
-    const aggregationPipeline = getAggregationPipelineForUsers(req.params.userId);
-    let aggregatedData = await User.aggregate(aggregationPipeline);
+//     const aggregationPipeline = getAggregationPipelineForUsers(req.params.userId);
+//     let aggregatedData = await User.aggregate(aggregationPipeline);
 
-    if (aggregatedData.length === 0) {
-      return res.status(404).json({ error: "User data not found." });
-    }
+//     if (aggregatedData.length === 0) {
+//       return res.status(404).json({ error: "User data not found." });
+//     }
 
-    let user = aggregatedData[0];
+//     let user = aggregatedData[0];
 
-    try {
-      user.selfDetails = await processUserDetails(user.selfDetails);
-    } catch (error) {
-      console.error("Error:", error);
-    }
+//     try {
+//       user.selfDetails = await processUserDetails(user.selfDetails);
+//     } catch (error) {
+//       console.error("Error:", error);
+//     }
 
-    const pdfBuffer = await generateUserPDFForAdmin(user);
+//     const pdfBuffer = await generateUserPDFForAdmin(user);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=user_${req.params.userId}.pdf`);
-    res.send(pdfBuffer);
+//     res.setHeader('Content-Type', 'application/pdf');
+//     res.setHeader('Content-Disposition', `attachment; filename=user_${req.params.userId}.pdf`);
+//     res.send(pdfBuffer);
 
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 
 exports.getAllPendingUsersForAdmin = async (req, res, next) => {
   try {
