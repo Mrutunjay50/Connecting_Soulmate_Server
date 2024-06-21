@@ -65,7 +65,7 @@ exports.registerUser = async (req, res) => {
     // Save the updated user document
     await user.save();
 
-    if(page === "6"){
+    if(page === "6" && type === "add"){
       // Find users with accessType 0 or 1 and select only the email field
       // const Admins = await User.find(
       //   { accessType: { $in: [0, 1] } },

@@ -92,6 +92,9 @@ exports.advanceSearch = async (req, res) => {
         } else if (param === "ageRangeEnd" || param === "heightRangeEnd" || param === "annualIncomeRangeEnd") {
           const { field: mainField, endField } = field;
           orQueries.push({ [`${mainField}.${endField}`]: { $lte: value } });
+        } else if (value === "opentoall") {
+          // Handle the special case where the parameter value is "opentoall"
+          orQueries.push({ [field]: { $exists: true } });
         } else if (typeof field === "string") {
           orQueries.push({ [field]: Array.isArray(value) ? { $in: value } : value });
         }
