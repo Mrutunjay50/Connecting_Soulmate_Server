@@ -88,10 +88,10 @@ exports.advanceSearch = async (req, res) => {
         }
         if (param === "ageRangeStart" || param === "heightRangeStart" || param === "annualIncomeRangeStart") {
           const { field: mainField, startField } = field;
-          orQueries.push({ [`${mainField}.${startField}`]: { $gte: value } });
+          orQueries.push({ [`${mainField}`]: { $gte: value } });
         } else if (param === "ageRangeEnd" || param === "heightRangeEnd" || param === "annualIncomeRangeEnd") {
           const { field: mainField, endField } = field;
-          orQueries.push({ [`${mainField}.${endField}`]: { $lte: value } });
+          orQueries.push({ [`${mainField}`]: { $lte: value } });
         } else if (value === "opentoall") {
           // Handle the special case where the parameter value is "opentoall"
           orQueries.push({ [field]: { $exists: true } });
