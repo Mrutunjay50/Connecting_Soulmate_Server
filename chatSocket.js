@@ -7,16 +7,16 @@ const { checkAcceptedInterestRequest } = require('./middleware/checkAcceptedInte
 module.exports = (io) => {
     const onlineUser = new Set();
 
-    io.use(async (socket, next) => {
-        // Middleware to check accepted interest request status
-        await checkAcceptedInterestRequest(socket, next);
-    });
+    // io.use(async (socket, next) => {
+    //     // Middleware to check accepted interest request status
+    //     await checkAcceptedInterestRequest(socket, next);
+    // });
 
     io.on('connection', async (socket) => {
-        console.log("User connected:", socket.id);
+        console.log("User connected:", socket);
 
         const token = socket.handshake.auth.token;
-        console.log(token , socket);
+        console.log(token);
         const user = await getUserDetailsFromToken(token);
 
         socket.join(user?._id.toString());
