@@ -11,6 +11,8 @@ http = require("http");
 
 const { initializeRoutes } = require("./routes/index");
 const { sendLatestUserDetails } = require("./controllers/userSettingsController");
+const User = require("./models/Users");
+const chatSocket = require("./chatSocket");
 initializeRoutes(router);
 
 dotenv.config();
@@ -58,6 +60,8 @@ async function startServer() {
     console.log(`User connected ${socket.id}`);
   });
 
+  chatSocket(io);
+
   cron.schedule('0 0 */5 * *', async () => {
     try {
         // Call the function to send latest user details
@@ -71,6 +75,22 @@ async function startServer() {
     timezone: "Asia/Tokyo" // Replace "your-timezone-here" with your timezone
 });
 
+// app.post('/updateField', async (req, res) => {
+//   const query = req.body.query;  // query to find the document(s) to update
+
+//   try {
+//       const result = await User.updateMany({}, {
+//           $unset: { justAt: "" },
+//       });
+
+//       res.status(200).send({
+//           matchedCount: result.matchedCount,
+//           modifiedCount: result.modifiedCount
+//       });
+//   } catch (error) {
+//       res.status(500).send({ error: error.message });
+//   }
+// });
   app.use(router);
   app.use("/auth", UserRoutes);
 

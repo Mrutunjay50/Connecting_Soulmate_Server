@@ -24,7 +24,7 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
         usersData = await User.find({
           gender: queryGender,
           ...queryParams,
-          registrationPhase : "approved",
+          // registrationPhase : "approved",
           isDeleted : false
         })
         .sort({ createdAt: -1 })
@@ -35,7 +35,7 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
         usersData = await User.find({
           gender: queryGender,
           ...queryParams,
-          registrationPhase : "approved",
+          // registrationPhase : "approved",
           isDeleted : false
         })
         .sort({ createdAt: -1 })
