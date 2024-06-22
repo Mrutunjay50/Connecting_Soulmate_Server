@@ -72,12 +72,24 @@ exports.unblockUser = async (req, res) => {
 exports.getBlockedUsers = async (req, res) => {
   try {
     const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;  // Default to page 1 and limit 10
 
-    // Find all users blocked by the specified user
-    let blockedUsers = await BlockedUser.find({ blockedBy: userId }).populate('blockedUser');
-    blockedUsers = blockedUsers.map(item => item.blockedUser)
+    // Convert page and limit to numbers
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    // Calculate the total number of blocked users
+    const totalBlockedUsers = await BlockedUser.countDocuments({ blockedBy: userId });
+
+    // Find all users blocked by the specified user with pagination
+    let blockedUsers = await BlockedUser.find({ blockedBy: userId })
+      .populate('blockedUser')
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber);
+
+    blockedUsers = blockedUsers.map(item => item.blockedUser);
     const user = JSON.parse(JSON.stringify(blockedUsers));
-  
+
     // Fetch additional data for users
     const communityIds = user.map(user => user?.familyDetails[0]?.community || "");
     const professionIds = user.map(user => user?.careerDetails[0]?.profession || "");
@@ -102,7 +114,7 @@ exports.getBlockedUsers = async (req, res) => {
     const promises = user.map(async (user) => {
       const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
       user.selfDetails[0].profilePictureUrl = profileUrl || "";
-    
+
       if (user?.familyDetails && user?.familyDetails[0]?.community) {
         const communityData = communities.find(community => community.community_id === user?.familyDetails[0]?.community);
         user.familyDetails[0].communityName = communityData?.community_name || "";
@@ -136,12 +148,19 @@ exports.getBlockedUsers = async (req, res) => {
         }
       }
     });
-    
+
     await Promise.all(promises);
 
-    res.status(200).json({ blockedUsers : user });
+    res.status(200).json({
+      blockedUsers: user,
+      totalBlockedUsers,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(totalBlockedUsers / limitNumber)
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
