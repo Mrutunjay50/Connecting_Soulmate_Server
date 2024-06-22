@@ -30,7 +30,8 @@ const getEmailTemplate = (type, issues = []) => {
           <img src=${LOGO_URL} alt="Connecting Soulmate Logo">
           <p>Hello,</p>
           <p>Thank you for registering with Connecting Soulmate. We have Sent your profile for approval request.</p>
-          <p>We will soon keep you posted on when you can sgtart logging in.</p>
+          <p>We usually take 3 - 5 days for verification. Once verified you will be able to access other's profile.</p>
+          // <p>We will soon keep you posted on when you can start logging in.</p>
         `;
         break;
       case "rejection":
@@ -60,7 +61,7 @@ const getEmailTemplate = (type, issues = []) => {
 
   exports.sendApprovalEmail = async (userEmail) => {
     const subject = "Regarding Your Approval Request";
-    const htmlContent = getEmailTemplate("approval");
+    const htmlContent = getEmailTemplate("approvalRequest");
   
     await sendUserEmail({ to: userEmail, subject, htmlContent });
   };
@@ -68,7 +69,7 @@ const getEmailTemplate = (type, issues = []) => {
 
   exports.sendApprovalRequestToAdmin = async (adminEmail) => {
     const subject = "Request For Approval";
-    const htmlContent = getEmailTemplate("approvalRequest");
+    const htmlContent = getEmailTemplate("approval");
   
     await sendUserEmail({ to: adminEmail, subject, htmlContent });
   };
