@@ -234,8 +234,15 @@ exports.getProfileRequestsSent = async (req, res) => {
     const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, false, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestTo?.selfDetails[0]?.profilePicture);
-    }));
+      const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
+      if (profilePicture) {
+        const profilePictureUrl = await getSignedUrlFromS3(profilePicture);
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else {
+        item.profileRequestTo.selfDetails = item.profileRequestTo.selfDetails || [{}];
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
+      }
+    }))
     return res.status(200).json({ requests });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
