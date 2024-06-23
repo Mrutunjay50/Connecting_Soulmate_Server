@@ -13,14 +13,14 @@ module.exports = (io) => {
     });
 
     io.on('connection', async (socket) => {
-        console.log("User connected:", socket);
 
         const token = socket.handshake.auth.token;
-        console.log(token);
         const user = await getUserDetailsFromToken(token);
 
         socket.join(user?._id.toString());
         onlineUser.add(user?._id?.toString());
+
+        console.log(onlineUser);
 
         io.emit('onlineUser', Array.from(onlineUser));
 

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/Users')
 
-const getUserDetailsFromToken = async(token)=>{
+const getUserDetailsFromToken = async (token)=>{
     
     if(!token){
         return {
@@ -10,7 +10,7 @@ const getUserDetailsFromToken = async(token)=>{
         }
     }
 
-    const decode = await jwt.verify(token,process.env.JWT_SECREAT_KEY)
+    const decode = await jwt.verify(token, process.env.SECRET_KEY)
 
     const user = await User.findById(decode.id)
 
