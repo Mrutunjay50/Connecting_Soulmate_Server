@@ -30,8 +30,7 @@ const getEmailTemplate = (type, issues = []) => {
           <img src=${LOGO_URL} alt="Connecting Soulmate Logo">
           <p>Hello,</p>
           <p>Thank you for registering with Connecting Soulmate. We have Sent your profile for approval request.</p>
-          <p>We usually take 3 - 5 days for verification. Once verified you will be able to access other's profile.</p>
-          // <p>We will soon keep you posted on when you can start logging in.</p>
+          <p>We usually take 3 - 5 days for verification. Once verified you will be able to access Your profile.</p>
         `;
         break;
       case "rejection":
