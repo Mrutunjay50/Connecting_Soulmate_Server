@@ -51,27 +51,21 @@ exports.advanceSearch = async (req, res) => {
       dietType: "additionalDetails.diet",
       ageRangeStart: {
         field: "basicDetails.age",
-        startField: "start",
       },
       ageRangeEnd: {
         field: "basicDetails.age",
-        endField: "end",
       },
       heightRangeStart: {
         field: "additionalDetails.height",
-        startField: "start",
       },
       heightRangeEnd: {
         field: "additionalDetails.height",
-        endField: "end",
       },
       annualIncomeRangeStart: {
         field: "careerDetails.annualIncomeValue",
-        startField: "start",
       },
       annualIncomeRangeEnd: {
         field: "careerDetails.annualIncomeValue",
-        endField: "end",
       },
     };
 
@@ -79,19 +73,19 @@ exports.advanceSearch = async (req, res) => {
     for (const [param, value] of Object.entries(searchParams)) {
       const field = fieldMap[param];
       if (field) {
-        // Exclude empty strings from the query
+        // Exclude empty strings and empty arrays from the query
         if (
-          (typeof value === "string" && (value.trim() === "" || isNaN(value.trim()))) ||
+          (typeof value === "string" && value.trim() === "") ||
           (Array.isArray(value) && value.length === 0)
         ) {
           continue;
         }
-        if (param === "ageRangeStart" || param === "heightRangeStart" || param === "annualIncomeRangeStart") {
-          const { field: mainField, startField } = field;
-          orQueries.push({ [`${mainField}`]: { $gte: value } });
-        } else if (param === "ageRangeEnd" || param === "heightRangeEnd" || param === "annualIncomeRangeEnd") {
-          const { field: mainField, endField } = field;
-          orQueries.push({ [`${mainField}`]: { $lte: value } });
+        if (param.endsWith("Start")) {
+          const mainField = field.field;
+          orQueries.push({ [mainField]: { $gte: value } });
+        } else if (param.endsWith("End")) {
+          const mainField = field.field;
+          orQueries.push({ [mainField]: { $lte: value } });
         } else if (value === "opentoall") {
           // Handle the special case where the parameter value is "opentoall"
           orQueries.push({ [field]: { $exists: true } });
@@ -101,8 +95,15 @@ exports.advanceSearch = async (req, res) => {
       }
     }
 
-    // Construct the final query with OR conditions
-    const query = { $or: orQueries };
+    console.log(orQueries);
+    // Construct the final query with OR conditions if there are any queries
+    let query = {};
+    if (orQueries.length > 0) {
+      query = { $or: orQueries };
+    } else {
+      // If no search parameters were valid, return an appropriate response
+      return res.status(400).json({ error: "No valid search parameters provided" });
+    }
 
     // Execute the query
     const filters = { ...query };
@@ -112,6 +113,7 @@ exports.advanceSearch = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 
