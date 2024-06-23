@@ -226,12 +226,49 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 10 } = req.query;
     const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, false, page, limit);
+
+    // Fetch profile picture URLs for each request
+    await Promise.all(requests.map(async (item) => {
+      // Ensure item.profileRequestTo and item.profileRequestTo.selfDetails exist
+      if (item.profileRequestTo && Array.isArray(item.profileRequestTo.selfDetails)) {
+        const selfDetails = item.profileRequestTo.selfDetails;
+        if (selfDetails.length > 0) {
+          const profilePicture = selfDetails[0].profilePicture;
+          if (profilePicture) {
+            const profilePictureUrl = await getSignedUrlFromS3(profilePicture);
+            selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+          } else {
+            selfDetails[0].profilePictureUrl = "";
+          }
+        } else {
+          // If selfDetails array is empty, add a default object
+          selfDetails.push({ profilePictureUrl: "" });
+        }
+      } else {
+        // If profileRequestTo or selfDetails do not exist, initialize them properly
+        item.profileRequestTo = item.profileRequestTo || {};
+        item.profileRequestTo.selfDetails = [{ profilePictureUrl: "" }];
+      }
+    }));
+
+    return res.status(200).json({ requests });
+  } catch (error) {
+    console.error("Error getting pending profile requests:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+exports.getProfileRequestsReceived = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, true, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
@@ -243,22 +280,6 @@ exports.getProfileRequestsSent = async (req, res) => {
         item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
     }))
-    return res.status(200).json({ requests });
-  } catch (error) {
-    console.error("Error getting pending profile requests:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-exports.getProfileRequestsReceived = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
-    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, true, page, limit);
-    // Fetch profile picture URLs for each request
-    await Promise.all(requests.map(async (item) => {
-      item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
-    }));
     return res.status(200).json({ requests });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
@@ -492,16 +513,39 @@ exports.getInterestRequestsSent = async (req, res) => {
     const { userId } = req.params;
     const { page = 1, limit = 10 } = req.query;
     const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, false, page, limit);
+
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
+      // Ensure item.profileRequestTo and item.profileRequestTo.selfDetails exist
+      if (item.interestRequestTo && Array.isArray(item.interestRequestTo.selfDetails)) {
+        const selfDetails = item.interestRequestTo.selfDetails;
+        if (selfDetails.length > 0) {
+          const profilePicture = selfDetails[0].profilePicture;
+          if (profilePicture) {
+            const profilePictureUrl = await getSignedUrlFromS3(profilePicture);
+            selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+          } else {
+            selfDetails[0].profilePictureUrl = "";
+          }
+        } else {
+          // If selfDetails array is empty, add a default object
+          selfDetails.push({ profilePictureUrl: "" });
+        }
+      } else {
+        // If profileRequestTo or selfDetails do not exist, initialize them properly
+        item.interestRequestTo = item.interestRequestTo || {};
+        item.interestRequestTo.selfDetails = [{ profilePictureUrl: "" }];
+      }
     }));
+
     return res.status(200).json({ requests });
   } catch (error) {
     console.error("Error getting pending interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 
 exports.getInterestRequestsReceived = async (req, res) => {
   try {

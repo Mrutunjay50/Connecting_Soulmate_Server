@@ -45,6 +45,7 @@ exports.advanceSearch = async (req, res) => {
       maritalStatus: "additionalDetails.maritalStatus",
       education: "careerDetails.highestEducation",
       smoking: "additionalDetails.smoking",
+      alcohol : "additionalDetails.alcohol",
       profession: "careerDetails.profession",
       community: "familyDetails.community",
       interests: "selfDetails.interests",

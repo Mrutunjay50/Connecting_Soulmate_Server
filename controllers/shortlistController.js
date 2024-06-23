@@ -84,10 +84,18 @@ exports.addToShortlist = async (req, res) => {
 exports.getShortlistedUser = async (req, res) => {
     try {
       const { userId } = req.params;
-      const users = await ShortList.find({ user: userId }).populate({
-        path: "shortlistedUser",
-        select: ListData,
-      });
+      const page = parseInt(req.query.page) || 1;
+      const PAGE_LIMIT = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * PAGE_LIMIT;
+
+      // Fetch the shortlisted users with pagination
+      const users = await ShortList.find({ user: userId })
+        .skip(skip)
+        .limit(PAGE_LIMIT)
+        .populate({
+          path: 'shortlistedUser',
+          select: ListData,
+        });
       // console.log(users);
       const user = JSON.parse(JSON.stringify(users));
   
