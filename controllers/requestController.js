@@ -189,7 +189,7 @@ exports.cancelProfileRequest = async (req, res) => {
 exports.getProfileRequestsAccepted = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getRequests(ProfileRequests, userId, "Profile", "accepted", res, page, limit);
     await Promise.all(requests.map(async (item) => {
       if (item?.profileRequestTo?.selfDetails?.[0]) {
@@ -209,7 +209,7 @@ exports.getProfileRequestsAccepted = async (req, res) => {
 exports.getProfileRequestsDeclined = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getRequests(ProfileRequests, userId, "Profile", "declined", res, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -230,7 +230,7 @@ exports.getProfileRequestsDeclined = async (req, res) => {
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, false, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -253,7 +253,7 @@ exports.getProfileRequestsSent = async (req, res) => {
 exports.getProfileRequestsReceived = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, true, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -448,7 +448,7 @@ exports.cancelInterestRequest = async (req, res) => {
 exports.getInterestRequestsAccepted = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getRequests(InterestRequests, userId, "Interest", "accepted", res, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -469,7 +469,7 @@ exports.getInterestRequestsAccepted = async (req, res) => {
 exports.getInterestRequestsDeclined = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getRequests(InterestRequests, userId, "Interest", "declined", res, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -490,7 +490,7 @@ exports.getInterestRequestsDeclined = async (req, res) => {
 exports.getInterestRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, false, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
@@ -506,7 +506,7 @@ exports.getInterestRequestsSent = async (req, res) => {
 exports.getInterestRequestsReceived = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, true, page, limit);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {

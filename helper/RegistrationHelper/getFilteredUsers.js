@@ -7,7 +7,7 @@ const { ListData } = require("../cardListedData");
 const BlockedUser = require("../../models/blockedUser");
 
 
-const DEFAULT_PAGE_LIMIT = 10;
+const DEFAULT_PAGE_LIMIT = 50;
 
 exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT = DEFAULT_PAGE_LIMIT) => {
     try {
@@ -18,33 +18,25 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
       const page = parseInt(req.query.page) || 1;
       const skip = (page - 1) * PAGE_LIMIT;
       const limit = PAGE_LIMIT;
+        // Fetch the list of blocked user IDs
+      const blockedUsers = await BlockedUser.find({ blockedBy: userId }).select('blockedUser');
+      const blockedUserIds = blockedUsers.map(blocked => blocked.blockedUser);
+      
+      // Fetch users based on query parameters excluding blocked users
       let usersData;
-      // Fetch users based on query parameters
-      if (findOne){
-        usersData = await User.find({
-          gender: queryGender,
-          ...queryParams,
-          registrationPhase : "approved",
-          isDeleted : false
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .select(ListData);
-      }else {
-        usersData = await User.find({
-          gender: queryGender,
-          ...queryParams,
-          registrationPhase : "approved",
-          isDeleted : false
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .select(ListData);
-      }
-
-      // console.log(usersData)
+      const query = {
+        gender: queryGender,
+        ...queryParams,
+        registrationPhase: "approved",
+        isDeleted: false,
+        _id: { $nin: blockedUserIds } // Exclude blocked users
+      };
+    
+      usersData = await User.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select(ListData);
   
       const users = JSON.parse(JSON.stringify(usersData));
   
@@ -58,7 +50,7 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
       const bornstateIds = users.map(user => user?.basicDetails[0]?.placeOfBirthState || "");
       const cityIds = users.map(user => user?.additionalDetails[0]?.currentlyLivingInCity || "");
   
-      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests, blocked] = await Promise.all([
+      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, shortlistedUsers, profileRequests, interestRequests] = await Promise.all([
         Community.find({ community_id: { $in: communityIds } }),
         Proffesion.find({ proffesion_id: { $in: professionIds } }),
         Diet.find({ diet_id: { $in: dietIds } }),
@@ -70,7 +62,6 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
         ShortList.find({ user: userId }),
         ProfileRequests.find({ profileRequestBy: userId }),
         InterestRequests.find({ interestRequestBy: userId }),
-        BlockedUser.find({ blockedBy : userId }),
       ]);
   
       const promises = users.map(async (user) => {
@@ -124,13 +115,11 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
   
         // Check if there is an interest request to this user
         user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
-        user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
       });
       
       await Promise.all(promises);
       // Filter out blocked users
-      const filteredUsers = users.filter(user => !user.isBlocked);
-      res.status(200).json({ users: filteredUsers });
+      res.status(200).json({ users: users });
     } catch (error) {
       console.error("Error retrieving users:", error);
       res.status(500).json({ error: "Internal server error" });

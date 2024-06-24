@@ -3,7 +3,7 @@ const fastcsv = require("fast-csv");
 const {
   getAggregationPipelineForUsers,
 } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
-const { generateUserPDFForAdmin } = require("../helper/generatePDF");
+// const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
 const { sendReviewEmail, sendApprovalEmail, sendRejectionEmail } = require("../helper/emailGenerator/emailHelper");

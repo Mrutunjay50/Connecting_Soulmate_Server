@@ -6,7 +6,7 @@ const Notifications = require("../models/notifications");
 exports.getNotificationsForUser = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 100 } = req.query;
     const skip = (page - 1) * limit;
 
     const notifications = await Notifications.find({

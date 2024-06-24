@@ -117,7 +117,7 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
   }
 };
 
-exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 10) => {
+exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 50) => {
   const skip = (page - 1) * limit;
   try {
     const requests = await Model.find({
@@ -148,7 +148,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
 };
 
 
-exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 10) => {
+exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 50) => {
   try {
     const skip = (page - 1) * limit;
     let requests;

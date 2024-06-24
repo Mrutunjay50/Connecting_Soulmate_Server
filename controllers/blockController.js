@@ -72,11 +72,11 @@ exports.unblockUser = async (req, res) => {
 exports.getBlockedUsers = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;  // Default to page 1 and limit 10
+    const { page = 1, limit = 50 } = req.query;  // Default to page 1 and limit 10
 
     // Convert page and limit to numbers
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
 
     // Calculate the total number of blocked users
     const totalBlockedUsers = await BlockedUser.countDocuments({ blockedBy: userId });

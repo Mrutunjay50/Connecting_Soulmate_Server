@@ -85,7 +85,7 @@ exports.getShortlistedUser = async (req, res) => {
     try {
       const { userId } = req.params;
       const page = parseInt(req.query.page) || 1;
-      const PAGE_LIMIT = parseInt(req.query.limit) || 10;
+      const PAGE_LIMIT = parseInt(req.query.limit) || 50;
       const skip = (page - 1) * PAGE_LIMIT;
 
       // Fetch the shortlisted users with pagination
