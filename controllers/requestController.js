@@ -22,30 +22,31 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
-    // Create or update notification for profile request sent
-    const notification = await Notifications.findOneAndUpdate(
-      {
-        notificationTo: profileRequestTo,
-        notificationBy: profileRequestBy,
-        notificationType: "profilesent"
-      },
-      {
-        notificationTo: profileRequestTo,
-        notificationBy: profileRequestBy,
-        notificationText: `You have sent a profile request from /${profileRequestTo}`,
-        notificationType: "profilesent"
-      },
-      {
-        new: true, // Return the updated document
-        upsert: true, // Create the document if it doesn't exist
-        setDefaultsOnInsert: true // Apply default values if creating
-      }
-    );
 
     if(message !== "This person has already sent an Profile request to you"){
+          // Create or update notification for profile request sent
+      const notification = await Notifications.findOneAndUpdate(
+        {
+          notificationTo: profileRequestTo,
+          notificationBy: profileRequestBy,
+          notificationType: "profilesent"
+        },
+        {
+          notificationTo: profileRequestTo,
+          notificationBy: profileRequestBy,
+          notificationText: `You have sent a profile request from /${profileRequestTo}`,
+          notificationType: "profilesent"
+        },
+        {
+          new: true, // Return the updated document
+          upsert: true, // Create the document if it doesn't exist
+          setDefaultsOnInsert: true // Apply default values if creating
+        }
+      );
       const formattedNotification = await populateNotification(notification);
 
       io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
+      io.getIO().emit(`notification/${profileRequestBy}`, formattedNotification);
       io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
@@ -284,29 +285,30 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-    // Create or update notification for interest request sent
-    const notification = await Notifications.findOneAndUpdate(
-      {
-        notificationTo: interestRequestTo,
-        notificationBy: interestRequestBy,
-        notificationType: "interestsent"
-      },
-      {
-        notificationTo: interestRequestTo,
-        notificationBy: interestRequestBy,
-        notificationText: `You have sent an Interest request from ${interestRequestBy}`,
-        notificationType: "interestsent"
-      },
-      {
-        new: true, // Return the updated document
-        upsert: true, // Create the document if it doesn't exist
-        setDefaultsOnInsert: true // Apply default values if creating
-      }
-    );
 
     if(message !== "This person has already sent an Interest request to you"){
+          // Create or update notification for interest request sent
+      const notification = await Notifications.findOneAndUpdate(
+        {
+          notificationTo: interestRequestTo,
+          notificationBy: interestRequestBy,
+          notificationType: "interestsent"
+        },
+        {
+          notificationTo: interestRequestTo,
+          notificationBy: interestRequestBy,
+          notificationText: `You have sent an Interest request from ${interestRequestBy}`,
+          notificationType: "interestsent"
+        },
+        {
+          new: true, // Return the updated document
+          upsert: true, // Create the document if it doesn't exist
+          setDefaultsOnInsert: true // Apply default values if creating
+        }
+      );
       const formattedNotification = await populateNotification(notification);
       io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
+      io.getIO().emit(`notification/${interestRequestBy}`, formattedNotification);
       io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
