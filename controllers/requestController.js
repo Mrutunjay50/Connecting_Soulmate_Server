@@ -42,12 +42,14 @@ exports.sendProfileRequest = async (req, res) => {
       }
     );
 
-    const formattedNotification = await populateNotification(notification);
+    if(message !== "This person has already sent an Profile request to you"){
+      const formattedNotification = await populateNotification(notification);
 
-    io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
-    io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
-    // Send formatted notification to admin and users with accessType 0 or 1
-    sendNotificationToAdmins(formattedNotification);
+      io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
+      io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
+      // Send formatted notification to admin and users with accessType 0 or 1
+      sendNotificationToAdmins(formattedNotification);
+    }
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending profile request:", error);
@@ -302,11 +304,14 @@ exports.sendInterestRequest = async (req, res) => {
       }
     );
 
-    const formattedNotification = await populateNotification(notification);
-    io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
-    io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
-    // Send formatted notification to admin and users with accessType 0 or 1
-    sendNotificationToAdmins(formattedNotification);
+    if(message !== "This person has already sent an Interest request to you"){
+      const formattedNotification = await populateNotification(notification);
+      io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
+      io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
+      // Send formatted notification to admin and users with accessType 0 or 1
+      sendNotificationToAdmins(formattedNotification);
+    }
+
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending interest request:", error);
