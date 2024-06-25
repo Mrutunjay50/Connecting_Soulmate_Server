@@ -25,13 +25,13 @@ exports.updateRegistrationPhase = async (req, res) => {
       user.registrationPhase = registrationPhase;
       user.registrationPage = "";
       user.approvedAt = new Date().toISOString();
-      await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email);
+      await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
       // user.registrationPage = "1";
       user.registrationPhase = "rejected";
       user.category = "";
-      await sendRejectionEmail(user.additionalDetails[0].email);
+      await sendRejectionEmail(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
     }
 
 
@@ -63,7 +63,7 @@ exports.reviewRequest = async (req, res) => {
     user.registrationPage = "1"
     // Save the updated user
     await user.save();
-    await sendReviewEmail(user.additionalDetails[0].email, reviewReason?.split(","));
+    await sendReviewEmail(user.additionalDetails[0].email, reviewReason?.split(","), user?.basicDetails[0]?.name);
 
     res.status(200).json({ message: "Profile resent for review successfully" });
   } catch (error) {
