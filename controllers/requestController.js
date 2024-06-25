@@ -23,7 +23,7 @@ exports.sendProfileRequest = async (req, res) => {
       res
     );
     if(message === `Profile request can't be sent as you have blocked the user` || message === `Profile request can't be sent as you are blocked by this user`){
-      res.status(403).json(message);
+      return res.status(403).json(message);
     }
 
     if(message !== "This person has already sent an Profile request to you"){
@@ -289,7 +289,7 @@ exports.sendInterestRequest = async (req, res) => {
       res
     );
     if(message === `Interest request can't be sent as you have blocked the user` || message === `Interest request can't be sent as you are blocked by this user`){
-      res.status(403).json(message);
+      return res.status(403).json(message);
     }
 
     if(message !== "This person has already sent an Interest request to you"){
