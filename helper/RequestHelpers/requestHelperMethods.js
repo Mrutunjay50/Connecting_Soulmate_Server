@@ -143,7 +143,6 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
     const requests = await Model.find({
       [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
       action: "pending",
-      isBlocked: false,
     })
       .populate({
         path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
@@ -179,7 +178,6 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
           {
             [`${type.toLowerCase()}RequestBy`]: userId,
             action: status,
-            isBlocked: false,
           },
         ],
       }).populate([
@@ -194,12 +192,10 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
           {
             [`${type.toLowerCase()}RequestBy`]: userId,
             action: status,
-            isBlocked: false,
           },
           {
             [`${type.toLowerCase()}RequestTo`]: userId,
             action: status,
-            isBlocked: false,
           },
         ],
       }).populate([

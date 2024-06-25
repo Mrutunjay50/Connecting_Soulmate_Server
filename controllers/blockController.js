@@ -1,42 +1,40 @@
 const BlockedUser = require('../models/blockedUser');
 const { InterestRequests, ProfileRequests } = require('../models/interests');
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
+const ShortList = require('../models/shortlistUsers');
 const { getSignedUrlFromS3 } = require('../utils/s3Utils');
 
 exports.blockUser = async (req, res) => {
   try {
     const { blockBy, blockUserId } = req.body;
 
-    if(!blockBy && !blockUserId && blockBy === "" && blockUserId === ""){
-      return res.status(400).json({ error: "both blockBy and blockUserId is needed" });
+    if (!blockBy || !blockUserId || blockBy === "" || blockUserId === "") {
+      return res.status(400).json({ error: "Both blockBy and blockUserId are needed" });
     }
 
     // Check if the user is already blocked
-    const existingBlockedUser = await BlockedUser.findOne({ blockedBy : blockBy, blockedUser: blockUserId });
-    console.log(existingBlockedUser);
-
+    const existingBlockedUser = await BlockedUser.findOne({ blockedBy: blockBy, blockedUser: blockUserId });
     if (existingBlockedUser) {
       return res.status(400).json({ error: "User already blocked" });
     }
 
-    // Create a new blocked user entry
-    const blockedUser = new BlockedUser({ blockedBy : blockBy, blockedUser: blockUserId });
-
+    // Delete relevant requests and shortlist entries
     await Promise.all([
-      ProfileRequests.updateMany(
-        { profileRequestBy: blockBy, profileRequestTo: blockUserId },
-        { isBlocked: true }
-      ),
-      InterestRequests.updateMany(
-        { interestRequestBy: blockBy, interestRequestTo: blockUserId },
-        { isBlocked: true }
-      )
+      ProfileRequests.deleteMany({ profileRequestBy: blockBy, profileRequestTo: blockUserId }),
+      ProfileRequests.deleteMany({ profileRequestBy: blockUserId, profileRequestTo: blockBy }),
+      InterestRequests.deleteMany({ interestRequestBy: blockBy, interestRequestTo: blockUserId }),
+      InterestRequests.deleteMany({ interestRequestBy: blockUserId, interestRequestTo: blockBy }),
+      ShortList.deleteMany({ user: blockBy, shortlistedUser: blockUserId }),
+      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy })
     ]);
+
+    // Create a new blocked user entry
+    const blockedUser = new BlockedUser({ blockedBy: blockBy, blockedUser: blockUserId });
     await blockedUser.save();
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
@@ -64,7 +62,7 @@ exports.unblockUser = async (req, res) => {
 
     res.status(200).json({ message: "User unblocked successfully" });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -159,7 +157,7 @@ exports.getBlockedUsers = async (req, res) => {
       totalPages: Math.ceil(totalBlockedUsers / limitNumber)
     });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
