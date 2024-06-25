@@ -1,6 +1,7 @@
 const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
 const { ListData } = require("../cardListedData");
+const BlockedUser = require("../../models/blockedUser");
 
 const processRequest = async (
   Model,
@@ -11,6 +12,25 @@ const processRequest = async (
   res
 ) => {
   try {
+
+    // Fetch all blocked users for requestBy
+    const blockedUsers = await BlockedUser.find({ blockedBy: requestBy }).distinct('blockedUser');
+
+    // Check if requestTo is in the blockedUsers list (blockedBy requestBy)
+    if (blockedUsers.includes(requestTo.toString())) {
+      return `${type} request can't be sent as you have blocked the user`;
+    }
+
+    // Check if requestBy is blocked by requestTo
+    const blockedByRequestTo = await BlockedUser.findOne({
+      blockedBy: requestTo,
+      blockedUser: requestBy
+    });
+
+    if (blockedByRequestTo) {
+      return `${type} request can't be sent as you are blocked by this user`;
+    }
+
     // Check for an existing request from requestBy to requestTo
     const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
