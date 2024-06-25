@@ -70,11 +70,13 @@ exports.unblockUser = async (req, res) => {
 exports.getBlockedUsers = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 50 } = req.query;  // Default to page 1 and limit 10
+    const { page = 1, limit = 50 } = req.query; // Default to page 1 and limit 50
 
     // Convert page and limit to numbers
     const pageNumber = parseInt(page);
     const limitNumber = parseInt(limit);
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = pageNumber * limitNumber;
 
     // Calculate the total number of blocked users
     const totalBlockedUsers = await BlockedUser.countDocuments({ blockedBy: userId });
@@ -82,7 +84,7 @@ exports.getBlockedUsers = async (req, res) => {
     // Find all users blocked by the specified user with pagination
     let blockedUsers = await BlockedUser.find({ blockedBy: userId })
       .populate('blockedUser')
-      .skip((pageNumber - 1) * limitNumber)
+      .skip(startIndex)
       .limit(limitNumber);
 
     blockedUsers = blockedUsers.map(item => item.blockedUser);
@@ -152,9 +154,12 @@ exports.getBlockedUsers = async (req, res) => {
     res.status(200).json({
       blockedUsers: user,
       totalBlockedUsers,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(totalBlockedUsers / limitNumber)
+      currentPage: pageNumber,
+      hasNextPage: endIndex < totalBlockedUsers,
+      hasPreviousPage: pageNumber > 1,
+      nextPage: pageNumber + 1,
+      previousPage: pageNumber - 1,
+      lastPage: Math.ceil(totalBlockedUsers / limitNumber)
     });
   } catch (err) {
     console.log(err);
