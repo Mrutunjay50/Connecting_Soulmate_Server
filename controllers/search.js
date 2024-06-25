@@ -99,7 +99,7 @@ exports.advanceSearch = async (req, res) => {
     // Construct the final query with OR conditions if there are any queries
     let query = {};
     if (orQueries.length > 0) {
-      query = { $or: orQueries };
+      query = { $and: orQueries };
     } else {
       // If no search parameters were valid, return an appropriate response
       return res.status(400).json({ error: "No valid search parameters provided" });
