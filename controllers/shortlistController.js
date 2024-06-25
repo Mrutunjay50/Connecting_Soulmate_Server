@@ -169,10 +169,10 @@ exports.addToShortlist = async (req, res) => {
             }
 
             // Check if there is a profile request to this user
-            user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString);
+            user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString && data.action !== 'declined');
 
             // Check if there is an interest request to this user
-            user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+            user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString && data.action !== 'declined');
         });
 
         await Promise.all(promises);
@@ -184,7 +184,7 @@ exports.addToShortlist = async (req, res) => {
         // Respond with the users and pagination info
         res.status(200).json({
             users: user,
-            totalShortlistedCount,
+            totalUsersCount : totalShortlistedCount,
             currentPage: pageNumber,
             hasNextPage: endIndex < totalShortlistedCount,
             hasPreviousPage: pageNumber > 1,

@@ -12,7 +12,7 @@ exports.getNotificationsForUser = async (req, res) => {
     const notifications = await Notifications.find({
       $or: [{ notificationTo: userId }, { notificationBy: userId }],
     })
-    .sort({ createdAt: -1 })
+    .sort({ updatedAt: -1 })
     .skip(skip)
     .limit(parseInt(limit));
 
@@ -34,7 +34,7 @@ exports.getAdminNotificationsForUser = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const notifications = await AdminNotifications.find()
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 

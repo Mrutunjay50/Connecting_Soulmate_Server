@@ -3,7 +3,7 @@ const {
 } = require("../helper/AggregationOfUserData/getUserAggregationPipeline");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/RegistrationHelper/registerationPageHandler");
-const { sendApprovalRequestToAdmin, sendApprovalEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendApprovalEmail } = require("../helper/emailGenerator/emailHelper");
 const User = require("../models/Users");
 const io = require("../socket");
 const {
@@ -99,7 +99,7 @@ exports.registerUser = async (req, res) => {
       const formattedNotification = await populateAdminNotification(notification);
 
       io.getIO().emit(`notification/Admin`, formattedNotification);
-      await sendApprovalEmail(user.additionalDetails[0].email);
+      await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }
 
     res.status(200).json({ message: "Data added successfully", user });

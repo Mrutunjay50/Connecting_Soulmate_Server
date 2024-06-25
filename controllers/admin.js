@@ -6,7 +6,7 @@ const {
 // const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
-const { sendReviewEmail, sendApprovalEmail, sendRejectionEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 
 
@@ -25,7 +25,7 @@ exports.updateRegistrationPhase = async (req, res) => {
       user.registrationPhase = registrationPhase;
       user.registrationPage = "";
       user.approvedAt = new Date().toISOString();
-      await sendApprovalEmail(user.additionalDetails[0].email);
+      await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email);
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
       // user.registrationPage = "1";

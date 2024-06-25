@@ -205,7 +205,7 @@ exports.getProfileRequestsAccepted = async (req, res) => {
         item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting accepted profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -226,7 +226,7 @@ exports.getProfileRequestsDeclined = async (req, res) => {
         item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting declined profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -249,7 +249,7 @@ exports.getProfileRequestsSent = async (req, res) => {
         item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
     }))
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -265,7 +265,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
     await Promise.all(requests.map(async (item) => {
       item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -472,7 +472,7 @@ exports.getInterestRequestsAccepted = async (req, res) => {
         item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
       }
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting accepted interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -493,7 +493,7 @@ exports.getInterestRequestsDeclined = async (req, res) => {
         item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
       }
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting declined interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -509,7 +509,7 @@ exports.getInterestRequestsSent = async (req, res) => {
     await Promise.all(requests.map(async (item) => {
       item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting pending interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -525,7 +525,7 @@ exports.getInterestRequestsReceived = async (req, res) => {
     await Promise.all(requests.map(async (item) => {
       item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({ ...requests });
   } catch (error) {
     console.error("Error getting pending interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });

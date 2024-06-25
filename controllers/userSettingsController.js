@@ -7,11 +7,11 @@ dotenv.config();
 const DOMAIN = process.env.FRONTEND_URL;
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
 const SuccessfulMarriage = require("../models/successFullMarraige");
+const { sendDeleteEmail, sendChangeRegistrationEmail } = require("../helper/emailGenerator/emailHelper");
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
     const { userId } = req.body;
-    const restrict = false;
     // Check if the user exists
     const user = await User.findById(userId);
     if (!user) {
@@ -25,14 +25,9 @@ exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
     }
 
     const verificationLink = `${DOMAIN}/change-register-number/${userId}/${email}`;
+    await sendChangeRegistrationEmail(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user", verificationLink);
 
-    const subject = "Change Registered Number";
-    const htmlContent = `<p>Click the link below to change your registered number:</p><p><a href="${verificationLink}">Verify Email Address and Change Your Number</a></p>`;
-
-    await sendEmail({ to: email, subject, htmlContent, restrict });
-    return res
-    .status(200)
-    .json({ message: "Verification link sent successfully" });
+    return res.status(200).json({ message: "Verification link sent successfully" });
   } catch (error) {
     console.log(error);
     console.error("Error changing registered number:", error);
@@ -236,7 +231,7 @@ exports.deleteProfile = async (req, res) => {
     user.deletedStatus = "This profile has been deleted."
     // Save the updated user
     await user.save();
-
+    await sendDeleteEmail(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
     // Increment the count of successful marriages if applicable
     if (isSuccessFulMarraige) {
       await addToSuccessfulMarriages(userId);
