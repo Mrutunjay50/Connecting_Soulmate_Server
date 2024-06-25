@@ -139,18 +139,11 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
 
 exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 50) => {
   const skip = (page - 1) * limit;
-
   try {
-    // Calculate the total number of pending requests
-    const totalPendingRequests = await Model.countDocuments({
-      [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
-      action: "pending",
-    });
-
-    // Fetch pending requests with pagination
     const requests = await Model.find({
       [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
       action: "pending",
+      isBlocked: false,
     })
       .populate({
         path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
@@ -167,24 +160,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
       );
     });
 
-    const results = await Promise.all(promises);
-
-    // Pagination information
-    const totalPages = Math.ceil(totalPendingRequests / limit);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
-
-    // Send the response with pagination information
-    return {
-      requests: results,
-      totalRequests : totalPendingRequests,
-      currentPage: page,
-      hasNextPage,
-      hasPreviousPage,
-      nextPage: hasNextPage ? page + 1 : null,
-      previousPage: hasPreviousPage ? page - 1 : null,
-      lastPage: totalPages,
-    }
+    return await Promise.all(promises);
   } catch (error) {
     console.error(`Error getting pending ${type} requests:`, error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -195,73 +171,59 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
 exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 50) => {
   try {
     const skip = (page - 1) * limit;
+    let requests;
 
-    // Determine the query based on status
-    const query = status === "pending"
-      ? {
-          $or: [
-            {
-              [`${type.toLowerCase()}RequestBy`]: userId,
-              action: status,
-            },
-          ],
-        }
-      : {
-          $or: [
-            {
-              [`${type.toLowerCase()}RequestBy`]: userId,
-              action: status,
-            },
-            {
-              [`${type.toLowerCase()}RequestTo`]: userId,
-              action: status,
-            },
-          ],
-        };
+    if (status === "pending") {
+      requests = await Model.find({
+        $or: [
+          {
+            [`${type.toLowerCase()}RequestBy`]: userId,
+            action: status,
+            isBlocked: false,
+          },
+        ],
+      }).populate([
+          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
+          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
+        ])
+        .skip(skip)
+        .limit(limit);
+    } else {
+      requests = await Model.find({
+        $or: [
+          {
+            [`${type.toLowerCase()}RequestBy`]: userId,
+            action: status,
+            isBlocked: false,
+          },
+          {
+            [`${type.toLowerCase()}RequestTo`]: userId,
+            action: status,
+            isBlocked: false,
+          },
+        ],
+      }).populate([
+          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
+          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
+        ])
+        .skip(skip)
+        .limit(limit);
+    }
 
-    // Calculate the total number of requests
-    const totalRequests = await Model.countDocuments(query);
-
-    // Fetch requests with pagination
-    const requests = await Model.find(query)
-      .populate([
-        { path: `${type.toLowerCase()}RequestBy`, select: ListData },
-        { path: `${type.toLowerCase()}RequestTo`, select: ListData },
-      ])
-      .skip(skip)
-      .limit(limit);
-
-    // Set request flags
-    const results = await Promise.all(requests.map(async (request) => {
+    const promises = requests.map(async (request) => {
       return setRequestFlags(
         request,
         request[type.toLowerCase() + "RequestBy"],
         request[type.toLowerCase() + "RequestTo"]
       );
-    }));
-
-    // Pagination information
-    const totalPages = Math.ceil(totalRequests / limit);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
-
-    // Send the response with pagination information
-    res.status(200).json({
-      requests: results,
-      totalRequests,
-      currentPage: page,
-      hasNextPage,
-      hasPreviousPage,
-      nextPage: hasNextPage ? page + 1 : null,
-      previousPage: hasPreviousPage ? page - 1 : null,
-      lastPage: totalPages,
     });
+
+    return await Promise.all(promises);
   } catch (error) {
     console.error(`Error getting ${status} ${type} requests:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 
 const setRequestFlags = async (request, requestBy, requestTo) => {
