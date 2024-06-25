@@ -160,10 +160,10 @@ exports.addToShortlist = async (req, res) => {
         }
   
         // Check if there is a profile request to this user
-        user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString);
+        user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString && data.action !== "declined");
   
         // Check if there is an interest request to this user
-        user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+        user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString && data.action !== "declined");
         // user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
       });
       
