@@ -237,7 +237,10 @@ exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, false, page, limit);
+    const result = await getPendingRequests(ProfileRequests, userId, "Profile", res, false, page, limit);
+
+    const requests = await Promise.all(result.requests); // Await all the promises in the requests array
+
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
@@ -248,8 +251,18 @@ exports.getProfileRequestsSent = async (req, res) => {
         item.profileRequestTo.selfDetails = item.profileRequestTo.selfDetails || [{}];
         item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
-    }))
-    return res.status(200).json({ requests });
+    }));
+
+    return res.status(200).json({
+      requests,
+      totalRequests: result.totalRequests,
+      currentPage: result.currentPage,
+      hasNextPage: result.hasNextPage,
+      hasPreviousPage: result.hasPreviousPage,
+      nextPage: result.nextPage,
+      previousPage: result.previousPage,
+      lastPage: result.lastPage,
+    });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -260,17 +273,31 @@ exports.getProfileRequestsReceived = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    const requests = await getPendingRequests(ProfileRequests, userId, "Profile", res, true, page, limit);
+    const result = await getPendingRequests(ProfileRequests, userId, "Profile", res, true, page, limit);
+
+    const requests = await Promise.all(result.requests);
+
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+
+    return res.status(200).json({
+      requests,
+      totalRequests: result.totalRequests,
+      currentPage: result.currentPage,
+      hasNextPage: result.hasNextPage,
+      hasPreviousPage: result.hasPreviousPage,
+      nextPage: result.nextPage,
+      previousPage: result.previousPage,
+      lastPage: result.lastPage,
+    });
   } catch (error) {
     console.error("Error getting pending profile requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 
@@ -504,12 +531,22 @@ exports.getInterestRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, false, page, limit);
+    const result = await getPendingRequests(InterestRequests, userId, "Interest", res, false, page, limit);
+    const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({
+      requests,
+      totalRequests: result.totalRequests,
+      currentPage: result.currentPage,
+      hasNextPage: result.hasNextPage,
+      hasPreviousPage: result.hasPreviousPage,
+      nextPage: result.nextPage,
+      previousPage: result.previousPage,
+      lastPage: result.lastPage,
+    });
   } catch (error) {
     console.error("Error getting pending interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -520,12 +557,22 @@ exports.getInterestRequestsReceived = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    const requests = await getPendingRequests(InterestRequests, userId, "Interest", res, true, page, limit);
+    const result = await getPendingRequests(InterestRequests, userId, "Interest", res, true, page, limit);
+    const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
     }));
-    return res.status(200).json({ requests });
+    return res.status(200).json({
+      requests,
+      totalRequests: result.totalRequests,
+      currentPage: result.currentPage,
+      hasNextPage: result.hasNextPage,
+      hasPreviousPage: result.hasPreviousPage,
+      nextPage: result.nextPage,
+      previousPage: result.previousPage,
+      lastPage: result.lastPage,
+    });
   } catch (error) {
     console.error("Error getting pending interest requests:", error);
     res.status(500).json({ error: "Internal Server Error" });
