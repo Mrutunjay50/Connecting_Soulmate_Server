@@ -82,100 +82,118 @@ exports.addToShortlist = async (req, res) => {
 
   exports.getShortlistedUser = async (req, res) => {
     try {
-      const { userId } = req.params;
-      const page = parseInt(req.query.page) || 1;
-      const PAGE_LIMIT = parseInt(req.query.limit) || 50;
-      const skip = (page - 1) * PAGE_LIMIT;
+        const { userId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const PAGE_LIMIT = parseInt(req.query.limit) || 50;
+        const pageNumber = page;
+        const pageSize = PAGE_LIMIT;
+        const startIndex = (pageNumber - 1) * pageSize;
+        const endIndex = pageNumber * pageSize;
 
-      // Fetch the shortlisted users with pagination
-      const users = await ShortList.find({ user: userId })
-        .skip(skip)
-        .limit(PAGE_LIMIT)
-        .populate({
-          path: 'shortlistedUser',
-          select: ListData,
-        });
-      const user = JSON.parse(JSON.stringify(users));
-  
-      // Fetch additional data for users
-      const communityIds = user.map(user => user.shortlistedUser.familyDetails[0]?.community);
-      const professionIds = user.map(user => user.shortlistedUser.careerDetails[0]?.profession);
-      const dietIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.diet);
-      const countryIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
-      const stateIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
-      const borncountryIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
-      const bornstateIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
-      const cityIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
-  
-      const [communities, professions, diets, countries, bornCoutnry, bornState, states, cities, profileRequests, interestRequests] = await Promise.all([
-        Community.find({ community_id: { $in: communityIds } }),
-        Proffesion.find({ proffesion_id: { $in: professionIds } }),
-        Diet.find({ diet_id: { $in: dietIds } }),
-        Country.find({ country_id: { $in: countryIds } }),
-        Country.find({ country_id: { $in: borncountryIds } }),
-        State.find({ state_id: { $in: bornstateIds } }),
-        State.find({ state_id: { $in: stateIds } }),
-        City.find({ city_id: { $in: cityIds } }),
-        ProfileRequests.find({ profileRequestBy: userId }),
-        InterestRequests.find({ interestRequestBy: userId }),
-        // BlockedUser.find({ blockedBy: userId }),
-      ]);
-  
-      const promises = user.map(async (user) => {
-        const userIdString = String(user.shortlistedUser._id);
-        const profileUrl = await getSignedUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
-        user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
-      
-        if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
-          const communityData = communities.find(community => community.community_id === user.shortlistedUser.familyDetails[0]?.community);
-          user.shortlistedUser.familyDetails[0].communityName = communityData?.community_name || "";
-        }
-        if (user.shortlistedUser.careerDetails && user.shortlistedUser.careerDetails[0]?.profession) {
-          const professionData = professions.find(profession => profession.proffesion_id === user.shortlistedUser.careerDetails[0]?.profession);
-          user.shortlistedUser.careerDetails[0].professionName = professionData?.proffesion_name || "";
-        }
-        if (user.shortlistedUser.additionalDetails && user.shortlistedUser.additionalDetails[0]?.diet) {
-          const dietData = diets.find(diet => diet.diet_id === user.shortlistedUser.additionalDetails[0]?.diet);
-          user.shortlistedUser.additionalDetails[0].dietName = dietData?.diet_name || "";
-        }
-        if (user.shortlistedUser.additionalDetails && user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry) {
-          const countryData = countries.find(country => country.country_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
-          user.shortlistedUser.additionalDetails[0].currentCountryName = countryData?.country_name || "";
-          if (user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState) {
-            const stateData = states.find(state => state.state_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
-            user.shortlistedUser.additionalDetails[0].currentStateName = stateData?.state_name || "";
-            if (user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity) {
-              const cityData = cities.find(city => city.city_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
-              user.shortlistedUser.additionalDetails[0].currentCityName = cityData?.city_name || "";
+        // Fetch total shortlisted user count for pagination
+        const totalShortlistedCount = await ShortList.countDocuments({ user: userId });
+
+        // Fetch the shortlisted users with pagination
+        const users = await ShortList.find({ user: userId })
+            .skip(startIndex)
+            .limit(pageSize)
+            .populate({
+                path: 'shortlistedUser',
+                select: ListData,
+            });
+
+        const user = JSON.parse(JSON.stringify(users));
+
+        // Fetch additional data for users
+        const communityIds = user.map(user => user.shortlistedUser.familyDetails[0]?.community);
+        const professionIds = user.map(user => user.shortlistedUser.careerDetails[0]?.profession);
+        const dietIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.diet);
+        const countryIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
+        const stateIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
+        const borncountryIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
+        const bornstateIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
+        const cityIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
+
+        const [
+            communities, professions, diets, countries, bornCoutnry, bornState, states, cities,
+            profileRequests, interestRequests
+        ] = await Promise.all([
+            Community.find({ community_id: { $in: communityIds } }),
+            Proffesion.find({ proffesion_id: { $in: professionIds } }),
+            Diet.find({ diet_id: { $in: dietIds } }),
+            Country.find({ country_id: { $in: countryIds } }),
+            Country.find({ country_id: { $in: borncountryIds } }),
+            State.find({ state_id: { $in: bornstateIds } }),
+            State.find({ state_id: { $in: stateIds } }),
+            City.find({ city_id: { $in: cityIds } }),
+            ProfileRequests.find({ profileRequestBy: userId }),
+            InterestRequests.find({ interestRequestBy: userId })
+        ]);
+
+        const promises = user.map(async (user) => {
+            const userIdString = String(user.shortlistedUser._id);
+            const profileUrl = await getSignedUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
+            user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+
+            if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
+                const communityData = communities.find(community => community.community_id === user.shortlistedUser.familyDetails[0]?.community);
+                user.shortlistedUser.familyDetails[0].communityName = communityData?.community_name || "";
             }
-          }
+            if (user.shortlistedUser.careerDetails && user.shortlistedUser.careerDetails[0]?.profession) {
+                const professionData = professions.find(profession => profession.proffesion_id === user.shortlistedUser.careerDetails[0]?.profession);
+                user.shortlistedUser.careerDetails[0].professionName = professionData?.proffesion_name || "";
+            }
+            if (user.shortlistedUser.additionalDetails && user.shortlistedUser.additionalDetails[0]?.diet) {
+                const dietData = diets.find(diet => diet.diet_id === user.shortlistedUser.additionalDetails[0]?.diet);
+                user.shortlistedUser.additionalDetails[0].dietName = dietData?.diet_name || "";
+            }
+            if (user.shortlistedUser.additionalDetails && user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry) {
+                const countryData = countries.find(country => country.country_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
+                user.shortlistedUser.additionalDetails[0].currentCountryName = countryData?.country_name || "";
+                if (user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState) {
+                    const stateData = states.find(state => state.state_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
+                    user.shortlistedUser.additionalDetails[0].currentStateName = stateData?.state_name || "";
+                    if (user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity) {
+                        const cityData = cities.find(city => city.city_id === user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
+                        user.shortlistedUser.additionalDetails[0].currentCityName = cityData?.city_name || "";
+                    }
+                }
+            }
+            if (user.shortlistedUser.basicDetails && user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry) {
+                const countryData = bornCoutnry.find(country => country.country_id === user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
+                user.shortlistedUser.basicDetails[0].currentCountryName = countryData?.country_name || "";
+                if (user.shortlistedUser.basicDetails[0]?.placeOfBirthState) {
+                    const stateData = bornState.find(state => state.state_id === user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
+                    user.shortlistedUser.basicDetails[0].currentStateName = stateData?.state_name || "";
+                }
+            }
+
+            // Check if there is a profile request to this user
+            user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString);
+
+            // Check if there is an interest request to this user
+            user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+        });
+
+        await Promise.all(promises);
+        const filteredUsers = user
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
         }
-        if (user.shortlistedUser.basicDetails && user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry) {
-          const countryData = bornCoutnry.find(country => country.country_id === user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
-          user.shortlistedUser.basicDetails[0].currentCountryName = countryData?.country_name || "";
-          if (user.shortlistedUser.basicDetails[0]?.placeOfBirthState) {
-            const stateData = bornState.find(state => state.state_id === user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
-            user.shortlistedUser.basicDetails[0].currentStateName = stateData?.state_name || "";
-          }
-        }
-  
-        // Check if there is a profile request to this user
-        user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString && data.action !== "declined");
-  
-        // Check if there is an interest request to this user
-        user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString && data.action !== "declined");
-        // user.isBlocked = blocked.some(data => String(data.blockedUser) === userIdString);
-      });
-      
-      await Promise.all(promises);
-      const filteredUsers = user.filter(user => !user.isBlocked);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.status(200).json({ users: filteredUsers });
+
+        // Respond with the users and pagination info
+        res.status(200).json({
+            users: filteredUsers,
+            totalShortlistedCount,
+            currentPage: pageNumber,
+            hasNextPage: endIndex < totalShortlistedCount,
+            hasPreviousPage: pageNumber > 1,
+            nextPage: pageNumber + 1,
+            previousPage: pageNumber - 1,
+            lastPage: Math.ceil(totalShortlistedCount / pageSize)
+        });
     } catch (error) {
-      console.error("Error fetching shortlisted user:", error);
-      res.status(500).json({ error: "Internal server error" });
+        console.error("Error fetching shortlisted user:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
-  };
+};
