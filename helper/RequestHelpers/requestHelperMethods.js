@@ -187,7 +187,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
     }
   } catch (error) {
     console.error(`Error getting pending ${type} requests:`, error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -246,7 +246,7 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
     const hasPreviousPage = page > 1;
 
     // Send the response with pagination information
-    res.status(200).json({
+    return {
       requests: results,
       totalRequests,
       currentPage: page,
@@ -255,7 +255,7 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
       nextPage: hasNextPage ? page + 1 : null,
       previousPage: hasPreviousPage ? page - 1 : null,
       lastPage: totalPages,
-    });
+    };
   } catch (error) {
     console.error(`Error getting ${status} ${type} requests:`, error);
     res.status(500).json({ error: "Internal Server Error" });
