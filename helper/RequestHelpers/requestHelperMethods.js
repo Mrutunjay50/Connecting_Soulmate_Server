@@ -138,7 +138,7 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
 };
 
 exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 50) => {
-  const skip = (page - 1) * limit;
+  const skip = (parseInt(page) - 1) * parseInt(limit);
 
   try {
     // Calculate the total number of pending requests
@@ -181,8 +181,8 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
       currentPage: page,
       hasNextPage,
       hasPreviousPage,
-      nextPage: hasNextPage ? page + 1 : null,
-      previousPage: hasPreviousPage ? page - 1 : null,
+      nextPage: hasNextPage ? parseInt(page) + 1 : null,
+      previousPage: hasPreviousPage ? parseInt(page) - 1 : null,
       lastPage: totalPages,
     }
   } catch (error) {
@@ -194,7 +194,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
 
 exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 50) => {
   try {
-    const skip = (page - 1) * limit;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Determine the query based on status
     const query = status === "pending"
@@ -252,8 +252,8 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
       currentPage: page,
       hasNextPage,
       hasPreviousPage,
-      nextPage: hasNextPage ? page + 1 : null,
-      previousPage: hasPreviousPage ? page - 1 : null,
+      nextPage: hasNextPage ? parseInt(page) + 1 : null,
+      previousPage: hasPreviousPage ? parseInt(page) - 1 : null,
       lastPage: totalPages,
     };
   } catch (error) {
