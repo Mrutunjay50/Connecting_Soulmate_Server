@@ -13,6 +13,7 @@ const {
 } = require("../controllers/admin");
 const { getAdminNotificationsForUser } = require("../controllers/notificationController");
 const { isAdmin } = require("../middleware/is_auth");
+const { updateAllUsersAnnualIncomeUSD } = require("../controllers/testing");
 
 module.exports = (app) => {
   app.put("/approve-or-decline/:userId", isAdmin, updateRegistrationPhase);
@@ -27,4 +28,5 @@ module.exports = (app) => {
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);
   app.get("/get-user-data-admin", isAdmin, getAllPendingUsersForAdmin);
   app.get("/get-all-user-data-admin", isAdmin, getAllUsers);
+  app.put("/admin-update-income",updateAllUsersAnnualIncomeUSD );
 };
