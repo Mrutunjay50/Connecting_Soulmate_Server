@@ -84,11 +84,10 @@ exports.handlePage2 = async (req, user) => {
 
 exports.handlePage3 = async (req, user) => {
   try {
-    const { annualIncomeValue, currencyType } = req.body.careerDetails;
+    const { annualIncomeValue = 0, currencyType = "INR" } = req.body.careerDetails;
     const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
     let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
-    user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
-
+    user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD : annualIncomeUSD.toString() };
   } catch (err) {
     console.error("Error in handlePage3:", err);
     throw err;
