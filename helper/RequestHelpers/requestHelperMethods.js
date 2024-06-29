@@ -178,7 +178,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
     return {
       requests: results,
       totalRequests : totalPendingRequests,
-      currentPage: page,
+      currentPage: parseInt(page),
       hasNextPage,
       hasPreviousPage,
       nextPage: hasNextPage ? parseInt(page) + 1 : null,
@@ -249,7 +249,7 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
     return {
       requests: results,
       totalRequests,
-      currentPage: page,
+      currentPage: parseInt(page),
       hasNextPage,
       hasPreviousPage,
       nextPage: hasNextPage ? parseInt(page) + 1 : null,
