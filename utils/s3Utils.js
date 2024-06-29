@@ -59,7 +59,7 @@ const deleteFromS3 = async (key) => {
 };
 
 const generateFileName = (originalname) => {
-  return uuidv4() + '-' + originalname;
+  return uuidv4() + '-' + originalname?.replaceAll(" ","-");
 };
 
 const getSignedUrlFromS3 = async (key, expiresIn = 3600) => {
@@ -78,6 +78,9 @@ const getSignedUrlFromS3 = async (key, expiresIn = 3600) => {
     throw new Error('Error generating signed URL: ' + error.message);
   }
 };
+const getPublicUrlFromS3 = (key) => {
+  return `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${key}`;
+};
 
 module.exports = {
   resizeImage,
@@ -85,4 +88,5 @@ module.exports = {
   deleteFromS3,
   generateFileName,
   getSignedUrlFromS3,
+  getPublicUrlFromS3
 };

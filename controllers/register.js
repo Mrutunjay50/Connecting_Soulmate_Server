@@ -20,6 +20,7 @@ const {
   uploadToS3,
   generateFileName,
   deleteFromS3,
+  getPublicUrlFromS3,
 } = require("../utils/s3Utils");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
@@ -221,8 +222,16 @@ exports.deleteImagesInUser = async (req, res) => {
     user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.filter(
       (item) => item !== imageKey
     );
+    // Remove corresponding userPhotosUrl if it exists
+    if (user.selfDetails[0]?.userPhotosUrl) {
+      user.selfDetails[0].userPhotosUrl = [];
+      user?.selfDetails[0]?.userPhotos?.filter(
+        (item) => user.selfDetails[0].userPhotosUrl.push(getPublicUrlFromS3(item))
+      );
+    }
     if(user.selfDetails[0]?.profilePicture === imageKey){
-      user.selfDetails[0].profilePicture = user.selfDetails[0]?.userPhotos[0];
+      user.selfDetails[0].profilePicture = user.selfDetails[0]?.userPhotos[0] || "";
+      user.selfDetails[0].profilePictureUrl = user.selfDetails[0]?.userPhotosUrl[0] || "";
     }
     await user.save();
     await deleteFromS3(imageKey);
@@ -233,49 +242,141 @@ exports.deleteImagesInUser = async (req, res) => {
   }
 };
 
+exports.selectProfileImageInUser = async (req, res) => {
+  try {
+    const { imageKey } = req.body;
+    const { userId } = req.params;
+    const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
+    if (!user) {
+      return res.status(404).json({ message: "User not found" }); // Added 'return' statement
+    }
+    user.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(imageKey)
+    user.selfDetails[0].profilePicture = imageKey
+    // Save the updated user object
+    await user.save();
+
+    // Send success response
+    res.status(200).json({ message: "User Profile Image data updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error", err });
+  }
+};
+
+
 exports.addImagesInUser = async (req, res) => {
   try {
-    const userPhotos = req.files;
     const { userId } = req.params;
-    const {userPhotosKeys, profilePictureIndex, profilePictureKey} = req.body
+    const userPhotos = req.files || [];
+    const profileImage = req.files.profileImage ? req.files.profileImage[0] : null;
+
+    console.log('====================================');
+    console.log(userPhotos);
+    console.log('====================================');
 
     const user = await User.findById(userId);
+
     if (!user) {
-      res.status(404).json({ message: "user not found" });
+      return res.status(404).json({ message: "User not found" });
     }
+
     if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
     }
+
+    let selfDetails = user.selfDetails[0];
+
+    // Handle profile image upload if provided
+    if (profileImage) {
+      const profileImageFileName = generateFileName(profileImage.originalname);
+      await uploadToS3(profileImage.buffer, profileImageFileName, profileImage.mimetype);
+      selfDetails.profilePicture = profileImageFileName;
+      selfDetails.profilePictureUrl = getPublicUrlFromS3(profileImageFileName);
+    }
+
+    // Handle user photos upload if provided
+    if (userPhotos.length > 0) {
+      // Remove excess photos if total count exceeds 5
+      if ((selfDetails.userPhotos || []).length + userPhotos.length > 5) {
+        const excessCount = (selfDetails.userPhotos.length + userPhotos.length) - 5;
+        selfDetails.userPhotos.splice(0, excessCount);
+        selfDetails.userPhotosUrl.splice(0, excessCount);
+      }
+
+      try {
+        const uploadedPhotos = await Promise.all(
+          userPhotos.map(async (photo) => {
+            const { buffer, originalname, mimetype } = photo;
+            const fileName = generateFileName(originalname);
+            await uploadToS3(buffer, fileName, mimetype);
+            return { fileName, publicUrl: getPublicUrlFromS3(fileName) };
+          })
+        );
+
+        selfDetails.userPhotos = (selfDetails.userPhotos || []).concat(uploadedPhotos.map(photo => photo.fileName));
+        selfDetails.userPhotosUrl = (selfDetails.userPhotosUrl || []).concat(uploadedPhotos.map(photo => photo.publicUrl));
+      } catch (error) {
+        console.error("Error uploading images to S3:", error);
+        return res.status(500).json({ error: "Error uploading images to S3" });
+      }
+    }
+console.log('====================================');
+console.log(selfDetails);
+console.log('====================================');
+    await user.save();
+    res.status(200).json({ message: "User photos added successfully" });
+  } catch (error) {
+    console.error("Error adding user photos:", error);
+    res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+};
+
+
+exports.updateUserPhotos = async (req, res) => {
+  try {
+    const userPhotos = req.files;
+    const { userId } = req.params;
+    const { userPhotosKeys, profilePictureIndex, profilePictureKey } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.selfDetails || !user.selfDetails[0]) {
+      user.selfDetails = [{}];
+    }
+
     // Update self details
     let selfDetails = user.selfDetails[0];
 
     if (profilePictureKey) {
       selfDetails.profilePicture = profilePictureKey;
+      selfDetails.profilePictureUrl = getPublicUrlFromS3(profilePictureKey);
     }
+
     // Remove photos not present in userPhotosKeys from both userPhotos array and S3
     if (selfDetails.userPhotos && selfDetails.userPhotos.length > 0) {
-      selfDetails.userPhotos.forEach(async (photo) => {
-        if (!userPhotosKeys.includes(photo)) {
-          // Remove photo from S3
-          await deleteFromS3(photo); // Assuming there is a function to delete from S3
-          // Remove photo from userPhotos array
-          selfDetails.userPhotos = selfDetails.userPhotos.filter(
-            (p) => p !== photo
-          );
-        }
-      });
+      const photosToRemove = selfDetails.userPhotos.filter(
+        (photo) => !userPhotosKeys.includes(photo)
+      );
+
+      for (const photo of photosToRemove) {
+        await deleteFromS3(photo);
+        selfDetails.userPhotos = selfDetails.userPhotos.filter((p) => p !== photo);
+        selfDetails.userPhotosUrl = selfDetails.userPhotosUrl.filter((url) => !url.includes(photo));
+      }
     }
+
     if (userPhotos && userPhotos.length > 0) {
       // Remove excess photos if total count exceeds 5
-      if (
-        selfDetails.userPhotos &&
-        selfDetails.userPhotos.length + userPhotos.length > 5
-      ) {
-        const excessCount =
-          selfDetails.userPhotos.length + userPhotos.length - 5;
+      if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
+        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
         selfDetails.userPhotos.splice(0, excessCount);
+        selfDetails.userPhotosUrl.splice(0, excessCount);
       }
-      // Upload new photos to S3 and add their file names to userPhotos array
+
+      // Upload new photos to S3 and add their file names and URLs to userPhotos and userPhotosUrl arrays
       try {
         const uploadedPhotos = await Promise.all(
           userPhotos.map(async (photo) => {
@@ -283,35 +384,38 @@ exports.addImagesInUser = async (req, res) => {
             const resizedImageBuffer = await buffer;
             const fileName = generateFileName(originalname);
             await uploadToS3(resizedImageBuffer, fileName, mimetype);
-            return fileName;
+            const publicUrl = getPublicUrlFromS3(fileName);
+            return { fileName, publicUrl };
           })
         );
-        // If profilePictureKey is present and matches any uploaded photo, add it to selfDetails.profilePicture
-        if (profilePictureIndex && uploadedPhotos.length > 0) {
-          selfDetails.profilePicture = uploadedPhotos[profilePictureIndex];
+
+        // If profilePictureIndex is present and matches any uploaded photo, add it to selfDetails.profilePicture
+        if (profilePictureIndex !== undefined && uploadedPhotos.length > 0) {
+          const { fileName, publicUrl } = uploadedPhotos[profilePictureIndex];
+          selfDetails.profilePicture = fileName;
+          selfDetails.profilePictureUrl = publicUrl;
         }
-        // Add uploaded photos to userPhotos array
-        selfDetails.userPhotos.push(...uploadedPhotos);
+
+        // Add uploaded photos and URLs to userPhotos and userPhotosUrl arrays
+        selfDetails.userPhotos.push(...uploadedPhotos.map(photo => photo.fileName));
+        selfDetails.userPhotosUrl.push(...uploadedPhotos.map(photo => photo.publicUrl));
       } catch (error) {
         console.error("Error uploading images to S3:", error);
-        res.status(500).json({ error: "Error uploading images to S3" });
-        return; // Exit the function early
+        return res.status(500).json({ error: "Error uploading images to S3" });
       }
     }
-    try {
-      // Save the updated user object
-      await user.save();
-      // Send success response
-      res.status(200).json({ message: "User data updated successfully" });
-    } catch (error) {
-      console.error("Error saving user data:", error);
-      res.status(500).json({ error: "Error saving user data" });
-    }
+
+    // Save the updated user object
+    await user.save();
+
+    // Send success response
+    res.status(200).json({ message: "User image updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
+
 
 exports.createProfession = async (req, res) => {
   try {
