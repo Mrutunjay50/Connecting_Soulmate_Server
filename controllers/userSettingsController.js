@@ -1,4 +1,5 @@
 const User = require("../models/Users");
+const io = require("../socket");
 const dotenv = require("dotenv");
 const { sendEmail } = require("../utils/emailUtils");
 
@@ -55,6 +56,7 @@ exports.changeRegisteredNumber = async (req, res) => {
 
     // Save the updated user
     await user.save();
+    io.getIO().emit(`registeredNumberChanged/${user._id}`, { "message": "number changed login again" });
     res.status(200).json({ message: "Number Changed successfully" });
   } catch (error) {
     console.error("Error changing registered number:", error);
