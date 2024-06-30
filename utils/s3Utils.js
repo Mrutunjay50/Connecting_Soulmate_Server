@@ -16,11 +16,40 @@ const S3 = new S3Client({
   region: bucketRegion,
 });
 
-const resizeImage = async (buffer) => {
+
+const resizeImage = async (buffer, resizeFactor = 0.10) => {
   try {
-    return await sharp(buffer)
-      .resize({ height: 216, width: 216, fit: 'cover' })
+    // Get metadata to determine the original dimensions and size
+    const originalMetadata = await sharp(buffer).metadata();
+    const originalSize = buffer.length;
+
+    // Calculate the new dimensions
+    const newWidth = Math.floor(originalMetadata.width * (1 - resizeFactor));
+    const newHeight = Math.floor(originalMetadata.height * (1 - resizeFactor));
+
+    // Crop height to the new height or keep original if smaller than 480
+    const cropHeight = newHeight > 480 ? newHeight : originalMetadata.height;
+
+    // Resize and convert the image
+    const resizedBuffer = await sharp(buffer)
+      .extract({ left: 0, top: 0, width: originalMetadata.width, height: cropHeight }) // Crop from the top
+      .resize({ width: newWidth, height: newHeight, fit: 'cover' })
+      .toFormat('jpeg') // Convert to JPEG to handle file size reduction
+      .jpeg({ quality: 75 }) // Adjust quality to reduce file size
       .toBuffer();
+
+    // Get metadata of the resized image
+    const resizedMetadata = await sharp(resizedBuffer).metadata();
+    const resizedSize = resizedBuffer.length;
+
+    // Log the original and resized details
+    console.log('====================================');
+    console.log('Original Dimensions:', originalMetadata.width, 'x', originalMetadata.height);
+    console.log('Original Size:', (originalSize / 1024).toFixed(2), 'KB');
+    console.log('Resized Dimensions:', resizedMetadata.width, 'x', resizedMetadata.height);
+    console.log('Resized Size:', (resizedSize / 1024).toFixed(2), 'KB');
+    console.log('====================================');
+    return resizedBuffer;
   } catch (error) {
     throw new Error('Error resizing image: ' + error.message);
   }

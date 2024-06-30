@@ -381,7 +381,7 @@ exports.updateUserPhotos = async (req, res) => {
         const uploadedPhotos = await Promise.all(
           userPhotos.map(async (photo) => {
             const { buffer, originalname, mimetype } = photo;
-            const resizedImageBuffer = await buffer;
+            const resizedImageBuffer = await resizeImage(buffer);
             const fileName = generateFileName(originalname);
             await uploadToS3(resizedImageBuffer, fileName, mimetype);
             const publicUrl = getPublicUrlFromS3(fileName);

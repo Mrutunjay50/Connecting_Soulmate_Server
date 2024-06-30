@@ -1,7 +1,7 @@
 const User = require("../../models/Users");
 const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
-const { generateFileName, uploadToS3 } = require("../../utils/s3Utils");
+const { generateFileName, uploadToS3, resizeImage } = require("../../utils/s3Utils");
 
 
 function generateUniqueNumber() {
@@ -150,7 +150,7 @@ exports.handlePage5 = async (req, user, type) => {
           const uploadedPhotos = await Promise.all(
             userPhotos.map(async (photo) => {
               const { buffer, originalname, mimetype } = photo;
-              const resizedImageBuffer = await buffer;
+              const resizedImageBuffer = await resizeImage(buffer);
               const fileName = generateFileName(originalname);
               await uploadToS3(resizedImageBuffer, fileName, mimetype);
               if (originalname === profilePicture) {
