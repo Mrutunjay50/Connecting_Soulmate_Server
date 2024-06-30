@@ -8,6 +8,8 @@ const { processUserDetails } = require("../helper/RegistrationHelper/processInte
 const User = require("../models/Users");
 const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
+const axios = require("axios");
 
 
 exports.updateRegistrationPhase = async (req, res) => {
@@ -500,6 +502,36 @@ exports.getUserByIdForAdmin = async (req, res, next) => {
   }
 };
 
+
+exports.getUserImageInBase64ByIdForAdmin = async (req, res, next) => {
+  try {
+    const userData = await User.findById(req.params.userId);
+    if (!userData) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Assuming userData has a property like imageUrl that contains the public URL of the image
+    const imageUrl = getPublicUrlFromS3(userData.selfDetails[0].profilePicture);
+
+    // Fetch the image data from the public URL using Axios
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: 'arraybuffer'
+    });
+
+    // Convert the image data to base64
+    const imageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
+
+    // Optionally, you can save the base64 data to a file for testing purposes
+    // const base64FilePath = path.join(__dirname, 'base64image.txt');
+    // fs.writeFileSync(base64FilePath, imageBase64);
+
+    // Send the base64 data as JSON response
+    return res.status(200).json({ base64Image: imageBase64, url : imageUrl });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 // exports.getUserPDFForAdmin = async (req, res, next) => {
 //   try {
 //     const userData = await User.findById(req.params.userId);

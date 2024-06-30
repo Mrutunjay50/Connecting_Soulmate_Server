@@ -10,6 +10,7 @@ const {
   downloadAllUsersAsCSV,
   downloadUserAsCSV,
   reviewRequest,
+  getUserImageInBase64ByIdForAdmin,
 } = require("../controllers/admin");
 const { getAdminNotificationsForUser } = require("../controllers/notificationController");
 const { isAdmin } = require("../middleware/is_auth");
@@ -24,6 +25,7 @@ module.exports = (app) => {
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   // app.get("/download-single-user-data/pdf/:userId", generatePDF);
+  app.get("/userLogo-base64/pdf/:userId", getUserImageInBase64ByIdForAdmin);
   app.get("/downloadUsers", downloadAllUsersAsCSV);
   app.get("/downloadUser/:userId", downloadUserAsCSV);
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);

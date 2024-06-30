@@ -17,12 +17,24 @@ const sendUserEmail = async ({ to, subject, htmlContent }) => {
 const getEmailTemplate = (type, issues = [], name, verificationLink) => {
   let template;
   let userName = name?.replace("undefined", "") || "user";
+  const styles = `
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.7); /* Transparent with opacity 0.7 */
+    margin: 5% 10%;
+    padding : 10px 5px;
+    text-align: left;
+    display: inline-block;
+  `;
+
   switch (type) {
     case "successfullyApproved":
       template = `
             <div style="text-align: center;">
-                <div style="text-align: left; display: inline-block; padding : 20px;">
-                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width : 85px; height : 85px; border-radius : 4px;">
+                <div style="${styles}">
+                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                     <p>Dear ${userName},</p>
                     <p>We hope you are having a good day!</p>
                     <p>This is to inform you that your profile has been Verified and Approved by the Admin Team.</p>
@@ -32,8 +44,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                     <hr>
                     <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
                     <p>
-                        <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width : 55px; height : 55px; border-radius : 4px;"> <p style="margin-left : 20px"></p>
-                        Connecting Soulmate
+                        <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;">Connecting Soulmate</p>
+                        
                     </p>
                     <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
                 </div>
@@ -43,8 +55,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
     case "approvalRequest":
       template = `
           <div style="text-align: center;">
-            <div style="text-align: left; display: inline-block; padding : 20px;">
-                <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width : 85px; height : 85px; border-radius : 4px;">
+            <div style="${styles}">
+                <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                 <p>Dear ${userName},</p>
                 <p>We hope you are having a good day!</p>
                 <p>Thank you for registering with Connecting Soulmate. We have received your profile and it is currently under Admin review.</p>
@@ -54,7 +66,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                 <hr>
                 <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
                 <p>
-                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width : 55px; height : 55px; border-radius : 4px;"> <p style="margin-left : 20px"></p>
+                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                     Connecting Soulmate
                 </p>
                 <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
@@ -65,8 +77,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
     case "changeRegisteredNumber":
       template = `
           <div style="text-align: center;">
-              <div style="text-align: left; display: inline-block; padding : 20px;">
-                  <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width : 85px; height : 85px; border-radius : 4px;">
+              <div style="${styles}">
+                  <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                   <p>Dear ${userName},</p>
                   <p>We hope you are having a good day!</p>
                   <p>You are getting this email as you have requested to change your registered number with Connecting Soulmate.</p>
@@ -78,7 +90,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                   <hr>
                   <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
                   <p>
-                      <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width : 55px; height : 55px; border-radius : 4px;"> <p style="margin-left : 20px"></p>
+                      <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                       Connecting Soulmate
                   </p>
                   <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
@@ -89,8 +101,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
     case "profileRejected":
       template = `
               <div style="text-align: center;">
-                  <div style="text-align: left; display: inline-block; padding : 20px;">
-                      <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width : 85px; height : 85px; border-radius : 4px;">
+                  <div style="${styles}">
+                      <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                       <p>Dear ${userName},</p>
                       <p>We hope you are having a good day!</p>
                       <p>This is to inform you that your profile has been Rejected by the Admin Team.</p>
@@ -100,7 +112,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                       <hr>
                       <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
                       <p>
-                          <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width : 55px; height : 55px; border-radius : 4px;"> <p style="margin-left : 20px"></p>
+                          <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                           Connecting Soulmate
                       </p>
                       <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
@@ -114,8 +126,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
         .join("");
       template = `
           <div style="text-align: center;">
-              <div style="text-align: left; display: inline-block; padding : 10px;">
-                  <img src=${LOGO_URL} alt="Connecting Soulmate Logo">
+              <div style="text-align: left; display: inline-block; padding: 10px; ${styles}">
+                  <img src=${LOGO_URL} alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                   <p>Hello,</p>
                   <p>Thank you for registering with Connecting Soulmate.</p>
                   <p>While reviewing your profiles, we have found some issues enlisted below and hence your profile is kept under review.</p>
@@ -128,8 +140,8 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
     case "deletedProfile":
       template = `
             <div style="text-align: center;">
-                <div style="text-align: left; display: inline-block; padding : 20px;">
-                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width : 85px; height : 85px; border-radius : 4px;">
+                <div style="${styles}">
+                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
                     <p>Dear ${userName},</p>
                     <p>We hope you are having a good day!</p>
                     <p>You are getting this email as you have decided to delete your profile from the Connecting Soulmate platform.</p>
@@ -140,7 +152,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                     <hr>
                     <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
                     <p>
-                        <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width : 55px; height : 55px; border-radius : 4px;"> <p style="margin-left : 20px"></p>
+                        <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                         Connecting Soulmate
                     </p>
                     <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
