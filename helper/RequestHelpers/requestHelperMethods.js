@@ -1,6 +1,7 @@
 const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
 const { ListData } = require("../cardListedData");
+const BlockedUser = require("../../models/blockedUser");
 
 const processRequest = async (
   Model,
@@ -11,6 +12,25 @@ const processRequest = async (
   res
 ) => {
   try {
+
+    // Fetch all blocked users for requestBy
+    const blockedUsers = await BlockedUser.find({ blockedBy: requestBy }).distinct('blockedUser');
+
+    // Check if requestTo is in the blockedUsers list (blockedBy requestBy)
+    if (blockedUsers.includes(requestTo.toString())) {
+      return `${type} request can't be sent as you have blocked the user`;
+    }
+
+    // Check if requestBy is blocked by requestTo
+    const blockedByRequestTo = await BlockedUser.findOne({
+      blockedBy: requestTo,
+      blockedUser: requestBy
+    });
+
+    if (blockedByRequestTo) {
+      return `${type} request can't be sent as you are blocked by this user`;
+    }
+
     // Check for an existing request from requestBy to requestTo
     const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
@@ -117,13 +137,21 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
   }
 };
 
-exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 10) => {
-  const skip = (page - 1) * limit;
+exports.getPendingRequests = async (Model, userId, type, res, received, page = 1, limit = 50) => {
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
   try {
+    // Calculate the total number of pending requests
+    const totalPendingRequests = await Model.countDocuments({
+      [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
+      action: "pending",
+    });
+
+    console.log(totalPendingRequests);
+    // Fetch pending requests with pagination
     const requests = await Model.find({
       [`${type.toLowerCase()}Request${received ? "To" : "By"}`]: userId,
       action: "pending",
-      isBlocked: false,
     })
       .populate({
         path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
@@ -140,65 +168,94 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
       );
     });
 
-    return await Promise.all(promises);
+    await Promise.all(promises);
+    const results = promises
+    // Pagination information
+    const totalPages = Math.ceil(totalPendingRequests / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+    // Send the response with pagination information
+    return {
+      requests: results,
+      totalRequests : totalPendingRequests,
+      currentPage: parseInt(page),
+      hasNextPage,
+      hasPreviousPage,
+      nextPage: hasNextPage ? parseInt(page) + 1 : null,
+      previousPage: hasPreviousPage ? parseInt(page) - 1 : null,
+      lastPage: totalPages,
+    }
   } catch (error) {
     console.error(`Error getting pending ${type} requests:`, error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 
-exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 10) => {
+exports.getRequests = async (Model, userId, type, status, res, page = 1, limit = 50) => {
   try {
-    const skip = (page - 1) * limit;
-    let requests;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    if (status === "pending") {
-      requests = await Model.find({
-        $or: [
-          {
-            [`${type.toLowerCase()}RequestBy`]: userId,
-            action: status,
-            isBlocked: false,
-          },
-        ],
-      }).populate([
-          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
-          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
-        ])
-        .skip(skip)
-        .limit(limit);
-    } else {
-      requests = await Model.find({
-        $or: [
-          {
-            [`${type.toLowerCase()}RequestBy`]: userId,
-            action: status,
-            isBlocked: false,
-          },
-          {
-            [`${type.toLowerCase()}RequestTo`]: userId,
-            action: status,
-            isBlocked: false,
-          },
-        ],
-      }).populate([
-          { path: `${type.toLowerCase()}RequestBy`, select: ListData },
-          { path: `${type.toLowerCase()}RequestTo`, select: ListData },
-        ])
-        .skip(skip)
-        .limit(limit);
-    }
+    // Determine the query based on status
+    const query = status === "pending"
+      ? {
+          $or: [
+            {
+              [`${type.toLowerCase()}RequestBy`]: userId,
+              action: status,
+            },
+          ],
+        }
+      : {
+          $or: [
+            {
+              [`${type.toLowerCase()}RequestBy`]: userId,
+              action: status,
+            },
+            {
+              [`${type.toLowerCase()}RequestTo`]: userId,
+              action: status,
+            },
+          ],
+        };
 
-    const promises = requests.map(async (request) => {
+    // Calculate the total number of requests
+    const totalRequests = await Model.countDocuments(query);
+
+    // Fetch requests with pagination
+    const requests = await Model.find(query)
+      .populate([
+        { path: `${type.toLowerCase()}RequestBy`, select: ListData },
+        { path: `${type.toLowerCase()}RequestTo`, select: ListData },
+      ])
+      .skip(skip)
+      .limit(limit);
+
+    // Set request flags
+    const results = await Promise.all(requests.map(async (request) => {
       return setRequestFlags(
         request,
         request[type.toLowerCase() + "RequestBy"],
         request[type.toLowerCase() + "RequestTo"]
       );
-    });
+    }));
 
-    return await Promise.all(promises);
+    // Pagination information
+    const totalPages = Math.ceil(totalRequests / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    // Send the response with pagination information
+    return {
+      requests: results,
+      totalRequests,
+      currentPage: parseInt(page),
+      hasNextPage,
+      hasPreviousPage,
+      nextPage: hasNextPage ? parseInt(page) + 1 : null,
+      previousPage: hasPreviousPage ? parseInt(page) - 1 : null,
+      lastPage: totalPages,
+    };
   } catch (error) {
     console.error(`Error getting ${status} ${type} requests:`, error);
     res.status(500).json({ error: "Internal Server Error" });

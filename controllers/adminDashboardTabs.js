@@ -12,7 +12,7 @@ const getUserDataWithPagination = async (matchCriteria, page, limit) => {
   const users = await User.find(matchCriteria)
     .select("userId basicDetails.name gender")
     .skip(startIndex)
-    .limit(pageSize);9
+    .limit(pageSize);
 
   return {
     users,

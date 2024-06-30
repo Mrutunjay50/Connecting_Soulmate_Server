@@ -5,7 +5,7 @@ const { getSignedUrlFromS3 } = require('../utils/s3Utils');
 // const ShortList = require("../models/shortlistUsers");
 // const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getFilteredProfiles } = require("../helper/RegistrationHelper/getFilteredUsers");
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 50;
 
 
 exports.getMatchesAccordingToPreference = async (req, res) => {

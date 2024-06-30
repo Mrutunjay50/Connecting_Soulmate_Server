@@ -1,7 +1,7 @@
 const User = require("../../models/Users");
 const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
-const { generateFileName, uploadToS3 } = require("../../utils/s3Utils");
+const { generateFileName, uploadToS3, resizeImage } = require("../../utils/s3Utils");
 
 
 function generateUniqueNumber() {
@@ -84,11 +84,10 @@ exports.handlePage2 = async (req, user) => {
 
 exports.handlePage3 = async (req, user) => {
   try {
-    const { annualIncomeValue, currencyType } = req.body.careerDetails;
+    const { annualIncomeValue = 0, currencyType = "INR" } = req.body.careerDetails;
     const exchangeRate = await ExchangeRate.findOne({ currency: currencyType });
     let annualIncomeUSD = annualIncomeValue * exchangeRate?.rateToUSD;
-    user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD };
-
+    user.careerDetails[0] = { ...req.body.careerDetails, annualIncomeUSD : annualIncomeUSD.toString() };
   } catch (err) {
     console.error("Error in handlePage3:", err);
     throw err;
@@ -151,7 +150,7 @@ exports.handlePage5 = async (req, user, type) => {
           const uploadedPhotos = await Promise.all(
             userPhotos.map(async (photo) => {
               const { buffer, originalname, mimetype } = photo;
-              const resizedImageBuffer = await buffer;
+              const resizedImageBuffer = await resizeImage(buffer);
               const fileName = generateFileName(originalname);
               await uploadToS3(resizedImageBuffer, fileName, mimetype);
               if (originalname === profilePicture) {

@@ -1,42 +1,40 @@
 const BlockedUser = require('../models/blockedUser');
 const { InterestRequests, ProfileRequests } = require('../models/interests');
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
+const ShortList = require('../models/shortlistUsers');
 const { getSignedUrlFromS3 } = require('../utils/s3Utils');
 
 exports.blockUser = async (req, res) => {
   try {
     const { blockBy, blockUserId } = req.body;
 
-    if(!blockBy && !blockUserId && blockBy === "" && blockUserId === ""){
-      return res.status(400).json({ error: "both blockBy and blockUserId is needed" });
+    if (!blockBy || !blockUserId || blockBy === "" || blockUserId === "") {
+      return res.status(400).json({ error: "Both blockBy and blockUserId are needed" });
     }
 
     // Check if the user is already blocked
-    const existingBlockedUser = await BlockedUser.findOne({ blockedBy : blockBy, blockedUser: blockUserId });
-    console.log(existingBlockedUser);
-
+    const existingBlockedUser = await BlockedUser.findOne({ blockedBy: blockBy, blockedUser: blockUserId });
     if (existingBlockedUser) {
       return res.status(400).json({ error: "User already blocked" });
     }
 
-    // Create a new blocked user entry
-    const blockedUser = new BlockedUser({ blockedBy : blockBy, blockedUser: blockUserId });
-
+    // Delete relevant requests and shortlist entries
     await Promise.all([
-      ProfileRequests.updateMany(
-        { profileRequestBy: blockBy, profileRequestTo: blockUserId },
-        { isBlocked: true }
-      ),
-      InterestRequests.updateMany(
-        { interestRequestBy: blockBy, interestRequestTo: blockUserId },
-        { isBlocked: true }
-      )
+      ProfileRequests.deleteMany({ profileRequestBy: blockBy, profileRequestTo: blockUserId }),
+      ProfileRequests.deleteMany({ profileRequestBy: blockUserId, profileRequestTo: blockBy }),
+      InterestRequests.deleteMany({ interestRequestBy: blockBy, interestRequestTo: blockUserId }),
+      InterestRequests.deleteMany({ interestRequestBy: blockUserId, interestRequestTo: blockBy }),
+      ShortList.deleteMany({ user: blockBy, shortlistedUser: blockUserId }),
+      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy })
     ]);
+
+    // Create a new blocked user entry
+    const blockedUser = new BlockedUser({ blockedBy: blockBy, blockedUser: blockUserId });
     await blockedUser.save();
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
@@ -64,7 +62,7 @@ exports.unblockUser = async (req, res) => {
 
     res.status(200).json({ message: "User unblocked successfully" });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -72,11 +70,13 @@ exports.unblockUser = async (req, res) => {
 exports.getBlockedUsers = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;  // Default to page 1 and limit 10
+    const { page = 1, limit = 50 } = req.query; // Default to page 1 and limit 50
 
     // Convert page and limit to numbers
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = pageNumber * limitNumber;
 
     // Calculate the total number of blocked users
     const totalBlockedUsers = await BlockedUser.countDocuments({ blockedBy: userId });
@@ -84,7 +84,7 @@ exports.getBlockedUsers = async (req, res) => {
     // Find all users blocked by the specified user with pagination
     let blockedUsers = await BlockedUser.find({ blockedBy: userId })
       .populate('blockedUser')
-      .skip((pageNumber - 1) * limitNumber)
+      .skip(startIndex)
       .limit(limitNumber);
 
     blockedUsers = blockedUsers.map(item => item.blockedUser);
@@ -151,15 +151,20 @@ exports.getBlockedUsers = async (req, res) => {
 
     await Promise.all(promises);
 
+    const filteredUsers = user;
+
     res.status(200).json({
-      blockedUsers: user,
+      blockedUsers: filteredUsers,
       totalBlockedUsers,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(totalBlockedUsers / limitNumber)
+      currentPage: pageNumber,
+      hasNextPage: endIndex < totalBlockedUsers,
+      hasPreviousPage: pageNumber > 1,
+      nextPage: pageNumber + 1,
+      previousPage: pageNumber - 1,
+      lastPage: Math.ceil(totalBlockedUsers / limitNumber)
     });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

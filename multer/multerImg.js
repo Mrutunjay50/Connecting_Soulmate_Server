@@ -1,7 +1,7 @@
 const multer = require("multer");
 
 // File size limit in bytes (5MB)
-const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB in bytes
+const FILE_SIZE_LIMIT = 15 * 1024 * 1024; // 15MB in bytes
 
 const fileFilter = (req, file, cb) => {
   if (

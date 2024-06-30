@@ -96,16 +96,15 @@ exports.advanceSearch = async (req, res) => {
       }
     }
 
-    console.log(orQueries);
     // Construct the final query with OR conditions if there are any queries
     let query = {};
     if (orQueries.length > 0) {
-      query = { $or: orQueries };
+      query = { $and: orQueries };
     } else {
       // If no search parameters were valid, return an appropriate response
       return res.status(400).json({ error: "No valid search parameters provided" });
     }
-
+    // console.log(query, orQueries);
     // Execute the query
     const filters = { ...query };
     await getFilteredProfiles(req, res, filters);
