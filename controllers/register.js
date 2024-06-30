@@ -16,7 +16,7 @@ const {
   Community,
 } = require("../models/masterSchemas");
 const {
-  // resizeImage,
+  resizeImage,
   uploadToS3,
   generateFileName,
   deleteFromS3,
