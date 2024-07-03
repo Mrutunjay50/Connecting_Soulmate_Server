@@ -602,7 +602,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
         result = {
           nextPage: pageNumber + 1,
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -610,7 +610,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
       } else {
         result = {
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -619,7 +619,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
     } else {
       result = {
         data: await User.find(query)
-          .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+          .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
           .sort({ createdAt: -1 }),
       };
     }
@@ -675,7 +675,7 @@ exports.getAllUsers = async (req, res, next) => {
         result = {
           nextPage: pageNumber + 1,
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -683,7 +683,7 @@ exports.getAllUsers = async (req, res, next) => {
       } else {
         result = {
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -692,7 +692,7 @@ exports.getAllUsers = async (req, res, next) => {
     } else {
       result = {
         data: await User.find(query)
-          .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+          .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
           .sort({ createdAt: -1 }),
       };
     }
