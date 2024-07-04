@@ -6,11 +6,13 @@ const morgan = require("morgan");
 const dotenv = require("dotenv");
 let router = express.Router();
 const UserRoutes = require("./routes/authRoute");
-const cron = require('node-cron');
+const cron = require("node-cron");
 http = require("http");
 
 const { initializeRoutes } = require("./routes/index");
-const { sendLatestUserDetails } = require("./controllers/userSettingsController");
+const {
+  sendLatestUserDetails,
+} = require("./controllers/userSettingsController");
 initializeRoutes(router);
 
 dotenv.config();
@@ -58,18 +60,45 @@ async function startServer() {
     console.log(`User connected ${socket.id}`);
   });
 
-  cron.schedule('0 0 */5 * *', async () => {
-    try {
-        // Call the function to send latest user details
+  cron.schedule(
+    "*/20 * * * *",
+    async () => {
+      const startTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" });
+      console.log(`Cron job started at: ${startTime}`);
+  
+      try {
+        // Call the function to send the latest user details
         await sendLatestUserDetails();
-        console.log('Cron job executed successfully');
-    } catch (error) {
-        console.error('Error executing cron job:', error);
+        const endTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" });
+        console.log(`Cron job executed successfully at: ${endTime}`);
+      } catch (error) {
+        const errorTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" });
+        console.error(`Error executing cron job at: ${errorTime}`, error);
+      }
+    },
+    {
+      scheduled: true,
+      timezone: "Asia/Tokyo", // Replace "your-timezone-here" with your timezone
     }
-}, {
-    scheduled: true,
-    timezone: "Asia/Tokyo" // Replace "your-timezone-here" with your timezone
-});
+  );
+
+
+  // cron.schedule(
+  //   "0 0 */5 * *",
+  //   async () => {
+  //     try {
+  //       // Call the function to send latest user details
+  //       await sendLatestUserDetails();
+  //       console.log("Cron job executed successfully");
+  //     } catch (error) {
+  //       console.error("Error executing cron job:", error);
+  //     }
+  //   },
+  //   {
+  //     scheduled: true,
+  //     timezone: "Asia/Tokyo", // Replace "your-timezone-here" with your timezone
+  //   }
+  // );
 
   app.use(router);
   app.use("/auth", UserRoutes);

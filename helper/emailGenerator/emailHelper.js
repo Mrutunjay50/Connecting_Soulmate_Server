@@ -137,7 +137,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
           </div>
         `;
       break;
-    case "deletedProfile":
+    case "deleteProfileByUser":
       template = `
             <div style="text-align: center;">
                 <div style="${styles}">
@@ -146,6 +146,29 @@ const getEmailTemplate = (type, issues = [], name, verificationLink) => {
                     <p>We hope you are having a good day!</p>
                     <p>You are getting this email as you have decided to delete your profile from the Connecting Soulmate platform.</p>
                     <p>We would like to inform you that all your details will be deleted and will not be visible to anyone.</p>
+                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at work.connectingsoulmate@gmail.com</p>
+                    <p>Thank You</p>
+                    <p>Team - Connecting Soulmate</p>
+                    <hr>
+                    <p>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link.</p>
+                    <p>
+                        <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
+                        Connecting Soulmate
+                    </p>
+                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                </div>
+            </div>
+        `;
+      break;
+    case "deleteProfileByAdmin":
+      template = `
+            <div style="text-align: center;">
+                <div style="${styles}">
+                    <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="width: 85px; height: 85px; border-radius: 4px;">
+                    <p>Dear ${userName},</p>
+                    <p>We hope you are having a good day!</p>
+                    <p>You are getting this email as you the Admin has deleted your profile from Connecting Soulmate platform. </p>
+                    <p>We would like to inform you that all your details will be deleted and will not be visible to anyone. </p>
                     <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at work.connectingsoulmate@gmail.com</p>
                     <p>Thank You</p>
                     <p>Team - Connecting Soulmate</p>
@@ -203,7 +226,14 @@ exports.sendReviewEmail = async (userEmail, issues, name) => {
 
 exports.sendDeleteEmail = async (userEmail, name) => {
   const subject = "Delete Profile - Connecting Soulmate";
-  const htmlContent = getEmailTemplate("deletedProfile", [], name);
+  const htmlContent = getEmailTemplate("deleteProfileByUser", [], name);
+
+  await sendUserEmail({ to: userEmail, subject, htmlContent });
+};
+
+exports.sendDeleteEmailFromAdmin = async (userEmail, name) => {
+  const subject = "Profile Deleted by Admin - Connecting Soulmate";
+  const htmlContent = getEmailTemplate("deleteProfileByAdmin", [], name);
 
   await sendUserEmail({ to: userEmail, subject, htmlContent });
 };

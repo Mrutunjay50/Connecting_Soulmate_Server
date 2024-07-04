@@ -6,7 +6,7 @@ const {
 // const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
-const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
@@ -122,6 +122,8 @@ exports.softDeleteUser = async (req, res) => {
 
     user.isDeleted = true;
     user = await user.save();
+
+    await sendDeleteEmailFromAdmin(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
 
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
