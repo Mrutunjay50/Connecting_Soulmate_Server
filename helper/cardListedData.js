@@ -18,4 +18,5 @@ exports.ListData = {
   "selfDetails.profilePictureUrl": 1,
   "familyDetails.caste": 1,
   "familyDetails.community": 1,
+  "isEmailSubscribed": 1,
 };

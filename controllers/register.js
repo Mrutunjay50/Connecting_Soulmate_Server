@@ -40,7 +40,8 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        await handlePage1(req, user);
+        await handlePage1(req, user, type);
+
         break;
       case "2":
         await handlePage2(req, user);
@@ -61,11 +62,16 @@ exports.registerUser = async (req, res) => {
       default:
         return res.status(400).json({ error: "Invalid page number" });
     }
+
+    if (page === "1" && type === "edit" ) {
+      user.registrationPhase = "approved";
+    }
     user.registrationPage = page;
     user.reviewReason = "";
     // Save the updated user document
     await user.save();
 
+  
     if(page === "6" && type === "add"){
       // Find users with accessType 0 or 1 and select only the email field
       // const Admins = await User.find(
