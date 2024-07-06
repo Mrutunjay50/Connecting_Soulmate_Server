@@ -85,7 +85,9 @@ const processRequest = async (
     // If vice versa request exists, return the appropriate message
     // Handle vice versa request
     if (viceVersaRequest) {
-      if (viceVersaRequest.action === "declined") {
+      if (viceVersaRequest.action === "accepted") {
+        return `You have acceted the ${type} request from this user`;
+      } else if (viceVersaRequest.action === "declined") {
         if (action === "pending") {
           // Delete the declined vice versa request
           await Model.deleteOne({
