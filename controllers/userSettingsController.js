@@ -116,12 +116,12 @@ exports.sendLatestUserDetails = async () => {
           // Retrieve signed URLs for profile pictures and user photos
           const latestDetailsWithUrls = await Promise.all(latestDetails.map(async detail => {
             if (detail?.selfDetails && detail.selfDetails[0]) {
-              const profileUrl = await getPublicUrlFromS3(detail.selfDetails[0].profilePicture || "");
+              const profileUrl = getPublicUrlFromS3(detail?.selfDetails[0]?.profilePicture || "");
               detail.selfDetails[0].profilePictureUrl = profileUrl || "";
             } else {
               // Initialize selfDetails with an empty object if it doesn't exist
               detail.selfDetails = [{}];
-              const profileUrl = await getPublicUrlFromS3(""); // Generate URL for empty profile picture
+              const profileUrl = getPublicUrlFromS3(""); // Generate URL for empty profile picture
               detail.selfDetails[0].profilePictureUrl = profileUrl || "";
             }
             // Fetch city and state names
@@ -163,116 +163,115 @@ exports.sendLatestUserDetails = async () => {
 
           // Send the email to the user's email address
 
-        const htmlContent = `
- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-    }
+          const htmlContent = `
+                              <!DOCTYPE html>
+                              <html lang="en">
+                              <head>
+                                <style>
+                                  body {
+                                    font-family: Arial, sans-serif;
+                                    margin: 0;
+                                    padding: 0;
+                                    width: 100%;
+                                  }
 
-    .profile-card {
-      border: 1px solid #A92525;
-      border-radius: 8px;
-      padding: 10px;
-      box-sizing: border-box;
-      margin: 5px;
-      width: 100%;
-      max-width: 500px;
-    }
+                                  .profile-card {
+                                    border: 1px solid #A92525;
+                                    border-radius: 8px;
+                                    padding: 10px;
+                                    box-sizing: border-box;
+                                    margin: 5px;
+                                    width: 100%;
+                                    max-width: 500px;
+                                  }
 
-    .profile-picture {
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      background-color: black;
-    }
+                                  .profile-picture {
+                                    border-radius: 50%;
+                                    width: 60px;
+                                    height: 60px;
+                                    background-color: black;
+                                  }
 
-    .profile-details {
-      text-align: start;
-    }
+                                  .profile-details {
+                                    text-align: start;
+                                  }
 
-    .profile-details > div {
-      padding-top: 7px;
-    
-    }
+                                  .profile-details > div {
+                                    padding-top: 7px;
 
-    @media only screen and (max-width: 600px) {
-      .profile-card {
-        width: 100%; /* Full width on smaller screens */
-      }
-    }
-  </style>
-</head>
-<body>
-  <div>
-    <table style=" margin: 0 auto;">
-      <tr>
-        <td style="padding: 20px 0; text-align:start; padding-left: 9%;">
-          <img src="${LOGO_URL}" alt="img" style="border-radius: 50%; width: 80px; height: 80px;">
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 0 8%;">
-          <p>Dear ${user?.basicDetails[0]?.name?.replaceAll("undefined", "")},<br><br>
-          We hope you are having a good day! <br><br>
-          Here are some new matches that we found for you. <br><br>
-          </p>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <table style=" margin: 0 auto; text-align: center;">
-            <tr>
-              <td style=" padding: 5px;">
-               ${emailContent}
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td style="text-align: center; padding-top: 20px;">
-          <a href="#" style="text-decoration: none; background-color: #A92525; color: white; border-radius: 8px; padding: 9px;">View All..</a>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 20px 8%;">
-        
-          <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
-          <p>Thank You<br>Team - Connecting Soulmate<br><br>__<br><br>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="text-align: center; padding: 20px 8%;">
-          <table style="width: 100%; margin: 0 auto; text-align: center;">
-            <tr>
-              <td style="width: 20%;">
-                <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;">
-              </td>
-              <td style="width: 80%; text-align: left;">
-                <p>Connecting Soulmate<br>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
-</body>
-</html>
+                                  }
 
-        `
-        await sendEmail({
-          to:user.additionalDetails[0].email,
-          subject,
-          htmlContent,
-          restrict
-        });
+                                  @media only screen and (max-width: 600px) {
+                                    .profile-card {
+                                      width: 100%; /* Full width on smaller screens */
+                                    }
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                <div>
+                                  <table style=" margin: 0 auto;">
+                                    <tr>
+                                      <td style="padding: 20px 0; text-align:start; padding-left: 9%;">
+                                        <img src="${LOGO_URL}" alt="img" style="border-radius: 50%; width: 80px; height: 80px;">
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td style="padding: 0 8%;">
+                                        <p>Dear ${user?.basicDetails[0]?.name?.replaceAll("undefined", "")},<br><br>
+                                        We hope you are having a good day! <br><br>
+                                        Here are some new matches that we found for you. <br><br>
+                                        </p>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <table style=" margin: 0 auto; text-align: center;">
+                                          <tr>
+                                            <td style=" padding: 5px;">
+                                             ${emailContent}
+                                            </td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td style="text-align: center; padding-top: 20px;">
+                                        <a href="#" style="text-decoration: none; background-color: #A92525; color: white; border-radius: 8px; padding: 9px;">View All..</a>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td style="padding: 20px 8%;">
+
+                                        <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                                        <p>Thank You<br>Team - Connecting Soulmate<br><br>__<br><br>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link</p>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td style="text-align: center; padding: 20px 8%;">
+                                        <table style="width: 100%; margin: 0 auto; text-align: center;">
+                                          <tr>
+                                            <td style="width: 20%;">
+                                              <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;">
+                                            </td>
+                                            <td style="width: 80%; text-align: left;">
+                                              <p>Connecting Soulmate<br>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                                            </td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </body>
+                              </html>
+                              `
+          await sendEmail({
+            to:user.additionalDetails[0].email,
+            subject,
+            htmlContent,
+            restrict
+          });
       }
 
       console.log("Latest user details sent successfully");

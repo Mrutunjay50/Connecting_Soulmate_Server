@@ -34,9 +34,9 @@ async function connectToMongoDB() {
     // await userCollection.dropIndexes();
 
     // console.log("Indexes on Users collection:", indexes);
-    console.log("MongoDB connected successfully with indexes");
+    console.log("MongoDB connected successfully");
   } catch (error) {
-    console.error("Error connecting to MongoDB or creating indexes:", error);
+    console.error("Error connecting to MongoDB", error);
     process.exit(1);
   }
 }
@@ -61,7 +61,7 @@ async function startServer() {
   });
 
   cron.schedule(
-    "*/20 * * * *",
+    "0 0 1 * *",
     async () => {
       const startTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" });
       console.log(`Cron job started at: ${startTime}`);
@@ -103,9 +103,9 @@ async function startServer() {
   app.use(router);
   app.use("/auth", UserRoutes);
 
-  // app.use("/", (req, res) => {
-  //   res.status(200).send("API is connected");
-  // });
+  app.use("/running-status", (req, res) => {
+    res.status(200).send("API is connected");
+  });
 
   server.listen(port, () => {
     console.log(`Server is running on port ${port}`);

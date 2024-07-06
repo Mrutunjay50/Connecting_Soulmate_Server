@@ -4,7 +4,7 @@ const { sendEmail } = require("../../utils/emailUtils");
 
 dotenv.config();
 
-const DOMAIN = process.env.FRONTEND_URL;
+// const DOMAIN = process.env.FRONTEND_URL;
 const ADMIN_EMAIL = "work.connectingsoulmate@gmail.com";
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 

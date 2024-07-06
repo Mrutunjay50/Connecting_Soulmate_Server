@@ -1,8 +1,5 @@
-const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
-const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");

@@ -1,4 +1,4 @@
-const { ConversationModel } = require("../models/ConversationModel")
+const { ConversationModel } = require("../models/conversationModel")
 
 const getConversation = async(currentUserId)=>{
     if(currentUserId){

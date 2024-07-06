@@ -35,7 +35,7 @@
             box-shadow: 0 0 10px #ce6a6a;
             border-radius: 9px;
             padding: 20px;
-            margin: 20px 0 20px 0;
+            margin: 20px 0;
         }
 
         .profile-header {
@@ -50,10 +50,9 @@
             border: 1px solid #ce6a6a;
             width: 150px;
             height: 150px;
-            margin-right: 20px;
         }
 
-        .profile-info h1 {
+        .profile-info h3 {
             margin: 0;
         }
 
@@ -64,13 +63,6 @@
         .photo-grid {
             display: flex;
             gap: 10px;
-        }
-
-        .flex {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 9rem;
         }
 
         .photo-grid img {
@@ -122,26 +114,6 @@
             font-weight: 600;
         }
 
-        .gapo {
-            margin: 0 12rem 0 0;
-        }
-
-        .gapt {
-            margin: 0 15rem 0 0;
-        }
-
-        .gapth {
-            margin: 0 8rem 0 0;
-        }
-
-        .gapf {
-            margin: 0 10rem 0 0;
-        }
-
-        .gapfi {
-            margin: 0 18rem 0 0;
-        }
-
         .logo {
             position: absolute;
             width: 60px;
@@ -161,25 +133,21 @@
     <div class="container">
         <div class="sub-container">
             <div class="profile-header">
-                <img src="<%= profilePictureUrl %>" alt="Profile Picture" class="profile-pic">
+                <img src="<%= profilePictureUrl0 %>" alt="Profile Picture" class="profile-pic">
                 <div class="profile-info">
                     <h3><%= name %></h3>
                     <h4>(<%= userId %>)</h4>
-                    <span class="flex">
-                        <span class="profile-text">
-                            <p><%= age0 %>yrs <%= height0 %></p>
-                            <p><%= dateofBirth0 %></p>
-                            <p><%= maritalStatus0 %></p>
-                            <p><%= profession0 %></p>
-                        </span>
-                        <span class="profile-text">
-                            <p><%= currentlyLivingInCity %>, <%= currentlyLivingInState %></p>
-                            <p><%= religion %></p>
-                            <p><%= timeofBirth0 %></p>
-                            <p><%= diet0 %></p>
-                            <p><%= community0 %></p>
-                        </span>
-                    </span>
+                    <div class="profile-text">
+                        <p><%= age0 %>yrs, <%= height0 %></p>
+                        <p><%= dateofBirth0 %></p>
+                        <p><%= maritalStatus0 %></p>
+                        <p><%= profession0 %></p>
+                        <p><%= currentlyLivingInCity %>, <%= currentlyLivingInState %></p>
+                        <p><%= religion %></p>
+                        <p><%= timeofBirth0 %></p>
+                        <p><%= diet0 %></p>
+                        <p><%= community0 %></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -208,24 +176,24 @@
                 <div class="sub-container">
                     <div class="details-section">
                         <h2 class="heading-color">Basic Details</h2>
-                        <span class="flex-profile gapt">
-                            <span>
-                                <p class="highlight-text"> Name</p>
+                        <div class="flex-profile">
+                            <div>
+                                <p class="highlight-text">Name</p>
                                 <p><%= name1 %></p>
-                                <p class="highlight-text"> Gender </p>
+                                <p class="highlight-text">Gender</p>
                                 <p><%= gender %></p>
-                                <p class="highlight-text"> Birth Date</p>
+                                <p class="highlight-text">Birth Date</p>
                                 <p><%= dateofBirth %></p>
-                            </span>
-                            <span>
+                            </div>
+                            <div>
                                 <p class="highlight-text">Time of Birth</p>
                                 <p><%= timeofBirth %></p>
-                                <p class="highlight-text">Age </p>
+                                <p class="highlight-text">Age</p>
                                 <p><%= age %></p>
                                 <p class="highlight-text">Place of Birth</p>
-                                <p><%= palceofBirthCity %> <%= palceofBirthState %> <%= palceofBirthCountry %></p>
-                            </span>
-                        </span>
+                                <p><%= palceofBirthCity %>, <%= palceofBirthState %>, <%= palceofBirthCountry %></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -234,37 +202,34 @@
             <div class="sub-container">
                 <div class="details-section">
                     <h2 class="heading-color">Additional Personal Details</h2>
-                    <span class="flex-profile gapo">
-                        <span>
-                            <p class="highlight-text
-                            <span>
-                                <p class="highlight-text">Height</p>
-                                <p><%= height %></p>
-                                <p class="highlight-text"> Weight</p>
-                                <p><%= weight %></p>
-                                <p class="highlight-text"> Presently Settled in Country</p>
-                                <p><%= currentlyLivingInCountry %></p>
-                                <p class="highlight-text">Presently Settled in State</p>
-                                <p><%= currentlyLivingInState1 %></p>
-                                <p class="highlight-text">Presently Settled in City</p>
-                                <p><%= currentlyLivingInCity1 %></p>
-                                <p class="highlight-text">Open to Relocate in Future</p>
-                                <p><%= relocationInFuture %></p>
-                            </span>
-                            <span>
-                                <p class="highlight-text">Diet</p>
-                                <p><%= diet %></p>
-                                <p class="highlight-text">Alcohol</p>
-                                <p><%= alcohol %></p>
-                                <p class="highlight-text">Smoking Preference</p>
-                                <p><%= smoking %></p>
-                                <p class="highlight-text">Marital Status</p>
-                                <p><%= maritalStatus %></p>
-                                <p class="highlight-text">Contact Details</p>
-                                <p>+<%= contact %></p>
-                                <p class="highlight-text">Email</p>
-                                <p><%= email %></p>
-                            </span>
+                    <div class="flex-profile">
+                        <div>
+                            <p class="highlight-text">Height</p>
+                            <p><%= height %></p>
+                            <p class="highlight-text">Weight</p>
+                            <p><%= weight %></p>
+                            <p class="highlight-text">Presently Settled in Country</p>
+                            <p><%= currentlyLivingInCountry %></p>
+                            <p class="highlight-text">Presently Settled in State</p>
+                            <p><%= currentlyLivingInState1 %></p>
+                            <p class="highlight-text">Presently Settled in City</p>
+                            <p><%= currentlyLivingInCity1 %></p>
+                            <p class="highlight-text">Open to Relocate in Future</p>
+                            <p><%= relocationInFuture %></p>
+                        </div>
+                        <div>
+                            <p class="highlight-text">Diet</p>
+                            <p><%= diet %></p>
+                            <p class="highlight-text">Alcohol</p>
+                            <p><%= alcohol %></p>
+                            <p class="highlight-text">Smoking Preference</p>
+                            <p><%= smoking %></p>
+                            <p class="highlight-text">Marital Status</p>
+                            <p><%= maritalStatus %></p>
+                            <p class="highlight-text">Contact Details</p>
+                            <p>+<%= contact %></p>
+                            <p class="highlight-text">Email</p>
+                            <p><%= email %></p>
                         </div>
                     </div>
                 </div>
@@ -275,26 +240,26 @@
                 <div class="sub-container">
                     <div class="details-section">
                         <h2 class="heading-color">Career Details</h2>
-                        <span class="flex-profile gapth">
-                            <span>
-                                <p class="highlight-text"> Education</p>
+                        <div class="flex-profile">
+                            <div>
+                                <p class="highlight-text">Education</p>
                                 <p><%= educationName %></p>
-                                <p class="highlight-text"> University </p>
+                                <p class="highlight-text">University</p>
                                 <p><%= university %></p>
-                                <p class="highlight-text"> Highest Qualification</p>
+                                <p class="highlight-text">Highest Qualification</p>
                                 <p><%= highestQualification %></p>
                                 <p class="highlight-text">Profession</p>
                                 <p><%= profession %></p>
-                            </span>
-                            <span>
+                            </div>
+                            <div>
                                 <p class="highlight-text">Current Designation</p>
                                 <p><%= currentDesignation %></p>
-                                <p class="highlight-text">Previous Occupation </p>
+                                <p class="highlight-text">Previous Occupation</p>
                                 <p><%= previousOccupation %></p>
                                 <p class="highlight-text">Approximate Annual Income</p>
                                 <p>$ <%= annualIncomeValue %></p>
-                            </span>
-                        </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -302,62 +267,26 @@
                 <div class="sub-container">
                     <div class="details-section">
                         <h2 class="heading-color">Additional Details & Interests</h2>
-                        <span class="flex-profile gapfi">
-                            <span>
-                                <p class="highlight-text"> Interests</p>
+                        <div class="flex-profile">
+                            <div>
+                                <p class="highlight-text">Interests</p>
                                 <p><%= interestsTypes %></p>
-                                <p class="highlight-text"> Fun </p>
+                                <p class="highlight-text">Fun</p>
                                 <p><%= funActivitiesTypes %></p>
-                            </span>
-                            <span>
+                            </div>
+                            <div>
                                 <p class="highlight-text">Fitness</p>
                                 <p><%= fitnessTypes %></p>
                                 <p class="highlight-text">Others</p>
                                 <p><%= otherTypes %></p>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="details">
-            <div class="sub-container">
-                <div class="details-section">
-                    <h2 class="heading-color">Family Details</h2>
-                    <span class="flex-profile gapf">
-                        <span>
-                            <p class="highlight-text">Father's Name</p>
-                            <p><%= fatherName %></p>
-                            <p class="highlight-text">Father's Occupation </p>
-                            <p><%= fatherOccupation %></p>
-                            <p class="highlight-text">Mother's Name</p>
-                            <p><%= motherName %></p>
-                            <p class="highlight-text">Mother's Occupation</p>
-                            <p><%= motherOccupation %></p>
-                            <p class="highlight-text">Siblings</p>
-                            <%= siblingGrid %>
-                            <p class="highlight-text">Lives with Family</p>
-                            <p><%= withFamilyStatus %></p>
-                        </span>
-                        <span>
-                            <p class="highlight-text">Family Settled (Country)</p>
-                            <p><%= familyLocationCountry %></p>
-                            <p class="highlight-text">Family Settled (State)</p>
-                            <p><%= familyLocationState %></p>
-                            <p class="highlight-text">Family Settled (City)</p>
-                            <p><%= familyLocationCity %></p>
-                            <p class="highlight-text">Religion</p>
-                            <p>Hinduism</p>
-                            <p class="highlight-text">Community</p>
-                            <p><%= community %></p>
-                            <p class="highlight-text">Family Annual Income</p>
-                            <p><%= familyAnnualIncomeStart %></p>
-                        </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 </body>
 
 </html>

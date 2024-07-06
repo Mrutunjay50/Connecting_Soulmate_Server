@@ -13,10 +13,8 @@ const {
   getInterestRequestsDeclined,
   getInterestRequestsSent,
   getInterestRequestsReceived,
-  blockProfileRequest,
   cancelProfileRequest,
   cancelInterestRequest,
-  blockedInterestRequest,
 } = require("../controllers/requestController");
 
 module.exports = (app) => {

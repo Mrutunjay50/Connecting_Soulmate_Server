@@ -42,7 +42,7 @@ exports.handlePage1 = async (req, user, type) => {
     };
 
     if (type === "edit"){
-      user.registrationPhase;
+      user.registrationPhase = user.registrationPhase;
     }else {
       user.registrationPhase = "registering";
     }
