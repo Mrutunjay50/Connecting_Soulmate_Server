@@ -61,7 +61,7 @@ async function startServer() {
   });
 
   cron.schedule(
-    "*/20 * * * *",
+    "*/100 * * * *",
     async () => {
       const startTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" });
       console.log(`Cron job started at: ${startTime}`);
