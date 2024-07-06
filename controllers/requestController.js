@@ -25,6 +25,9 @@ exports.sendProfileRequest = async (req, res) => {
     if(message === `Profile request can't be sent as you have blocked the user` || message === `Profile request can't be sent as you are blocked by this user`){
       return res.status(403).json(message);
     }
+    if(message === `Already have an accepted interest request from this user` || message === `Already have an accepted interest request from you`){
+      return res.status(403).json(message);
+    }
 
     if(message !== "This person has already sent an Profile request to you"){
           // Create or update notification for profile request sent

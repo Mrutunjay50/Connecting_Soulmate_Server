@@ -10,7 +10,7 @@ function generateUniqueNumber() {
   return uniqueNumber;
 }
 
-exports.handlePage1 = async (req, user) => {
+exports.handlePage1 = async (req, user, type) => {
   try {
     const { fname, mname, lname, dateOfBirth } = req.body.basicDetails;
     const currentDate = new Date();
@@ -40,7 +40,12 @@ exports.handlePage1 = async (req, user) => {
       gender: user.createdBy[0].gender,
       age: age.toString(),
     };
-    user.registrationPhase = "registering";
+
+    if (type === "edit"){
+      user.registrationPhase;
+    }else {
+      user.registrationPhase = "registering";
+    }
 
     const genderPrefix = generateUniqueNumber();
     const namePrefix = user.basicDetails[0].name.slice(0, 2).toUpperCase();

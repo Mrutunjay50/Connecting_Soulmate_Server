@@ -159,6 +159,7 @@ exports.getAggregationPipelineForUsers = (userId) => {
               registrationPhase : 1,
               accessType : 1,
               annualIncomeType : 1,
+              isEmailSubscribed : 1,
               category : 1,
               isDeleted : 1,
               deleteReason : 1,
