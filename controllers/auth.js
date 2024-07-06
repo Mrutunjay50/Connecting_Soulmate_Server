@@ -37,6 +37,10 @@ const signinController = async (req, res) => {
       process.env.SECRET_KEY,
       { expiresIn: expiryTime || threeMonthsInSeconds }
     );
+    
+    existingUser.lastLogin = new Date().toISOString();
+    await existingUser.save();
+
     return res
       .status(200)
       .json({ existingUser, token, message: "Can Now Login" });
