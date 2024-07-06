@@ -40,7 +40,7 @@ exports.registerUser = async (req, res) => {
     // Based on the page number, update the corresponding array
     switch (page) {
       case "1":
-        await handlePage1(req, user);
+        await handlePage1(req, user, type);
         break;
       case "2":
         await handlePage2(req, user);
@@ -61,8 +61,13 @@ exports.registerUser = async (req, res) => {
       default:
         return res.status(400).json({ error: "Invalid page number" });
     }
-    user.registrationPage = page;
-    user.reviewReason = "";
+    if (type === "edit"){
+      user.registrationPage = user.registrationPage || "";
+      user.reviewReason = user.reviewReason;
+    }else {
+      user.registrationPage = page;
+      user.reviewReason = "";
+    }
     // Save the updated user document
     await user.save();
 
