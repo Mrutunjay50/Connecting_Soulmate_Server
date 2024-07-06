@@ -10,6 +10,7 @@ const { getSignedUrlFromS3, getPublicUrlFromS3 } = require("../utils/s3Utils");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { sendDeleteEmail, sendChangeRegistrationEmail } = require("../helper/emailGenerator/emailHelper");
 const { City, State } = require("../models/masterSchemas");
+const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
@@ -298,6 +299,7 @@ exports.deleteProfile = async (req, res) => {
     user.deletedStatus = "This profile has been deleted."
     // Save the updated user
     await user.save();
+    await deleteUserRelatedData(user?._id);
     await sendDeleteEmail(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
     // Increment the count of successful marriages if applicable
     if (isSuccessFulMarraige) {
