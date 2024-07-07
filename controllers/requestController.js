@@ -20,10 +20,10 @@ const notificationStatus = async (userId) => {
   
       await user.save();
   
-      res.status(200).json({ message: "notification status updated" });
+      console.log({ message: "notification status updated" })
     } catch (error) {
       console.error("Error updating notification status :", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.log({ error: "Internal Server Error" });
     }
 };
 
