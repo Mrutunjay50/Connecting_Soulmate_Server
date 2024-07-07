@@ -1,8 +1,5 @@
-const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
-const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-const { ListData } = require("../helper/cardListedData");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
@@ -344,7 +341,7 @@ exports.sendInterestRequest = async (req, res) => {
     if(message === `Interest request can't be sent as you have blocked the user` || message === `Interest request can't be sent as you are blocked by this user`){
       return res.status(403).json(message);
     }
-    if(message === `You have acceted the Interest request from this user`){
+    if(message === `You have acceted the Interest request from this user` || message === `Interest: request can't be sent as your request to this person has been accepted`){
       return res.status(403).json(message);
     }
 

@@ -10,6 +10,7 @@ const { getSignedUrlFromS3, getPublicUrlFromS3 } = require("../utils/s3Utils");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { sendDeleteEmail, sendChangeRegistrationEmail } = require("../helper/emailGenerator/emailHelper");
 const { City, State } = require("../models/masterSchemas");
+const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
@@ -105,6 +106,7 @@ exports.sendLatestUserDetails = async () => {
           const { gender, category } = user;
           const queryGender = gender === "F" ? "M" : "F";
           const categoryRegex = new RegExp(`(^|,| )${category}(,|$| )`);
+
           // Find the three latest user details for the current user, excluding the current user
         let latestDetails = await User.find(
               { gender: queryGender, _id: { $ne: user._id }, category: categoryRegex, registrationPhase : "approved" },
@@ -114,12 +116,12 @@ exports.sendLatestUserDetails = async () => {
           // Retrieve signed URLs for profile pictures and user photos
           const latestDetailsWithUrls = await Promise.all(latestDetails.map(async detail => {
             if (detail?.selfDetails && detail.selfDetails[0]) {
-              const profileUrl = await getPublicUrlFromS3(detail.selfDetails[0].profilePicture || "");
+              const profileUrl = getPublicUrlFromS3(detail?.selfDetails[0]?.profilePicture || "");
               detail.selfDetails[0].profilePictureUrl = profileUrl || "";
             } else {
               // Initialize selfDetails with an empty object if it doesn't exist
               detail.selfDetails = [{}];
-              const profileUrl = await getPublicUrlFromS3(""); // Generate URL for empty profile picture
+              const profileUrl = getPublicUrlFromS3(""); // Generate URL for empty profile picture
               detail.selfDetails[0].profilePictureUrl = profileUrl || "";
             }
             // Fetch city and state names
@@ -154,7 +156,16 @@ exports.sendLatestUserDetails = async () => {
                     <div>${detail?.careerDetails[0]?.profession || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentCityName || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentStateName || ""}</div>
+              `<div class="profile-card">
+                  <img src="${detail?.selfDetails[0]?.profilePictureUrl}" alt="img" class="profile-picture">
+                  <div class="profile-details">
+                    <div>${detail?.basicDetails[0]?.name?.replaceAll("undefined", "") || "user"}</div>
+                    <div>${detail?.basicDetails[0]?.age || 21} Yrs</div>
+                    <div>${detail?.careerDetails[0]?.profession || ""}</div>
+                    <div>${detail?.additionalDetails[0]?.currentCityName || ""}</div>
+                    <div>${detail?.additionalDetails[0]?.currentStateName || ""}</div>
                   </div>
+                </div>
                 </div>
               `
           )).join('');
@@ -299,6 +310,7 @@ exports.deleteProfile = async (req, res) => {
     user.deletedStatus = "This profile has been deleted."
     // Save the updated user
     await user.save();
+    await deleteUserRelatedData(user?._id);
     await sendDeleteEmail(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
     // Increment the count of successful marriages if applicable
     if (isSuccessFulMarraige) {

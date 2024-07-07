@@ -20,10 +20,8 @@ const sendEmail = async ({ to, subject, htmlContent, restrict }) => {
     sendSmtpEmail.sender = { name: senderName, email: EMAIL_FROM };
     let recieversEmail;
     if(restrict){
-        // recieversEmail = "pmrutunjay928@gmail.com";// Send email to user's email address
         recieversEmail = to;// Send email to user's email address
       }else{
-      // recieversEmail = "pmrutunjay928@gmail.com";// Send email to user's email address
         recieversEmail = to;
     }
 

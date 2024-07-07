@@ -276,9 +276,9 @@ exports.addImagesInUser = async (req, res) => {
     const userPhotos = req.files || [];
     const profileImage = req.files.profileImage ? req.files.profileImage[0] : null;
 
-    console.log('====================================');
-    console.log(userPhotos);
-    console.log('====================================');
+    // console.log('====================================');
+    // console.log(userPhotos);
+    // console.log('====================================');
 
     const user = await User.findById(userId);
 
@@ -326,9 +326,9 @@ exports.addImagesInUser = async (req, res) => {
         return res.status(500).json({ error: "Error uploading images to S3" });
       }
     }
-console.log('====================================');
-console.log(selfDetails);
-console.log('====================================');
+    // console.log('====================================');
+    // console.log(selfDetails);
+    // console.log('====================================');
     await user.save();
     res.status(200).json({ message: "User photos added successfully" });
   } catch (error) {

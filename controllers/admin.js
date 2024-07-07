@@ -10,6 +10,7 @@ const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage,
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
+const { deleteUserRelatedData } = require("../helper/deleteUserData");
 
 
 exports.updateRegistrationPhase = async (req, res) => {
@@ -122,6 +123,7 @@ exports.softDeleteUser = async (req, res) => {
 
     user.isDeleted = true;
     user = await user.save();
+    await deleteUserRelatedData(user?._id);
 
     await sendDeleteEmailFromAdmin(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
 

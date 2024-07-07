@@ -1,7 +1,6 @@
 const {
   updateRegistrationPhase,
   getUserByIdForAdmin,
-  // getUserPDFForAdmin,
   getAllPendingUsersForAdmin,
   getAllUsers,
   updateUserCategory,
@@ -9,9 +8,10 @@ const {
   softDeleteUser,
   downloadAllUsersAsCSV,
   downloadUserAsCSV,
-  reviewRequest,
   getUserImageInBase64ByIdForAdmin,
 } = require("../controllers/admin");
+// getUserPDFForAdmin,
+// reviewRequest,
 const { getAdminNotificationsForUser } = require("../controllers/notificationController");
 const { isAdmin } = require("../middleware/is_auth");
 const { updateAllUsersAnnualIncomeUSD } = require("../controllers/testing");

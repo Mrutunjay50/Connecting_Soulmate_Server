@@ -86,7 +86,7 @@ const processRequest = async (
     // Handle vice versa request
     if (viceVersaRequest) {
       if (viceVersaRequest.action === "accepted") {
-        return `You have acceted the ${type} request from this user`;
+        return `You have accepted the ${type} request from this user`;
       } else if (viceVersaRequest.action === "declined") {
         if (action === "pending") {
           // Delete the declined vice versa request
@@ -114,7 +114,7 @@ const processRequest = async (
     if (existingRequest) {
       if (existingRequest.action === "pending" && action === "pending") {
         return `${type} request already sent`;
-      }  else if (existingRequest.action === "accepted") {
+      } else if (existingRequest.action === "accepted") {
         return `${type}: request can't be sent as your request to this person has been accepted`;
       } else {
         existingRequest.action = action; // Change the action to 'pending'
