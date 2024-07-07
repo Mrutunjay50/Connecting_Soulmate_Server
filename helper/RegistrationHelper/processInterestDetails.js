@@ -4,15 +4,15 @@ const {
     Fitness,
     Other,
   } = require("../../models/masterSchemas");
-const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../../utils/s3Utils");
 
 exports.processUserDetails = async (selfDetails) => {
     // Fetch signed URLs for profile picture and user photos
-    const profileUrl = await getSignedUrlFromS3(selfDetails?.profilePicture);
+    const profileUrl = getPublicUrlFromS3(selfDetails?.profilePicture);
     selfDetails.profilePictureUrl = profileUrl || "";
   
     const signedUrlsPromises = selfDetails?.userPhotos.map((item) =>
-      getSignedUrlFromS3(item)
+      getPublicUrlFromS3(item)
     );
     const signedUrls = await Promise.all(signedUrlsPromises);
     selfDetails.userPhotosUrl = signedUrls;

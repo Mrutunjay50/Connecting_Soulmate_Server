@@ -5,7 +5,7 @@ dotenv.config();
 
 const User = require("../models/Users");
 // const { UserDetail } = require("otpless-node-js-auth-sdk");
-const { getSignedUrlFromS3, getPublicUrlFromS3 } = require("../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { getAggregationPipelineForUsers } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
 
 // const client_id = process.env.CLIENT_ID;

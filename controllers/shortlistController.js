@@ -1,7 +1,7 @@
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
 const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("../helper/cardListedData");
 
 exports.addToShortlist = async (req, res) => {
@@ -134,7 +134,7 @@ exports.addToShortlist = async (req, res) => {
 
         const promises = user.map(async (user) => {
             const userIdString = String(user.shortlistedUser._id);
-            const profileUrl = await getSignedUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
+            const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
             user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
 
             if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {

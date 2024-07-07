@@ -1,7 +1,7 @@
 const { populateNotification, populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
-// const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+// const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 
 exports.getNotificationsForUser = async (req, res) => {
   try {

@@ -1,6 +1,6 @@
 const User = require("../models/Users");
 const { ListData } = require('../helper/cardListedData');
-const { getSignedUrlFromS3 } = require('../utils/s3Utils');
+const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 // const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
 // const ShortList = require("../models/shortlistUsers");
 // const { ProfileRequests, InterestRequests } = require("../models/interests");
@@ -116,7 +116,7 @@ exports.getAllUsers = async (req, res) => {
     .limit(limit)
     .select(ListData);
     for (const user of users) {
-      const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0]);
+      const profileUrl = getPublicUrlFromS3(user.selfDetails[0].userPhotos[0]);
       user.selfDetails[0].profilePictureUrl = profileUrl;
     }
     res.status(200).json({ users });
@@ -131,7 +131,7 @@ exports.getUserById = async (req, res) => {
     const userId = req.params.userId;
     const user = await User.findById(userId);
 if (user) {
-  const profileUrl = await getSignedUrlFromS3(user.selfDetails[0].userPhotos[0]);
+  const profileUrl = getPublicUrlFromS3(user.selfDetails[0].userPhotos[0]);
   user.selfDetails[0].profilePictureUrl = profileUrl;
   res.status(200).json(user);
 } else {

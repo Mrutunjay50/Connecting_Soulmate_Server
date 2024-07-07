@@ -2,7 +2,7 @@ const User = require("../../models/Users");
 const { Country, State, City, Diet, Proffesion, Community } = require("../../models/masterSchemas");
 const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
-const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../../utils/s3Utils");
 const { ListData } = require("../cardListedData");
 const BlockedUser = require("../../models/blockedUser");
 
@@ -76,11 +76,11 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
       const promises = users.map(async (user) => {
           const userIdString = String(user._id);
           if (user?.selfDetails && user?.selfDetails[0]) {
-              const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
+              const profileUrl = getPublicUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
               user.selfDetails[0].profilePictureUrl = profileUrl || "";
           } else {
               user.selfDetails = [{}]; // Initialize selfDetails with an empty object
-              const profileUrl = await getSignedUrlFromS3(""); // Generate URL for empty profile picture
+              const profileUrl = getPublicUrlFromS3(""); // Generate URL for empty profile picture
               user.selfDetails[0].profilePictureUrl = profileUrl || "";
           }
 

@@ -2,7 +2,7 @@ const BlockedUser = require('../models/blockedUser');
 const { InterestRequests, ProfileRequests } = require('../models/interests');
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
 const ShortList = require('../models/shortlistUsers');
-const { getSignedUrlFromS3 } = require('../utils/s3Utils');
+const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 
 exports.blockUser = async (req, res) => {
   try {
@@ -112,7 +112,7 @@ exports.getBlockedUsers = async (req, res) => {
     ]);
 
     const promises = user.map(async (user) => {
-      const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
+      const profileUrl = getPublicUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
       user.selfDetails[0].profilePictureUrl = profileUrl || "";
 
       if (user?.familyDetails && user?.familyDetails[0]?.community) {
