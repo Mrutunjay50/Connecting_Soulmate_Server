@@ -184,6 +184,9 @@ const userSchema = mongoose.Schema(
       type: Date,
       default : new Date().toISOString()
     },
+    isNotification : {
+      type: Boolean,
+    },
     reviewReason : {
       type: String,
       default: "", 

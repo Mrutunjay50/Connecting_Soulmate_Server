@@ -63,11 +63,12 @@ const signinController = async (req, res) => {
     );
     
     existingUser.lastLogin = new Date().toISOString();
+    const isNotification = existingUser?.isNotification || false;
     await existingUser.save();
 
     return res
       .status(200)
-      .json({ user, existingUser, token, message: "Can Now Login" });
+      .json({ user, existingUser, token, isNotification, message: "Can Now Login" });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ message: "Something went wrong!" });

@@ -5,12 +5,14 @@ const {
   deleteProfile,
   updateContactInfo,
   reApprovalRequest,
+  notificationStatus,
 } = require("../controllers/userSettingsController");
 
 module.exports = (app) => {
   app.post("/generate-link-for-number", generateLinkForChangingRegisteredNumber);
   app.put("/change-registered-number", changeRegisteredNumber);
   app.put("/change-email-subscription", subscribeEveryFifteenDays);
+  app.put("/notification-status", notificationStatus);
   app.put("/delete-user", deleteProfile);
   app.put("/user-reapproval-request", reApprovalRequest);
   app.put("/update-contact-info", updateContactInfo);
