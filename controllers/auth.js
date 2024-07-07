@@ -30,7 +30,7 @@ const signinController = async (req, res) => {
       return res.status(200).json({ message: "User doesn't exist! Redirecting to Signup Page" });
 
 
-    const aggregationPipeline = getAggregationPipelineForUsers(req.params.existingUser._id);
+    const aggregationPipeline = getAggregationPipelineForUsers(existingUser._id);
     let aggregatedData = await User.aggregate(aggregationPipeline);
     
     if (aggregatedData.length === 0) {
