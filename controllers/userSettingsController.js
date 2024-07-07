@@ -13,6 +13,28 @@ const { City, State, Proffesion } = require("../models/masterSchemas");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
+function formatName(name) {
+  // Remove "undefined" from the name
+  const cleanedName = name.replaceAll("undefined", "").trim();
+
+  // Split the name into parts
+  const nameParts = cleanedName.split(" ");
+
+  // If there are not enough parts to format, return the cleaned name
+  if (nameParts.length < 2) {
+    return cleanedName;
+  }
+
+  // Get the first part and the first character of the last part
+  const firstName = nameParts[0];
+  const lastNameInitial = nameParts[nameParts.length - 1].charAt(0);
+
+  // Format the name
+  const formattedName = `${firstName} ${lastNameInitial}...`;
+
+  return formattedName;
+}
+
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -164,8 +186,11 @@ exports.sendLatestUserDetails = async () => {
               `<div class="profile-card">
                   <img src="${detail?.selfDetails[0]?.profilePictureUrl}" alt="img" class="profile-picture">
                   <div class="profile-details">
-                    <div>${detail?.basicDetails[0]?.name?.replaceAll("undefined", "") || "user"}</div>
+                  <span class="flexm">
+              
+                    <div style = "padding-left:2px">${formatName(detail?.basicDetails[0]?.name) || "user"}</div>,
                     <div>${detail?.basicDetails[0]?.age || 21} Yrs</div>
+                    </span>
                     <div>${detail?.careerDetails[0]?.profession || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentCityName || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentStateName || ""}</div>
@@ -197,7 +222,9 @@ exports.sendLatestUserDetails = async () => {
       width: 100%;
       max-width: 500px;
     }
-
+    .flexm{
+      display:flex;
+    }
     .profile-picture {
       border-radius: 50%;
       width: 60px;
@@ -218,6 +245,9 @@ exports.sendLatestUserDetails = async () => {
       .profile-card {
         width: 100%; /* Full width on smaller screens */
       }
+        .flexm{
+        display: block;
+        }
     }
   </style>
 </head>
@@ -225,12 +255,12 @@ exports.sendLatestUserDetails = async () => {
   <div>
     <table style=" margin: 0 auto;">
       <tr>
-        <td style="padding: 20px 0; text-align:start; padding-left: 9%;">
+        <td style="padding: 20px 0; text-align:start; p">
           <img src="${LOGO_URL}" alt="img" style="border-radius: 50%; width: 80px; height: 80px;">
         </td>
       </tr>
       <tr>
-        <td style="padding: 0 8%;">
+        <td style="padding: 0 0">
           <p>Dear ${user?.basicDetails[0]?.name?.replaceAll("undefined", "")},<br><br>
           We hope you are having a good day! <br><br>
           Here are some new matches that we found for you. <br><br>
@@ -241,7 +271,7 @@ exports.sendLatestUserDetails = async () => {
         <td>
           <table style=" margin: 0 auto; text-align: center;">
             <tr>
-              <td style=" padding: 5px;">
+              <td style=" padding: 5px;" class = "flexm">
                ${emailContent}
               </td>
             </tr>
@@ -254,14 +284,14 @@ exports.sendLatestUserDetails = async () => {
         </td>
       </tr>
       <tr>
-        <td style="padding: 20px 8%;">
+        <td style="padding: 20px 0;">
         
           <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
           <p>Thank You<br>Team - Connecting Soulmate<br><br>__<br><br>You’re receiving this email because you have a Connecting Soulmate account. This email is not a marketing or promotional email. That is why this email does not contain an unsubscribe link</p>
         </td>
       </tr>
       <tr>
-        <td style="text-align: center; padding: 20px 8%;">
+        <td style="text-align: center; padding: 20px 0%;">
           <table style="width: 100%; margin: 0 auto; text-align: center;">
             <tr>
               <td style="width: 20%;">
