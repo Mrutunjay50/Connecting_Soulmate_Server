@@ -135,9 +135,11 @@ exports.sendLatestUserDetails = async () => {
               { gender: queryGender, _id: { $ne: user._id }, category: categoryRegex, registrationPhase : "approved" },
               "additionalDetails basicDetails selfDetails careerDetails"
           ).limit(4).sort({ createdAt: -1 });
+          // console.log(latestDetails);
            latestDetails = JSON.parse(JSON.stringify(latestDetails))
           // Retrieve signed URLs for profile pictures and user photos
           const latestDetailsWithUrls = await Promise.all(latestDetails.map(async detail => {
+            // console.log(detail?.careerDetails)
             if (detail?.selfDetails && detail.selfDetails[0]) {
               const profileUrl = getPublicUrlFromS3(detail?.selfDetails[0]?.profilePicture || "");
               detail.selfDetails[0].profilePictureUrl = profileUrl || "";
@@ -170,15 +172,16 @@ exports.sendLatestUserDetails = async () => {
               const { profession } = detail.careerDetails[0];
             
               if (profession) {
-                const professionData = await Proffesion.findOne({ Proffesion_id: profession });
-                detail.careerDetails[0].profession = professionData?.Proffesion_name || "";
+                // console.log(profession);
+                const professionData = await Proffesion.findOne({ proffesion_id: profession });
+                detail.careerDetails[0].professionType = professionData?.proffesion_name || "";
               }
             } else {
               // Initialize careerDetails with an empty object if it doesn't exist
               detail.careerDetails = [{}];
-              detail.careerDetails[0].profession = "";
+              detail.careerDetails[0].professionType = "";
             }
-          
+          // console.log("Career", detail);
             return detail;
           }));
           // Construct HTML template with flex column layout for each user
@@ -191,7 +194,7 @@ exports.sendLatestUserDetails = async () => {
                     <div style = "padding-left:2px">${formatName(detail?.basicDetails[0]?.name) || "user"}</div>,
                     <div>${detail?.basicDetails[0]?.age || 21} Yrs</div>
                     </span>
-                    <div>${detail?.careerDetails[0]?.profession || ""}</div>
+                    <div>${detail?.careerDetails[0]?.professionType || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentCityName || ""}</div>
                     <div>${detail?.additionalDetails[0]?.currentStateName || ""}</div>
                   </div>

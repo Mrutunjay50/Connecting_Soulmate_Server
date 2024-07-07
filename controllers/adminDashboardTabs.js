@@ -10,6 +10,7 @@ const getUserDataWithPagination = async (matchCriteria, page, limit) => {
 
   const totalUsersCount = await User.countDocuments(matchCriteria);
   const users = await User.find(matchCriteria)
+    .sort({ createdAt: -1 })
     .select("userId basicDetails.name gender")
     .skip(startIndex)
     .limit(pageSize);

@@ -83,6 +83,7 @@ exports.getBlockedUsers = async (req, res) => {
 
     // Find all users blocked by the specified user with pagination
     let blockedUsers = await BlockedUser.find({ blockedBy: userId })
+      .sort({ createdAt: -1 })
       .populate('blockedUser')
       .skip(startIndex)
       .limit(limitNumber);

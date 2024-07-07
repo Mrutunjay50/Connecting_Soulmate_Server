@@ -95,6 +95,7 @@ exports.addToShortlist = async (req, res) => {
 
         // Fetch the shortlisted users with pagination
         const users = await ShortList.find({ user: userId })
+            .sort({ createdAt: -1 })
             .skip(startIndex)
             .limit(pageSize)
             .populate({
