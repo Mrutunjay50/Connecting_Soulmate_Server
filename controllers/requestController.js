@@ -341,7 +341,7 @@ exports.sendInterestRequest = async (req, res) => {
     if(message === `Interest request can't be sent as you have blocked the user` || message === `Interest request can't be sent as you are blocked by this user`){
       return res.status(403).json(message);
     }
-    if(message === `You have acceted the Interest request from this user` || message === `Interest: request can't be sent as your request to this person has been accepted`){
+    if(message === `You have accepted the Interest request from this user` || message === `Interest: request can't be sent as your request to this person has been accepted`){
       return res.status(403).json(message);
     }
 
