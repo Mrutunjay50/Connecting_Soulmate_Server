@@ -84,7 +84,7 @@ const processRequest = async (
       if (existingRequest.action === "pending" && action === "pending") {
         return `${type} request already sent`;
       } else if (existingRequest.action === "accepted") {
-        return `${type} request can't be sent as your request to this person has been accepted`;
+        return `${type}: request can't be sent as your request to this person has been accepted`;
       } else {
         existingRequest.action = action;
         await existingRequest.save();
