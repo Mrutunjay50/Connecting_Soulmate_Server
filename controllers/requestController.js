@@ -19,13 +19,21 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
-    if(message === `Profile request can't be sent as you have blocked the user` || message === `Profile request can't be sent as you are blocked by this user`){
-      return res.status(403).json(message);
-    }
-    if(message === `Already have an accepted interest request from this user` || message === `Already have an accepted interest request from you`){
-      return res.status(403).json(message);
-    }
-    if(message === `You have acceted the Profile request from this user`){
+    const blockedMessages = [
+      `Profile request can't be sent as you have blocked the user`,
+      `Profile request can't be sent as you are blocked by this user`
+    ];
+    
+    const acceptedInterestMessages = [
+      `Already have an accepted interest request from this user`,
+      `Already have an accepted interest request from you`
+    ];
+    
+    const acceptedProfileMessages = [
+      `You have accepted the Profile request from this user`
+    ];
+    
+    if (blockedMessages.includes(message) || acceptedInterestMessages.includes(message) || acceptedProfileMessages.includes(message)) {
       return res.status(403).json(message);
     }
 
@@ -338,10 +346,18 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-    if(message === `Interest request can't be sent as you have blocked the user` || message === `Interest request can't be sent as you are blocked by this user`){
-      return res.status(403).json(message);
-    }
-    if(message === `You have accepted the Interest request from this user` || message === `Interest: request can't be sent as your request to this person has been accepted`){
+
+    const blockedMessages = [
+      `Interest request can't be sent as you have blocked the user`,
+      `Interest request can't be sent as you are blocked by this user`
+    ];
+    
+    const acceptedMessages = [
+      `You have accepted the Interest request from this user`,
+      `Interest: request can't be sent as your request to this person has been accepted`
+    ];
+    
+    if (blockedMessages.includes(message) || acceptedMessages.includes(message)) {
       return res.status(403).json(message);
     }
 
