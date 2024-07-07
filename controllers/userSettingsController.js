@@ -6,10 +6,10 @@ const { sendEmail } = require("../utils/emailUtils");
 dotenv.config();
 
 const DOMAIN = process.env.FRONTEND_URL;
-const { getSignedUrlFromS3, getPublicUrlFromS3 } = require("../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { sendDeleteEmail, sendChangeRegistrationEmail } = require("../helper/emailGenerator/emailHelper");
-const { City, State } = require("../models/masterSchemas");
+const { City, State, Proffesion } = require("../models/masterSchemas");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
@@ -143,6 +143,18 @@ exports.sendLatestUserDetails = async () => {
               detail.additionalDetails = [{}];
               detail.additionalDetails[0].currentCityName = "";
               detail.additionalDetails[0].currentStateName = "";
+            }
+            if (detail?.careerDetails && detail.careerDetails[0]) {
+              const { profession } = detail.careerDetails[0];
+            
+              if (profession) {
+                const professionData = await Proffesion.findOne({ Proffesion_id: profession });
+                detail.careerDetails[0].profession = professionData?.Proffesion_name || "";
+              }
+            } else {
+              // Initialize careerDetails with an empty object if it doesn't exist
+              detail.careerDetails = [{}];
+              detail.careerDetails[0].profession = "";
             }
           
             return detail;
