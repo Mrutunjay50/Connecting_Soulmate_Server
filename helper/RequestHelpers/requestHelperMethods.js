@@ -22,107 +22,75 @@ const processRequest = async (
     }
 
     // Check if requestBy is blocked by requestTo
-    const blockedByRequestTo = await BlockedUser.findOne({
-      blockedBy: requestTo,
-      blockedUser: requestBy
-    });
-
-    if (blockedByRequestTo) {
+    const isBlockedByRequestTo = await BlockedUser.exists({ blockedBy: requestTo, blockedUser: requestBy });
+    if (isBlockedByRequestTo) {
       return `${type} request can't be sent as you are blocked by this user`;
     }
 
-    if (type === 'Interest' && action === "accepted") {
-      const existingProfileRequest = await ProfileRequests.findOne({
-        profileRequestBy: requestBy,
-        profileRequestTo: requestTo
-      });
-
-      const viceVersaProfileRequest = await ProfileRequests.findOne({
-        profileRequestBy: requestTo,
-        profileRequestTo: requestBy
-      });
-
-      if (existingProfileRequest) {
-        await ProfileRequests.deleteOne({ _id: existingProfileRequest._id });
-      }
-
-      if (viceVersaProfileRequest) {
-        await ProfileRequests.deleteOne({ _id: viceVersaProfileRequest._id });
-      }
-    } else if(type === "Profile") {
-      const existingInterestRequest = await InterestRequests.findOne({
-        interestRequestBy: requestBy,
-        interestRequestTo: requestTo,
-        action : "accepted"
-      });
-
-      const viceVersaInterestRequest = await InterestRequests.findOne({
-        interestRequestBy: requestTo,
-        interestRequestTo: requestBy,
-        action : "accepted"
-      });
-      if (existingInterestRequest) {
-        return `Already have an accepted interest request from you`
-      }
-
-      if (viceVersaInterestRequest) {
-        return `Already have an accepted interest request from this user`
-      }
-    }
-
-    // Check for an existing request from requestBy to requestTo
-    const existingRequest = await Model.findOne({
+    // Common queries
+    const findExistingRequest = (requestBy, requestTo) => Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
       [`${type.toLowerCase()}RequestTo`]: requestTo,
     });
+    
+    const existingRequest = await findExistingRequest(requestBy, requestTo);
+    const viceVersaRequest = await findExistingRequest(requestTo, requestBy);
 
-    // Check for an existing request from requestTo to requestBy (vice versa)
-    const viceVersaRequest = await Model.findOne({
-      [`${type.toLowerCase()}RequestBy`]: requestTo,
-      [`${type.toLowerCase()}RequestTo`]: requestBy,
-    });
+    // Handle Interest type with action accepted
+    if (type === 'Interest' && action === "accepted") {
+      const profileRequestQuery = { $or: [
+        { profileRequestBy: requestBy, profileRequestTo: requestTo },
+        { profileRequestBy: requestTo, profileRequestTo: requestBy }
+      ]};
+      await ProfileRequests.deleteMany(profileRequestQuery);
+    }  
+    // Handle Profile type requests
+    if (type === "Profile") {
+      const interestRequestQuery = { 
+        $or: [
+          { interestRequestBy: requestBy, interestRequestTo: requestTo, action: "accepted" },
+          { interestRequestBy: requestTo, interestRequestTo: requestBy, action: "accepted" }
+        ] 
+      };
+      const existingInterestRequest = await InterestRequests.findOne(interestRequestQuery);
+      if (existingInterestRequest) {
+        return existingInterestRequest.interestRequestBy === requestBy
+          ? `Already have an accepted interest request from you`
+          : `Already have an accepted interest request from this user`;
+      }
+    }
 
     // If vice versa request exists, return the appropriate message
-    // Handle vice versa request
+ // Handle vice versa requests
     if (viceVersaRequest) {
       if (viceVersaRequest.action === "accepted") {
         return `You have accepted the ${type} request from this user`;
       } else if (viceVersaRequest.action === "declined") {
         if (action === "pending") {
-          // Delete the declined vice versa request
-          await Model.deleteOne({
-            [`${type.toLowerCase()}RequestBy`]: requestTo,
-            [`${type.toLowerCase()}RequestTo`]: requestBy,
-          });
-
-          // Create a new request and indicate it was sent from the declined section
-          const newRequest = new Model({
-            [`${type.toLowerCase()}RequestBy`]: requestBy,
-            [`${type.toLowerCase()}RequestTo`]: requestTo,
-            action,
-          });
+          await Model.deleteOne({ _id: viceVersaRequest._id });
+          const newRequest = new Model({ [`${type.toLowerCase()}RequestBy`]: requestBy, [`${type.toLowerCase()}RequestTo`]: requestTo, action });
           await newRequest.save();
           return `You have sent the ${type} request from your declined section`;
         } else {
-          return `This person has already sent an ${type} request to you and you have declined it`;
+          return `This person has already sent a ${type} request to you and you have declined it`;
         }
       }
-      return `This person has already sent an ${type} request to you`;
+      return `This person has already sent a ${type} request to you`;
     }
 
     // Handle existing request from requestBy to requestTo
+    // Handle existing requests
     if (existingRequest) {
       if (existingRequest.action === "pending" && action === "pending") {
         return `${type} request already sent`;
       } else if (existingRequest.action === "accepted") {
-        return `${type}: request can't be sent as your request to this person has been accepted`;
+        return `${type} request can't be sent as your request to this person has been accepted`;
       } else {
-        existingRequest.action = action; // Change the action to 'pending'
+        existingRequest.action = action;
         await existingRequest.save();
         return `${type} request updated to ${action}`;
       }
     }
-
     // Create a new request
     const newRequest = new Model({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
