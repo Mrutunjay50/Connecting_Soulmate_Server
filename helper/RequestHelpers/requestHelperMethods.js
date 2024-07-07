@@ -72,10 +72,10 @@ const processRequest = async (
           await newRequest.save();
           return `You have sent the ${type} request from your declined section`;
         } else {
-          return `This person has already sent a ${type} request to you and you have declined it`;
+          return `This person has already sent an ${type} request to you and you have declined it`;
         }
       }
-      return `This person has already sent a ${type} request to you`;
+      return `This person has already sent an ${type} request to you`;
     }
 
     // Handle existing request from requestBy to requestTo
