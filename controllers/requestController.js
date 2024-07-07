@@ -5,6 +5,28 @@ const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
 const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
+const User = require("../models/Users");
+
+
+const notificationStatus = async (userId) => {
+  try {
+      // Find the user by userId
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      user.isNotification = true;
+  
+      await user.save();
+  
+      res.status(200).json({ message: "notification status updated" });
+    } catch (error) {
+      console.error("Error updating notification status :", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 
 // Profile Request Section
 
@@ -61,6 +83,8 @@ exports.sendProfileRequest = async (req, res) => {
 
       io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
       io.getIO().emit(`notification/${profileRequestBy}`, formattedNotification);
+      notificationStatus(profileRequestTo);
+      notificationStatus(profileRequestBy);
       io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
@@ -119,6 +143,8 @@ exports.acceptProfileRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.profileRequestTo}`, formattedNotification);
+    notificationStatus(request.profileRequestTo);
+    notificationStatus(request.profileRequestBy);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotification);
@@ -384,6 +410,8 @@ exports.sendInterestRequest = async (req, res) => {
       const formattedNotification = await populateNotification(notification);
       io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
       io.getIO().emit(`notification/${interestRequestBy}`, formattedNotification);
+      notificationStatus(interestRequestTo);
+      notificationStatus(interestRequestBy);
       io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
@@ -443,6 +471,8 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);
+    notificationStatus(request.interestRequestTo);
+    notificationStatus(request.interestRequestBy);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotification);
