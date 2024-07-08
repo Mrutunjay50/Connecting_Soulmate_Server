@@ -141,7 +141,7 @@ exports.sendLatestUserDetails = async () => {
     const RedirectLink = `${DOMAIN}/new-join`;
       // Retrieve all users' email and gender who are subscribed to emails
       const users = await User.find(
-          { isEmailSubscribed: true, registrationPhase : "approved" },
+          { isEmailSubscribed: true, registrationPhase : "approved", isDeleted : false },
           "additionalDetails.email gender category basicDetails.name"
       ).sort({ createdAt: -1 });
 
@@ -153,7 +153,7 @@ exports.sendLatestUserDetails = async () => {
 
           // Find the three latest user details for the current user, excluding the current user
         let latestDetails = await User.find(
-              { gender: queryGender, _id: { $ne: user._id }, category: categoryRegex, registrationPhase : "approved" },
+              { gender: queryGender, _id: { $ne: user._id }, category: categoryRegex, registrationPhase : "approved", isDeleted : false },
               "additionalDetails basicDetails selfDetails careerDetails"
           ).limit(4).sort({ createdAt: -1 });
           // console.log(latestDetails);

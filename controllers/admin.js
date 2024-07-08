@@ -125,7 +125,9 @@ exports.softDeleteUser = async (req, res) => {
     user = await user.save();
     await deleteUserRelatedData(user?._id);
 
-    await sendDeleteEmailFromAdmin(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
+    if(user?.additionalDetails[0]?.email && user?.additionalDetails[0]?.email !== ""){
+      await sendDeleteEmailFromAdmin(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
+    }
 
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
