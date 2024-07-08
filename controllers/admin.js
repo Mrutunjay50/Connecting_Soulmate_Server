@@ -25,10 +25,22 @@ exports.updateRegistrationPhase = async (req, res) => {
     }
 
     if (registrationPhase === "approved") {
-      user.registrationPhase = registrationPhase;
-      user.registrationPage = "";
-      user.approvedAt = new Date().toISOString();
-      await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
+      if (
+        user?.basicDetails?.length > 0 &&
+        user?.selfDetails?.length > 0 &&
+        user?.additionalDetails?.length > 0 &&
+        user?.careerDetails?.length > 0 &&
+        user?.familyDetails?.length > 0 &&
+        user?.additionalDetails[0]?.email
+      ) {
+        user.registrationPhase = registrationPhase;
+        user.registrationPage = "";
+        user.approvedAt = new Date().toISOString();
+        
+        await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+      }else {
+        res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
+      }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
       // user.registrationPage = "1";
@@ -124,9 +136,11 @@ exports.softDeleteUser = async (req, res) => {
     user.isDeleted = true;
     user = await user.save();
     await deleteUserRelatedData(user?._id);
+    const email = user?.additionalDetails?.[0]?.email;
+    const name = user?.basicDetails?.[0]?.name || "user";
 
-    if(user?.additionalDetails[0]?.email && user?.additionalDetails[0]?.email !== ""){
-      await sendDeleteEmailFromAdmin(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user");
+    if (email && email.trim() !== "") {
+      await sendDeleteEmailFromAdmin(email, name);
     }
 
     res.status(200).json({
