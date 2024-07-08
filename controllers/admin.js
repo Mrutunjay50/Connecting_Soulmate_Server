@@ -12,11 +12,23 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
 
+const addToSuccessfulMarriages = async (userId) => {
+  let record = await SuccessfulMarriage.findOne();
+
+  if (!record) {
+    record = new SuccessfulMarriage({ userIds: [userId] });
+  } else {
+    record.userIds.push(userId);
+  }
+
+  await record.save();
+  return record.userIds.length;
+};
 
 exports.updateRegistrationPhase = async (req, res) => {
   try {
     const { registrationPhase } = req.body;
-    console.log(registrationPhase);
+    // console.log(registrationPhase);
     const { userId } = req.params;
     let user = await User.findById(userId);
 
@@ -92,7 +104,7 @@ exports.reviewRequest = async (req, res) => {
 exports.updateUserCategory = async (req, res) => {
   try {
     const { categoryType } = req.body;
-    console.log(categoryType);
+    // console.log(categoryType);
     const { userId } = req.params;
     let user = await User.findById(userId);
 
@@ -126,15 +138,17 @@ exports.updateUserCategory = async (req, res) => {
 
 exports.softDeleteUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId, deleteReason, isSuccessFulMarraige } = req.params;
     let user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
     user.isDeleted = true;
+    user.deleteReason = deleteReason;
+    user.deletedStatus = "This profile has been deleted."
     user = await user.save();
+
     await deleteUserRelatedData(user?._id);
     const email = user?.additionalDetails?.[0]?.email;
     const name = user?.basicDetails?.[0]?.name || "user";
@@ -142,7 +156,10 @@ exports.softDeleteUser = async (req, res) => {
     if (email && email.trim() !== "") {
       await sendDeleteEmailFromAdmin(email, name);
     }
-
+    
+    if (isSuccessFulMarraige) {
+      await addToSuccessfulMarriages(userId);
+    }
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
       user,
