@@ -6,16 +6,29 @@ const {
 // const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
-const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
+const { deleteUserRelatedData } = require("../helper/deleteUserData");
 
+const addToSuccessfulMarriages = async (userId) => {
+  let record = await SuccessfulMarriage.findOne();
+
+  if (!record) {
+    record = new SuccessfulMarriage({ userIds: [userId] });
+  } else {
+    record.userIds.push(userId);
+  }
+
+  await record.save();
+  return record.userIds.length;
+};
 
 exports.updateRegistrationPhase = async (req, res) => {
   try {
     const { registrationPhase } = req.body;
-    console.log(registrationPhase);
+    // console.log(registrationPhase);
     const { userId } = req.params;
     let user = await User.findById(userId);
 
@@ -24,10 +37,22 @@ exports.updateRegistrationPhase = async (req, res) => {
     }
 
     if (registrationPhase === "approved") {
-      user.registrationPhase = registrationPhase;
-      user.registrationPage = "";
-      user.approvedAt = new Date().toISOString();
-      await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
+      if (
+        user?.basicDetails?.length > 0 &&
+        user?.selfDetails?.length > 0 &&
+        user?.additionalDetails?.length > 0 &&
+        user?.careerDetails?.length > 0 &&
+        user?.familyDetails?.length > 0 &&
+        user?.additionalDetails[0]?.email
+      ) {
+        user.registrationPhase = registrationPhase;
+        user.registrationPage = "";
+        user.approvedAt = new Date().toISOString();
+        
+        await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+      }else {
+        return res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
+      }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
       // user.registrationPage = "1";
@@ -44,7 +69,7 @@ exports.updateRegistrationPhase = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("Error updating category and registration phase:", error);
+    console.error("Error updating registration phase:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -79,7 +104,7 @@ exports.reviewRequest = async (req, res) => {
 exports.updateUserCategory = async (req, res) => {
   try {
     const { categoryType } = req.body;
-    console.log(categoryType);
+    // console.log(categoryType);
     const { userId } = req.params;
     let user = await User.findById(userId);
 
@@ -101,28 +126,40 @@ exports.updateUserCategory = async (req, res) => {
 
     user = await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `Category updated successfully for user ${user?.basicDetails[0]?.name}`,
       user,
     });
   } catch (error) {
-    console.error("Error updating category and registration phase:", error);
+    console.error("Error updating category:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 exports.softDeleteUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId, deleteReason, isSuccessFulMarraige } = req.params;
     let user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
     user.isDeleted = true;
+    user.deleteReason = deleteReason;
+    user.deletedStatus = "This profile has been deleted."
     user = await user.save();
 
+    await deleteUserRelatedData(user?._id);
+    const email = user?.additionalDetails?.[0]?.email;
+    const name = user?.basicDetails?.[0]?.name || "user";
+
+    if (email && email.trim() !== "") {
+      await sendDeleteEmailFromAdmin(email, name);
+    }
+    
+    if (isSuccessFulMarraige) {
+      await addToSuccessfulMarriages(userId);
+    }
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
       user,
@@ -602,7 +639,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
         result = {
           nextPage: pageNumber + 1,
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -610,7 +647,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
       } else {
         result = {
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -619,7 +656,7 @@ exports.getAllPendingUsersForAdmin = async (req, res, next) => {
     } else {
       result = {
         data: await User.find(query)
-          .select("_id basicDetails.name createdBy.createdFor category gender userId deletedStatus createdAt")
+          .select("_id basicDetails.name createdBy.createdFor createdBy.name category gender userId deletedStatus createdAt")
           .sort({ createdAt: -1 }),
       };
     }
@@ -675,7 +712,7 @@ exports.getAllUsers = async (req, res, next) => {
         result = {
           nextPage: pageNumber + 1,
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -683,7 +720,7 @@ exports.getAllUsers = async (req, res, next) => {
       } else {
         result = {
           data: await User.find(query)
-            .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+            .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
             .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(startIndex),
@@ -692,7 +729,7 @@ exports.getAllUsers = async (req, res, next) => {
     } else {
       result = {
         data: await User.find(query)
-          .select("_id basicDetails.name createdBy.createdFor category isDeleted gender userId deletedStatus createdAt")
+          .select("_id basicDetails.name createdBy.createdFor createdBy.name category isDeleted gender userId deletedStatus createdAt")
           .sort({ createdAt: -1 }),
       };
     }

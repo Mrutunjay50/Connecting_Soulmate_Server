@@ -31,6 +31,45 @@ const processRequest = async (
       return `${type} request can't be sent as you are blocked by this user`;
     }
 
+    if (type === 'Interest' && action === "accepted") {
+      const existingProfileRequest = await ProfileRequests.findOne({
+        profileRequestBy: requestBy,
+        profileRequestTo: requestTo
+      });
+
+      const viceVersaProfileRequest = await ProfileRequests.findOne({
+        profileRequestBy: requestTo,
+        profileRequestTo: requestBy
+      });
+
+      if (existingProfileRequest) {
+        await ProfileRequests.deleteOne({ _id: existingProfileRequest._id });
+      }
+
+      if (viceVersaProfileRequest) {
+        await ProfileRequests.deleteOne({ _id: viceVersaProfileRequest._id });
+      }
+    } else if(type === "Profile") {
+      const existingInterestRequest = await InterestRequests.findOne({
+        interestRequestBy: requestBy,
+        interestRequestTo: requestTo,
+        action : "accepted"
+      });
+
+      const viceVersaInterestRequest = await InterestRequests.findOne({
+        interestRequestBy: requestTo,
+        interestRequestTo: requestBy,
+        action : "accepted"
+      });
+      if (existingInterestRequest) {
+        return `Already have an accepted interest request from you`
+      }
+
+      if (viceVersaInterestRequest) {
+        return `Already have an accepted interest request from this user`
+      }
+    }
+
     // Check for an existing request from requestBy to requestTo
     const existingRequest = await Model.findOne({
       [`${type.toLowerCase()}RequestBy`]: requestBy,
@@ -46,7 +85,9 @@ const processRequest = async (
     // If vice versa request exists, return the appropriate message
     // Handle vice versa request
     if (viceVersaRequest) {
-      if (viceVersaRequest.action === "declined") {
+      if (viceVersaRequest.action === "accepted") {
+        return `You have accepted the ${type} request from this user`;
+      } else if (viceVersaRequest.action === "declined") {
         if (action === "pending") {
           // Delete the declined vice versa request
           await Model.deleteOne({
@@ -73,8 +114,8 @@ const processRequest = async (
     if (existingRequest) {
       if (existingRequest.action === "pending" && action === "pending") {
         return `${type} request already sent`;
-      } else if (existingRequest.action === "blocked") {
-        return `${type}: request can't be sent as you have blocked the user`;
+      } else if (existingRequest.action === "accepted") {
+        return `${type}: request can't be sent as your request to this person has been accepted`;
       } else {
         existingRequest.action = action; // Change the action to 'pending'
         await existingRequest.save();

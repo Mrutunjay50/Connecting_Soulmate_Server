@@ -433,3 +433,37 @@ exports.uploadcsv = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+exports.cleanUserPhotos = async (req, res) => {
+  try {
+    // Find all users
+    const users = await User.find();
+
+    for (let user of users) {
+      let hasChanges = false;
+
+      // Clean up userPhotos in selfDetails
+      user.selfDetails.forEach((selfDetail) => {
+        const originalLength = selfDetail.userPhotos.length;
+        selfDetail.userPhotos = selfDetail.userPhotos.filter(photo => photo !== "");
+
+        // Check if any changes were made
+        if (selfDetail.userPhotos.length !== originalLength) {
+          hasChanges = true;
+        }
+        console.log(selfDetail.userPhotos);
+      });
+
+      // Save the user document if there were changes
+      if (hasChanges) {
+        await user.save();
+      }
+    }
+
+    res.status(200).json({ message: "User photos cleaned successfully" });
+  } catch (error) {
+    console.error("Error cleaning user photos:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

@@ -32,6 +32,7 @@ const resizeImage = async (buffer, resizeFactor = 0.10) => {
 
     // Resize and convert the image
     const resizedBuffer = await sharp(buffer)
+      // .rotate() // Disable automatic rotation based on Exif data
       .extract({ left: 0, top: 0, width: originalMetadata.width, height: cropHeight }) // Crop from the top
       .resize({ width: newWidth, height: newHeight, fit: 'cover' })
       .toFormat('jpeg') // Convert to JPEG to handle file size reduction

@@ -1,4 +1,4 @@
-const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../../utils/s3Utils");
 const Notifications = require("../../models/notifications");
 const AdminNotifications = require("../../models/adminNotification");
 
@@ -7,17 +7,11 @@ const populateNotification = async (notification) => {
     .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
     .populate('notificationTo', 'basicDetails.name userId selfDetails.profilePicture');
 
-    let profilePictureUrlBy = "";
-    if (populatedNotification.notificationBy?.selfDetails?.[0]?.profilePicture) {
-      profilePictureUrlBy = await getSignedUrlFromS3(populatedNotification.notificationBy.selfDetails[0].profilePicture);
-      populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
-    }
-  
-    let profilePictureUrlTo = "";
-    if (populatedNotification.notificationTo?.selfDetails?.[0]?.profilePicture) {
-      profilePictureUrlTo = await getSignedUrlFromS3(populatedNotification.notificationTo.selfDetails[0].profilePicture);
-      populatedNotification.notificationTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
-    }
+  const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
+  populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+
+  const profilePictureUrlTo = getPublicUrlFromS3(populatedNotification.notificationTo?.selfDetails[0]?.profilePicture);
+  populatedNotification.notificationTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
 
   const formattedNotification = {
     notificationBy: {
@@ -48,11 +42,8 @@ const populateAdminNotification = async (notification) => {
   const populatedNotification = await AdminNotifications.findById(notification._id)
     .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
 
-  let profilePictureUrlBy = "";
-  if (populatedNotification.notificationBy?.selfDetails?.[0]?.profilePicture) {
-    profilePictureUrlBy = await getSignedUrlFromS3(populatedNotification.notificationBy.selfDetails[0].profilePicture);
-    populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
-  }
+  const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
+  populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
 
 
   const formattedNotification = {

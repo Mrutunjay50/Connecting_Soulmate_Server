@@ -2,7 +2,7 @@ const User = require("../../models/Users");
 const { Country, State, City, Diet, Proffesion, Community } = require("../../models/masterSchemas");
 const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
-const { getSignedUrlFromS3 } = require("../../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../../utils/s3Utils");
 const { ListData } = require("../cardListedData");
 const BlockedUser = require("../../models/blockedUser");
 
@@ -56,7 +56,7 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
 
       const [
           communities, professions, diets, countries, bornCoutnry, bornState, states, cities,
-          shortlistedUsers, profileRequests, interestRequests
+          shortlistedUsers, profileRequestsTo, interestRequestsTo, profileRequestsFrom, interestRequestsFrom
       ] = await Promise.all([
           Community.find({ community_id: { $in: communityIds } }),
           Proffesion.find({ proffesion_id: { $in: professionIds } }),
@@ -67,6 +67,8 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
           State.find({ state_id: { $in: stateIds } }),
           City.find({ city_id: { $in: cityIds } }),
           ShortList.find({ user: userId }),
+          ProfileRequests.find({ profileRequestTo: userId }),
+          InterestRequests.find({ interestRequestTo: userId }),
           ProfileRequests.find({ profileRequestBy: userId }),
           InterestRequests.find({ interestRequestBy: userId })
       ]);
@@ -74,11 +76,11 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
       const promises = users.map(async (user) => {
           const userIdString = String(user._id);
           if (user?.selfDetails && user?.selfDetails[0]) {
-              const profileUrl = await getSignedUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
+              const profileUrl = getPublicUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
               user.selfDetails[0].profilePictureUrl = profileUrl || "";
           } else {
               user.selfDetails = [{}]; // Initialize selfDetails with an empty object
-              const profileUrl = await getSignedUrlFromS3(""); // Generate URL for empty profile picture
+              const profileUrl = getPublicUrlFromS3(""); // Generate URL for empty profile picture
               user.selfDetails[0].profilePictureUrl = profileUrl || "";
           }
 
@@ -118,10 +120,14 @@ exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT 
           user.isShortListed = shortlistedUsers.some(data => String(data.shortlistedUser) === userIdString);
 
           // Check if there is a profile request to this user
-          user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString);
+          user.isProfileRequest = profileRequestsFrom.some(data => String(data.profileRequestTo) === userIdString && data.action !== "declined");
 
           // Check if there is an interest request to this user
-          user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+          user.isInterestRequest = interestRequestsFrom.some(data => String(data.interestRequestTo) === userIdString && data.action !== "declined");
+
+          // Check if there is a profile request from this user
+          user.isProfileRequestAccepted = profileRequestsTo.some(data => String(data.profileRequestBy) === userIdString && data.action === "accepted") || profileRequestsFrom.some(data => String(data.profileRequestTo) === userIdString && data.action === "accepted");
+          user.isInterestRequestAccepted = interestRequestsTo.some(data => String(data.interestRequestBy) === userIdString && data.action === "accepted") || interestRequestsFrom.some(data => String(data.interestRequestTo) === userIdString && data.action === "accepted");
       });
 
       await Promise.all(promises);

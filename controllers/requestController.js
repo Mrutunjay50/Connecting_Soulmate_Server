@@ -1,13 +1,32 @@
-const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
-const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
-const { ListData } = require("../helper/cardListedData");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
 const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
+const User = require("../models/Users");
+
+
+const notificationStatus = async (userId) => {
+  try {
+      // Find the user by userId
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      user.isNotification = true;
+  
+      await user.save();
+  
+      console.log({ message: "notification status updated" })
+    } catch (error) {
+      console.error("Error updating notification status :", error);
+      console.log({ error: "Internal Server Error" });
+    }
+};
+
 
 // Profile Request Section
 
@@ -22,7 +41,21 @@ exports.sendProfileRequest = async (req, res) => {
       "pending",
       res
     );
-    if(message === `Profile request can't be sent as you have blocked the user` || message === `Profile request can't be sent as you are blocked by this user`){
+    const blockedMessages = [
+      `Profile request can't be sent as you have blocked the user`,
+      `Profile request can't be sent as you are blocked by this user`
+    ];
+    
+    const acceptedInterestMessages = [
+      `Already have an accepted interest request from this user`,
+      `Already have an accepted interest request from you`
+    ];
+    
+    const acceptedProfileMessages = [
+      `You have accepted the Profile request from this user`
+    ];
+    
+    if (blockedMessages.includes(message) || acceptedInterestMessages.includes(message) || acceptedProfileMessages.includes(message)) {
       return res.status(403).json(message);
     }
 
@@ -50,6 +83,8 @@ exports.sendProfileRequest = async (req, res) => {
 
       io.getIO().emit(`notification/${profileRequestTo}`, formattedNotification);
       io.getIO().emit(`notification/${profileRequestBy}`, formattedNotification);
+      notificationStatus(profileRequestTo);
+      notificationStatus(profileRequestBy);
       io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
@@ -108,6 +143,8 @@ exports.acceptProfileRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.profileRequestTo}`, formattedNotification);
+    notificationStatus(request.profileRequestTo);
+    notificationStatus(request.profileRequestBy);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotification);
@@ -200,10 +237,10 @@ exports.getProfileRequestsAccepted = async (req, res) => {
     const requests = await Promise.all(result.requests);
     await Promise.all(requests.map(async (item) => {
       if (item?.profileRequestTo?.selfDetails?.[0]) {
-        item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
       }
       if (item?.profileRequestBy?.selfDetails?.[0]) {
-        item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({
@@ -231,10 +268,10 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       if (item?.profileRequestTo?.selfDetails?.[0]) {
-        item.profileRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
       }
       if (item?.profileRequestBy?.selfDetails?.[0]) {
-        item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({
@@ -264,7 +301,7 @@ exports.getProfileRequestsSent = async (req, res) => {
     await Promise.all(requests.map(async (item) => {
       const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
       if (profilePicture) {
-        const profilePictureUrl = await getSignedUrlFromS3(profilePicture);
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
         item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
       } else {
         item.profileRequestTo.selfDetails = item.profileRequestTo.selfDetails || [{}];
@@ -299,7 +336,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.profileRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
+      item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
     }));
 
     return res.status(200).json({
@@ -335,7 +372,18 @@ exports.sendInterestRequest = async (req, res) => {
       "pending",
       res
     );
-    if(message === `Interest request can't be sent as you have blocked the user` || message === `Interest request can't be sent as you are blocked by this user`){
+
+    const blockedMessages = [
+      `Interest request can't be sent as you have blocked the user`,
+      `Interest request can't be sent as you are blocked by this user`
+    ];
+    
+    const acceptedMessages = [
+      `You have accepted the Interest request from this user`,
+      `Interest: request can't be sent as your request to this person has been accepted`
+    ];
+    
+    if (blockedMessages.includes(message) || acceptedMessages.includes(message)) {
       return res.status(403).json(message);
     }
 
@@ -362,6 +410,8 @@ exports.sendInterestRequest = async (req, res) => {
       const formattedNotification = await populateNotification(notification);
       io.getIO().emit(`notification/${interestRequestTo}`, formattedNotification);
       io.getIO().emit(`notification/${interestRequestBy}`, formattedNotification);
+      notificationStatus(interestRequestTo);
+      notificationStatus(interestRequestBy);
       io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotification);
@@ -421,6 +471,8 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`notification/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);
+    notificationStatus(request.interestRequestTo);
+    notificationStatus(request.interestRequestBy);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotification);
@@ -514,10 +566,10 @@ exports.getInterestRequestsAccepted = async (req, res) => {
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       if (item?.interestRequestTo?.selfDetails?.[0]) {
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
       }
       if (item?.interestRequestBy?.selfDetails?.[0]) {
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({
@@ -545,10 +597,10 @@ exports.getInterestRequestsDeclined = async (req, res) => {
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
       if (item?.interestRequestTo?.selfDetails?.[0]) {
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
       }
       if (item?.interestRequestBy?.selfDetails?.[0]) {
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
       }
     }));
     return res.status(200).json({
@@ -575,26 +627,7 @@ exports.getInterestRequestsSent = async (req, res) => {
     const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      // Ensure item.profileRequestTo and item.profileRequestTo.selfDetails exist
-      if (item.interestRequestTo && Array.isArray(item.interestRequestTo.selfDetails)) {
-        const selfDetails = item.interestRequestTo.selfDetails;
-        if (selfDetails.length > 0) {
-          const profilePicture = selfDetails[0].profilePicture;
-          if (profilePicture) {
-            const profilePictureUrl = await getSignedUrlFromS3(profilePicture);
-            selfDetails[0].profilePictureUrl = profilePictureUrl || "";
-          } else {
-            selfDetails[0].profilePictureUrl = "";
-          }
-        } else {
-          // If selfDetails array is empty, add a default object
-          selfDetails.push({ profilePictureUrl: "" });
-        }
-      } else {
-        // If profileRequestTo or selfDetails do not exist, initialize them properly
-        item.interestRequestTo = item.interestRequestTo || {};
-        item.interestRequestTo.selfDetails = [{ profilePictureUrl: "" }];
-      }
+      item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
     }));
     return res.status(200).json({
       requests,
@@ -622,7 +655,7 @@ exports.getInterestRequestsReceived = async (req, res) => {
     const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestBy.selfDetails[0].profilePictureUrl = await getSignedUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
+      item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
     }));
     return res.status(200).json({
       requests,

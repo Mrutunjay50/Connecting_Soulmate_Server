@@ -40,8 +40,8 @@ exports.advanceSearch = async (req, res) => {
 
     // Define mapping between search parameters and MongoDB fields
     const fieldMap = {
-      country: "basicDetails.placeOfBirthCountry",
-      state: "basicDetails.placeOfBirthState",
+      country: "additionalDetails.currentlyLivingInCountry",
+      state: "additionalDetails.currentlyLivingInState",
       maritalStatus: "additionalDetails.maritalStatus",
       education: "careerDetails.highestEducation",
       smoking: "additionalDetails.smoking",

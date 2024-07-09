@@ -14,13 +14,14 @@ apiKey.apiKey = BREVO_API;
 
 const sendEmail = async ({ to, subject, htmlContent, restrict }) => {
   try {
+    console.log(to);
     let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = htmlContent;
     sendSmtpEmail.sender = { name: senderName, email: EMAIL_FROM };
     let recieversEmail;
     if(restrict){
-        recieversEmail = "gauravsrivastava0451@gmail.com";// Send email to user's email address
+        recieversEmail = to;// Send email to user's email address
     }else{
         recieversEmail = to;
     }

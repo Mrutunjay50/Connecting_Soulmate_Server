@@ -1,7 +1,7 @@
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
 const ShortList = require("../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../models/interests");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { ListData } = require("../helper/cardListedData");
 
 exports.addToShortlist = async (req, res) => {
@@ -95,6 +95,7 @@ exports.addToShortlist = async (req, res) => {
 
         // Fetch the shortlisted users with pagination
         const users = await ShortList.find({ user: userId })
+            .sort({ createdAt: -1 })
             .skip(startIndex)
             .limit(pageSize)
             .populate({
@@ -116,7 +117,7 @@ exports.addToShortlist = async (req, res) => {
 
         const [
             communities, professions, diets, countries, bornCoutnry, bornState, states, cities,
-            profileRequests, interestRequests
+            profileRequestsTo, interestRequestsTo, profileRequestsFrom, interestRequestsFrom
         ] = await Promise.all([
             Community.find({ community_id: { $in: communityIds } }),
             Proffesion.find({ proffesion_id: { $in: professionIds } }),
@@ -126,13 +127,15 @@ exports.addToShortlist = async (req, res) => {
             State.find({ state_id: { $in: bornstateIds } }),
             State.find({ state_id: { $in: stateIds } }),
             City.find({ city_id: { $in: cityIds } }),
+            ProfileRequests.find({ profileRequestTo: userId }),
+            InterestRequests.find({ interestRequestTo: userId }),
             ProfileRequests.find({ profileRequestBy: userId }),
             InterestRequests.find({ interestRequestBy: userId })
         ]);
 
         const promises = user.map(async (user) => {
             const userIdString = String(user.shortlistedUser._id);
-            const profileUrl = await getSignedUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
+            const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
             user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
 
             if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
@@ -168,11 +171,15 @@ exports.addToShortlist = async (req, res) => {
                 }
             }
 
-            // Check if there is a profile request to this user
-            user.isProfileRequest = profileRequests.some(data => String(data.profileRequestTo) === userIdString);
+          // Check if there is a profile request to this user
+          user.isProfileRequest = profileRequestsFrom.some(data => String(data.profileRequestTo) === userIdString && data.action !== "declined");
 
-            // Check if there is an interest request to this user
-            user.isInterestRequest = interestRequests.some(data => String(data.interestRequestTo) === userIdString);
+          // Check if there is an interest request to this user
+          user.isInterestRequest = interestRequestsFrom.some(data => String(data.interestRequestTo) === userIdString && data.action !== "declined");
+
+          // Check if there is a profile request from this user
+          user.isProfileRequestAccepted = profileRequestsTo.some(data => String(data.profileRequestBy) === userIdString && data.action === "accepted") || profileRequestsFrom.some(data => String(data.profileRequestTo) === userIdString && data.action === "accepted");
+          user.isInterestRequestAccepted = interestRequestsTo.some(data => String(data.interestRequestBy) === userIdString && data.action === "accepted") || interestRequestsFrom.some(data => String(data.interestRequestTo) === userIdString && data.action === "accepted");
         });
 
         await Promise.all(promises);

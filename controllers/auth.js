@@ -5,7 +5,7 @@ dotenv.config();
 
 const User = require("../models/Users");
 // const { UserDetail } = require("otpless-node-js-auth-sdk");
-const { getSignedUrlFromS3 } = require("../utils/s3Utils");
+const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { getAggregationPipelineForUsers } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
 
 // const client_id = process.env.CLIENT_ID;
@@ -29,6 +29,30 @@ const signinController = async (req, res) => {
     if (!existingUser)
       return res.status(200).json({ message: "User doesn't exist! Redirecting to Signup Page" });
 
+
+    const aggregationPipeline = getAggregationPipelineForUsers(existingUser._id);
+    let aggregatedData = await User.aggregate(aggregationPipeline);
+    
+    if (aggregatedData.length === 0) {
+      return res.status(404).json({ error: "User data not found." });
+    }
+    
+    let user = aggregatedData[0]; // Get the first element of the aggregated result
+    
+    const profileUrl = getPublicUrlFromS3(
+      user.selfDetails?.profilePicture
+    );
+    user.selfDetails.profilePictureUrl = profileUrl || "";
+    const signedUrlsPromises = user.selfDetails?.userPhotos?.map((item) =>
+      getPublicUrlFromS3(item)
+    );
+    try {
+      const signedUrls = signedUrlsPromises;
+      user.selfDetails.userPhotosUrl = signedUrls;
+    } catch (error) {
+      console.error("Error:", error);
+    }
+
     const token = jwt.sign(
       {
         number: existingUser.createdBy[0].phone,
@@ -37,9 +61,14 @@ const signinController = async (req, res) => {
       process.env.SECRET_KEY,
       { expiresIn: expiryTime || threeMonthsInSeconds }
     );
+    
+    existingUser.lastLogin = new Date().toISOString();
+    const isNotification = existingUser?.isNotification || false;
+    await existingUser.save();
+
     return res
       .status(200)
-      .json({ existingUser, token, message: "Can Now Login" });
+      .json({ user, existingUser, token, isNotification, message: "Can Now Login" });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ message: "Something went wrong!" });
@@ -198,15 +227,15 @@ const getUser = async (req, res, next) => {
     
     let user = aggregatedData[0]; // Get the first element of the aggregated result
     
-    const profileUrl = await getSignedUrlFromS3(
+    const profileUrl = getPublicUrlFromS3(
       user.selfDetails?.profilePicture
     );
     user.selfDetails.profilePictureUrl = profileUrl || "";
     const signedUrlsPromises = user.selfDetails?.userPhotos?.map((item) =>
-      getSignedUrlFromS3(item)
+      getPublicUrlFromS3(item)
     );
     try {
-      const signedUrls = await Promise.all(signedUrlsPromises);
+      const signedUrls = signedUrlsPromises;
       user.selfDetails.userPhotosUrl = signedUrls;
     } catch (error) {
       console.error("Error:", error);
