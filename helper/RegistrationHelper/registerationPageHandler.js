@@ -69,13 +69,13 @@ exports.handlePage2 = async (req, user) => {
 
   try {
     // Check if a user with the same email or contact number exists
-    const existingUser = await User.findOne({
-      $or: [{ 'additionalDetails.contact': contact }], _id: { $ne: user._id }
-    });
+    // const existingUser = await User.findOne({
+    //   $or: [{ 'additionalDetails.contact': contact }], _id: { $ne: user._id }
+    // });
 
-    if (existingUser) {
-      throw new Error('A user with the same email or phone number already exists.');
-    }
+    // if (existingUser) {
+    //   throw new Error('A user with the same email or phone number already exists.');
+    // }
 
     // If no user is found, update the additional details
     user.additionalDetails[0] = { ...req.body.additionalDetails };
