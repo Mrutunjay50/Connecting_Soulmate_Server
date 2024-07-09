@@ -1,6 +1,6 @@
 const getUserDetailsFromToken = require('./helper/getUserDetailsFromToken');
 const User = require('./models/Users');
-const { ConversationModel, MessageModel } = require('./models/ConversationModel');
+const { ConversationModel, MessageModel } = require('./models/conversationModel');
 const getConversation = require('./helper/getConversation');
 const { checkAcceptedInterestRequest } = require('./middleware/checkAcceptedInterestRequest');
 

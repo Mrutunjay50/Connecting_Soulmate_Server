@@ -13,6 +13,7 @@ const { initializeRoutes } = require("./routes/index");
 const {
   sendLatestUserDetails,
 } = require("./controllers/userSettingsController");
+const chatSocket = require("./chatSocket");
 initializeRoutes(router);
 
 dotenv.config();
@@ -58,6 +59,7 @@ async function startServer() {
   });
   io.on("connection", (socket) => {
     console.log(`User connected ${socket.id}`);
+    chatSocket(socket);
   });
 
   cron.schedule(
