@@ -55,10 +55,15 @@ exports.updateRegistrationPhase = async (req, res) => {
       }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
-      // user.registrationPage = "1";
+      user.registrationPage = "1";
       user.registrationPhase = "rejected";
       user.category = "";
-      await sendRejectionEmail(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
+      if (
+        user?.additionalDetails?.length > 0 &&
+        user?.additionalDetails[0]?.email
+      ) {
+        await sendRejectionEmail(user.additionalDetails[0].email, user?.basicDetails[0]?.name);
+      }
     }
 
 
