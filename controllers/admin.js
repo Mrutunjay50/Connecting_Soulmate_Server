@@ -51,7 +51,7 @@ exports.updateRegistrationPhase = async (req, res) => {
         
         await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
       }else {
-        res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
+        return res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
       }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
@@ -69,7 +69,7 @@ exports.updateRegistrationPhase = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("Error updating category and registration phase:", error);
+    console.error("Error updating registration phase:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -126,12 +126,12 @@ exports.updateUserCategory = async (req, res) => {
 
     user = await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `Category updated successfully for user ${user?.basicDetails[0]?.name}`,
       user,
     });
   } catch (error) {
-    console.error("Error updating category and registration phase:", error);
+    console.error("Error updating category:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
