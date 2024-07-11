@@ -13,7 +13,8 @@ const { initializeRoutes } = require("./routes/index");
 const {
   sendLatestUserDetails,
 } = require("./controllers/userSettingsController");
-const chatSocket = require("./chatSocket");
+const {chatSocket} = require("./chatSocket");
+const getUserDetailsFromToken = require("./helper/getUserDetailsFromToken");
 initializeRoutes(router);
 
 dotenv.config();
@@ -57,9 +58,8 @@ async function startServer() {
       methods: ["GET", "POST", "PUT", "DELETE"],
     },
   });
-  io.on("connection", (socket) => {
-    console.log(`User connected ${socket.id}`);
-    chatSocket(socket);
+  io.on("connection", async (socket) => {
+    await chatSocket(socket);
   });
 
   cron.schedule(
