@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { InterestRequests } = require('../models/interests');
+const { MessageModel } = require('../models/conversationModel');
 
 const checkAcceptedInterestRequest = async (data) => {
   try {
@@ -22,6 +23,15 @@ const checkAcceptedInterestRequest = async (data) => {
     }
 
     console.log("yes have interest request accepted", interestRequest)
+    const messages = await MessageModel.find({
+      $or: [
+        { sender: chatInitiatedBy, receiver: chatInitiatedTo },
+        { sender: chatInitiatedTo, receiver: chatInitiatedBy }
+      ]
+    }).sort({ createdAt: 1 });
+
+    // console.log(messages);
+    return messages;
   } catch (error) {
     console.log("Error checking interest request status:", error);
   }

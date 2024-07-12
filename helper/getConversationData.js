@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
-const InterestRequest = require('../models/InterestRequest');
-const { MessageModel } = require('../models/messageModel');
+const {InterestRequests} = require('../models/interests');
+const { MessageModel } = require('../models/conversationModel');
+const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 
 const getConversations = async (userId) => {
-  const acceptedRequests = await InterestRequest.find({
+  const acceptedRequests = await InterestRequests.find({
     $or: [{ interestRequestBy: userId }, { interestRequestTo: userId }],
     action: 'accepted'
   }).populate('interestRequestBy interestRequestTo');
@@ -25,13 +26,16 @@ const getConversations = async (userId) => {
     }).sort({ createdAt: -1 });
 
     conversations.push({
-      requestId: request?._id,
-      userId: otherUser?._id,
-      objectId: otherUser?.userId,
+      _id: otherUser?._id,
+      channelId: request?._id,
+      userId: otherUser?.userId,
+      profilePictureUrl : getPublicUrlFromS3(otherUser?.selfDetails[0].profilePicture),
       userName: otherUser?.basicDetails[0]?.name,
       lastMessage: lastMessage || {}
     });
   }
+
+  // console.log(conversations);
 
   return conversations;
 };

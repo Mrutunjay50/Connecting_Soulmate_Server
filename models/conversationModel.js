@@ -18,12 +18,12 @@ const messageSchema = new mongoose.Schema({
         default : false
     },
     sender : {
-        type : mongoose.Schema.ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         required : true,
         ref : 'User'
     },
     receiver : {
-        type : mongoose.Schema.ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         required : true,
         ref : 'User'
     },
