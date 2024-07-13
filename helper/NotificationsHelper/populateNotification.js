@@ -18,26 +18,30 @@ const populateNotification = async (notification) => {
   }
 
   const formattedNotification = {
-    notificationBy: {
-      ...populatedNotification.notificationBy.toObject(),
-      selfDetails: populatedNotification.notificationBy?.selfDetails[0]
-        ? {
-            ...populatedNotification.notificationBy.selfDetails[0].toObject(),
-            profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
-          }
-        : {},
-      basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
-    },
-    notificationTo: {
-      ...populatedNotification.notificationTo.toObject(),
-      selfDetails: populatedNotification.notificationTo?.selfDetails[0]
-        ? {
-            ...populatedNotification.notificationTo.selfDetails[0].toObject(),
-            profilePictureUrl: populatedNotification.notificationTo.selfDetails[0].profilePictureUrl,
-          }
-        : {},
-      basicDetails: populatedNotification.notificationTo?.basicDetails[0]?.name || ""
-    },
+    notificationBy: populatedNotification.notificationBy
+      ? {
+          ...populatedNotification.notificationBy.toObject(),
+          selfDetails: populatedNotification.notificationBy?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationBy.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
+        }
+      : {},
+    notificationTo: populatedNotification.notificationTo
+      ? {
+          ...populatedNotification.notificationTo.toObject(),
+          selfDetails: populatedNotification.notificationTo?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationTo.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationTo.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationTo?.basicDetails[0]?.name || ""
+        }
+      : {},
     notificationText: populatedNotification.notificationText,
     notificationType: populatedNotification.notificationType,
     _id: populatedNotification._id,
@@ -56,16 +60,18 @@ const populateAdminNotification = async (notification) => {
   }
 
   const formattedNotification = {
-    notificationBy: {
-      ...populatedNotification.notificationBy.toObject(),
-      selfDetails: populatedNotification.notificationBy?.selfDetails[0]
-        ? {
-            ...populatedNotification.notificationBy.selfDetails[0].toObject(),
-            profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
-          }
-        : {},
-      basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
-    },
+    notificationBy: populatedNotification.notificationBy
+      ? {
+          ...populatedNotification.notificationBy.toObject(),
+          selfDetails: populatedNotification.notificationBy?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationBy.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
+        }
+      : {},
     notificationText: populatedNotification.notificationText,
     notificationType: populatedNotification.notificationType,
     _id: populatedNotification._id,
