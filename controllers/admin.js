@@ -42,16 +42,17 @@ exports.updateRegistrationPhase = async (req, res) => {
         user?.selfDetails?.length > 0 &&
         user?.additionalDetails?.length > 0 &&
         user?.careerDetails?.length > 0 &&
-        user?.familyDetails?.length > 0 &&
-        user?.additionalDetails[0]?.email
+        user?.familyDetails?.length > 0
+        // user?.additionalDetails[0]?.email
       ) {
         user.registrationPhase = registrationPhase;
         user.registrationPage = "";
         user.approvedAt = new Date().toISOString();
-        
-        await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+        if(user?.additionalDetails[0].email){
+          await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+        }
       }else {
-        return res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
+        return res.status(403).json({message: `Some data on respective registration pages might be missing`});
       }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
@@ -689,7 +690,8 @@ exports.getAllUsers = async (req, res, next) => {
     const adminId = req.user._id;
     let query = { 
       registrationPhase: { $in: ["approved", "notapproved", "rejected", "registering"] },
-      _id: { $ne: adminId }, // Exclude users with _id matching adminId
+      _id: { $ne: adminId }, // Exclude users with _id matching adminId,
+      isDeleted : false,
       accessType: { $ne: "0" },
       name: { $ne: "" }
     };
