@@ -604,7 +604,10 @@ exports.getInterestRequestsAccepted = async (req, res) => {
       } else {
         item.interestRequestTo = item.interestRequestTo || {};
         item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
       }
 
       // Handle interestRequestBy
@@ -615,7 +618,10 @@ exports.getInterestRequestsAccepted = async (req, res) => {
       } else {
         item.interestRequestBy = item.interestRequestBy || {};
         item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
 
@@ -650,7 +656,10 @@ exports.getInterestRequestsDeclined = async (req, res) => {
       } else {
         item.interestRequestTo = item.interestRequestTo || {};
         item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
       }
 
       // Handle interestRequestBy
@@ -661,7 +670,10 @@ exports.getInterestRequestsDeclined = async (req, res) => {
       } else {
         item.interestRequestBy = item.interestRequestBy || {};
         item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
 
@@ -696,7 +708,10 @@ exports.getInterestRequestsSent = async (req, res) => {
       } else {
         item.interestRequestTo = item.interestRequestTo || {};
         item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
 
@@ -731,7 +746,10 @@ exports.getInterestRequestsReceived = async (req, res) => {
       } else {
         item.interestRequestBy = item.interestRequestBy || {};
         item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
 
