@@ -26,6 +26,7 @@
     "fast-csv": "^5.0.1",
     "glob": "^10.3.10",
     "helmet": "^7.1.0",
+    "json-2-csv": "^5.5.4",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
