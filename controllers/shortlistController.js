@@ -134,7 +134,7 @@ exports.addToShortlist = async (req, res) => {
         ]);
 
         const promises = user.map(async (user) => {
-            const userIdString = String(user.shortlistedUser._id);
+            const userIdString = String(user.shortlistedUser?._id);
             const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
             user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
 

@@ -187,7 +187,7 @@ const userSchema = mongoose.Schema(
     isNotification : {
       type: Boolean,
     },
-    deleteAfter15Days : {
+    declinedOn : {
       type: Date
     },
     reviewReason : {

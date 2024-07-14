@@ -61,6 +61,8 @@ exports.updateRegistrationPhase = async (req, res) => {
       user.registrationPage = "1";
       user.registrationPhase = "rejected";
       user.category = "";
+      // Set the declinedOn date to the current date
+      user.declinedOn = new Date();
       if (
         user?.additionalDetails?.length > 0 &&
         user?.additionalDetails[0]?.email
@@ -227,15 +229,15 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       {
         $facet: {
           totalUsers: [
-            { $match: { accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalMaleUsers: [
-            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalFemaleUsers: [
-            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalDeletedUsers: [
@@ -243,23 +245,23 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
             { $count: "count" }
           ],
           totalUsersCategoryA: [
-            { $match: { category: /A/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { category: /A/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersCategoryB: [
-            { $match: { category: /B/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { category: /B/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersCategoryC: [
-            { $match: { category: /C/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { category: /C/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersUnCategorised: [
-            { $match: { category: "", accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { category: "", accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalActiveUsers: [
-            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
+            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
         }
