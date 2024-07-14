@@ -134,11 +134,13 @@ exports.addToShortlist = async (req, res) => {
         ]);
 
         const promises = user.map(async (user) => {
-            const userIdString = String(user.shortlistedUser?._id);
+            let userIdString = String(user.shortlistedUser?._id);
             if (user.shortlistedUser && user.shortlistedUser.selfDetails && user.shortlistedUser.selfDetails[0]) {
               userIdString = String(user.shortlistedUser._id);
               const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
-              user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+              if (user.shortlistedUser.selfDetails.length > 0) {
+                user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+              }
             }
 
             if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
