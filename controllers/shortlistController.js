@@ -135,8 +135,16 @@ exports.addToShortlist = async (req, res) => {
 
         const promises = user.map(async (user) => {
             const userIdString = String(user.shortlistedUser?._id);
-            const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
-            user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+              // Check if selfDetails exists and initialize if it doesn't
+              user.shortlistedUser.selfDetails = user.shortlistedUser.selfDetails || [{}];
+          
+              // Check if profilePicture exists before setting profilePictureUrl
+              if (user.shortlistedUser?.selfDetails[0]?.profilePicture) {
+                  const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0].profilePicture);
+                  user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+              } else {
+                  user.shortlistedUser.selfDetails[0].profilePictureUrl = "";
+              }
 
             if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
                 const communityData = communities.find(community => community.community_id === user.shortlistedUser.familyDetails[0]?.community);
