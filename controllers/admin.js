@@ -1,7 +1,5 @@
 const fs = require("fs");
-const path = require("path");
-const { json2csv } = require("json-2-csv");
-const { promisify } = require("util");
+const json2csv = require("json2csv").parse;
 const {
   getAggregationPipelineForUsers,
 } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
@@ -314,20 +312,15 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
   try {
     const users = await User.find();
 
-    // Create a writable stream and write headers to the CSV file
-    const csvStream = fastcsv.format({ headers: true });
-    const writableStream = fs.createWriteStream("users.csv");
-    csvStream.pipe(writableStream);
-
-    // Write each user's data to the CSV file
-    users.forEach((user) => {
+    // Prepare data for CSV
+    const csvData = users.map((user) => {
       const basicDetails = user.basicDetails[0] || {};
       const additionalDetails = user.additionalDetails[0] || {};
       const careerDetails = user.careerDetails[0] || {};
       const familyDetails = user.familyDetails[0] || {};
       const selfDetails = user.selfDetails[0] || {};
 
-      csvStream.write({
+      return {
         Name: basicDetails.name || "",
         Gender: basicDetails.gender || "",
         "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
@@ -390,21 +383,39 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
         Gender: user.gender || "",
         Category: user.category || "",
         "Annual Income Type": careerDetails.currencyType || "",
-      });
+      };
     });
 
-    // End the writable stream
-    csvStream.end();
+    const csvDataString = json2csv(csvData, {
+      fields: [
+        "Name", "Gender", "Place of Birth (Country)", "Place of Birth (State)", "Place of Birth (City)",
+        "Date of Birth", "Time of Birth", "Age", "Manglik", "Horoscope", "Height", "Weight", "Email",
+        "Contact", "Personal Appearance", "Currently Living In (Country)", "Currently Living In (State)",
+        "Currently Living In (City)", "Country Code", "Relocation in Future", "Diet", "Alcohol", "Smoking",
+        "Marital Status", "Highest Education", "Highest Qualification", "School/University", "Passing Year",
+        "Profession", "Current Designation", "Previous Occupation", "Annual Income Value", "Father's Name",
+        "Father's Occupation", "Mother's Name", "Mother's Occupation", "Siblings", "With Family Status",
+        "Family Location (Country)", "Family Location (State)", "Family Location (City)", "Religion", "Caste",
+        "Community", "Family Annual Income", "Interests", "Fun", "Fitness", "Other", "Profile Picture",
+        "User Photos", "User Photos URL", "Profile Picture URL", "About Yourself", "WhatsApp Setting",
+        "Email Subscribe", "Gender", "Category", "Annual Income Type"
+      ]
+    });
 
-    // Set response headers for file download
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=users.csv");
+    // Save the CSV data to a file
+    const filePath = "users.csv";
+    fs.writeFileSync(filePath, csvDataString);
 
-    // Send the CSV file as response
-    fs.createReadStream("users.csv").pipe(res);
+    // Send the CSV file as a response
+    res.download(filePath, filePath, (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
   } catch (error) {
     console.error("Error downloading users as CSV:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).send("Internal Server Error");
   }
 };
 
