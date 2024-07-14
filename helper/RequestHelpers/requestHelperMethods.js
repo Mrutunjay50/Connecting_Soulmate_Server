@@ -198,6 +198,7 @@ exports.getPendingRequests = async (Model, userId, type, res, received, page = 1
         path: `${type.toLowerCase()}Request${received ? "By" : "To"}`,
         select: ListData,
       })
+      .sort({updatedAt : -1})
       .skip(skip)
       .limit(limit);
 
@@ -269,6 +270,7 @@ exports.getRequests = async (Model, userId, type, status, res, page = 1, limit =
         { path: `${type.toLowerCase()}RequestBy`, select: ListData },
         { path: `${type.toLowerCase()}RequestTo`, select: ListData },
       ])
+      .sort({updatedAt : -1})
       .skip(skip)
       .limit(limit);
 

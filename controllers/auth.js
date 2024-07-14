@@ -26,9 +26,24 @@ const signinController = async (req, res) => {
       "createdBy.phone": num,
     });
 
-    if (!existingUser)
+    if (!existingUser){
       return res.status(200).json({ message: "User doesn't exist! Redirecting to Signup Page" });
+    }
 
+
+    // Check if declinedOn date exists and is older than 15 days
+    if (existingUser.declinedOn) {
+      const declinedDate = new Date(existingUser.declinedOn);
+      const currentDate = new Date();
+      const daysDifference = Math.floor((currentDate - declinedDate) / (1000 * 60 * 60 * 24));
+
+      if (daysDifference > 15) {
+        // Delete user data
+        await User.deleteOne({ _id: existingUser._id });
+
+        return res.status(200).json({ message: "Your previous data has been deleted. You can now re-signup." });
+      }
+    }
 
     const aggregationPipeline = getAggregationPipelineForUsers(existingUser._id);
     let aggregatedData = await User.aggregate(aggregationPipeline);

@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const json2csv = require("json2csv").parse;
 const {
   getAggregationPipelineForUsers,
@@ -310,7 +311,13 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
 
 exports.downloadAllUsersAsCSV = async (req, res) => {
   try {
-    const users = await User.find();
+    let query = {
+      registrationPhase: "approved",
+      accessType: { $ne: "0" },
+      name: { $ne: "" },
+      isDeleted : false
+    };
+    const users = await User.find(query);
 
     // Prepare data for CSV
     const csvData = users.map((user) => {
@@ -402,8 +409,15 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
       ]
     });
 
+    const folderPath = path.join(__dirname, "..", "csv");
+    const filePath = path.join(folderPath, "users.csv");
+
+    // Ensure the folder exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+
     // Save the CSV data to a file
-    const filePath = "users.csv";
     fs.writeFileSync(filePath, csvDataString);
 
     // Send the CSV file as a response
