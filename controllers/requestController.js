@@ -274,14 +274,14 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.profileRequestTo?.selfDetails?.[0]) {
+      if (item?.profileRequestTo?.selfDetails) {
         item.profileRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
       } else if (item?.profileRequestTo) {
         item.profileRequestTo.selfDetails = [{}];
         item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
 
-      if (item?.profileRequestBy?.selfDetails?.[0]) {
+      if (item?.profileRequestBy?.selfDetails) {
         item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
       } else if (item?.profileRequestBy) {
         item.profileRequestBy.selfDetails = [{}];
@@ -314,7 +314,7 @@ exports.getProfileRequestsSent = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.profileRequestTo?.selfDetails?.[0]) {
+      if (item?.profileRequestTo?.selfDetails) {
         const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrl = getPublicUrlFromS3(profilePicture);
         item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
@@ -350,7 +350,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.profileRequestBy?.selfDetails?.[0]) {
+      if (item?.profileRequestBy?.selfDetails) {
         const profilePicture = item?.profileRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrl = getPublicUrlFromS3(profilePicture);
         item.profileRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
@@ -587,7 +587,7 @@ exports.getInterestRequestsAccepted = async (req, res) => {
 
     await Promise.all(requests.map(async (item) => {
       // Handle interestRequestTo
-      if (item?.interestRequestTo?.selfDetails?.[0]) {
+      if (item?.interestRequestTo?.selfDetails) {
         const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
@@ -598,7 +598,7 @@ exports.getInterestRequestsAccepted = async (req, res) => {
       }
 
       // Handle interestRequestBy
-      if (item?.interestRequestBy?.selfDetails?.[0]) {
+      if (item?.interestRequestBy?.selfDetails) {
         const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
@@ -634,7 +634,7 @@ exports.getInterestRequestsDeclined = async (req, res) => {
 
     await Promise.all(requests.map(async (item) => {
       // Handle interestRequestTo
-      if (item?.interestRequestTo?.selfDetails?.[0]) {
+      if (item?.interestRequestTo?.selfDetails) {
         const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
@@ -645,7 +645,7 @@ exports.getInterestRequestsDeclined = async (req, res) => {
       }
 
       // Handle interestRequestBy
-      if (item?.interestRequestBy?.selfDetails?.[0]) {
+      if (item?.interestRequestBy?.selfDetails) {
         const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
@@ -680,7 +680,7 @@ exports.getInterestRequestsSent = async (req, res) => {
     const requests = await Promise.all(result.requests);
 
     await Promise.all(requests.map(async (item) => {
-      if (item?.interestRequestTo?.selfDetails?.[0]) {
+      if (item?.interestRequestTo?.selfDetails) {
         const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
@@ -715,7 +715,7 @@ exports.getInterestRequestsReceived = async (req, res) => {
     const requests = await Promise.all(result.requests);
 
     await Promise.all(requests.map(async (item) => {
-      if (item?.interestRequestBy?.selfDetails?.[0]) {
+      if (item?.interestRequestBy?.selfDetails) {
         const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
