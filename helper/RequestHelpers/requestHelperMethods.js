@@ -318,18 +318,22 @@ const setRequestFlags = async (request, requestBy, requestTo) => {
     InterestRequests.findOne({
       interestRequestBy: requestBy,
       interestRequestTo: requestTo,
+      action: { $ne: 'declined' },
     }),
     InterestRequests.findOne({
       interestRequestBy: requestTo,
       interestRequestTo: requestBy,
+      action: { $ne: 'declined' },
     }),
     ProfileRequests.findOne({
       profileRequestBy: requestBy,
       profileRequestTo: requestTo,
+      action: { $ne: 'declined' },
     }),
     ProfileRequests.findOne({
       profileRequestBy: requestTo,
       profileRequestTo: requestBy,
+      action: { $ne: 'declined' },
     }),
   ]);
 
