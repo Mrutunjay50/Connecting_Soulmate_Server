@@ -311,8 +311,8 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
   try {
     const users = await User.find();
 
-    // Prepare users data for CSV conversion
-    const usersData = users.map((user) => {
+    // Prepare the data for CSV conversion
+    const csvData = users.map((user) => {
       const basicDetails = user.basicDetails[0] || {};
       const additionalDetails = user.additionalDetails[0] || {};
       const careerDetails = user.careerDetails[0] || {};
@@ -383,14 +383,25 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
     });
 
     // Convert JSON to CSV
-    const csv = await json2csv.json2csvAsync(usersData);
+    const csvDataString = await json2csv.json2csvAsync(csvData);
+
+    // Save CSV to file
+    const filePath = path.join(__dirname, "..", "csv_exports", "users.csv");
+
+    // Create directory if it doesn't exist
+    const dirPath = path.dirname(filePath);
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+
+    fs.writeFileSync(filePath, csvDataString);
 
     // Set response headers for file download
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", "attachment; filename=users.csv");
 
     // Send the CSV file as response
-    res.status(200).end(csv);
+    fs.createReadStream(filePath).pipe(res);
   } catch (error) {
     console.error("Error downloading users as CSV:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -776,7 +787,7 @@ exports.getAllUsers = async (req, res, next) => {
     const { page, limit, search } = req.query;
     const adminId = req.user._id;
     let query = { 
-      registrationPhase: { $in: ["approved", "notapproved", "rejected", "registering"] },
+      registrationPhase: "approved",
       _id: { $ne: adminId }, // Exclude users with _id matching adminId,
       isDeleted : false,
       accessType: { $ne: "0" },
