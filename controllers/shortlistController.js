@@ -106,14 +106,14 @@ exports.addToShortlist = async (req, res) => {
         const user = JSON.parse(JSON.stringify(users));
 
         // Fetch additional data for users
-        const communityIds = user.map(user => user.shortlistedUser.familyDetails[0]?.community);
-        const professionIds = user.map(user => user.shortlistedUser.careerDetails[0]?.profession);
-        const dietIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.diet);
-        const countryIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
-        const stateIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
-        const borncountryIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
-        const bornstateIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
-        const cityIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
+        const communityIds = user?.map(user => user?.shortlistedUser?.familyDetails[0]?.community);
+        const professionIds = user?.map(user => user?.shortlistedUser?.careerDetails[0]?.profession);
+        const dietIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.diet);
+        const countryIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInCountry);
+        const stateIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInState);
+        const borncountryIds = user?.map(user => user?.shortlistedUser?.basicDetails[0]?.placeOfBirthCountry);
+        const bornstateIds = user?.map(user => user?.shortlistedUser?.basicDetails[0]?.placeOfBirthState);
+        const cityIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInCity);
 
         const [
             communities, professions, diets, countries, bornCoutnry, bornState, states, cities,
