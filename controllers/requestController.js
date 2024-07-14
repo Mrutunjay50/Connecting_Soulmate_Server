@@ -314,8 +314,8 @@ exports.getProfileRequestsSent = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
-      if (profilePicture) {
+      if (item?.profileRequestTo?.selfDetails?.[0]) {
+        const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrl = getPublicUrlFromS3(profilePicture);
         item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
       } else {
@@ -350,7 +350,14 @@ exports.getProfileRequestsReceived = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.profileRequestBy?.selfDetails?.[0]) {
+        const profilePicture = item?.profileRequestBy?.selfDetails?.[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else {
+        item.profileRequestBy.selfDetails = item.profileRequestBy.selfDetails || [{}];
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = "";
+      }
     }));
 
     return res.status(200).json({
@@ -580,8 +587,8 @@ exports.getInterestRequestsAccepted = async (req, res) => {
 
     await Promise.all(requests.map(async (item) => {
       // Handle interestRequestTo
-      const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureTo) {
+      if (item?.interestRequestTo?.selfDetails?.[0]) {
+        const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
       } else {
@@ -591,8 +598,8 @@ exports.getInterestRequestsAccepted = async (req, res) => {
       }
 
       // Handle interestRequestBy
-      const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureBy) {
+      if (item?.interestRequestBy?.selfDetails?.[0]) {
+        const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
       } else {
@@ -627,8 +634,8 @@ exports.getInterestRequestsDeclined = async (req, res) => {
 
     await Promise.all(requests.map(async (item) => {
       // Handle interestRequestTo
-      const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureTo) {
+      if (item?.interestRequestTo?.selfDetails?.[0]) {
+        const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
       } else {
@@ -638,8 +645,8 @@ exports.getInterestRequestsDeclined = async (req, res) => {
       }
 
       // Handle interestRequestBy
-      const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureBy) {
+      if (item?.interestRequestBy?.selfDetails?.[0]) {
+        const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
       } else {
@@ -673,8 +680,8 @@ exports.getInterestRequestsSent = async (req, res) => {
     const requests = await Promise.all(result.requests);
 
     await Promise.all(requests.map(async (item) => {
-      const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureTo) {
+      if (item?.interestRequestTo?.selfDetails?.[0]) {
+        const profilePictureTo = item?.interestRequestTo?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
         item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
       } else {
@@ -708,8 +715,8 @@ exports.getInterestRequestsReceived = async (req, res) => {
     const requests = await Promise.all(result.requests);
 
     await Promise.all(requests.map(async (item) => {
-      const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
-      if (profilePictureBy) {
+      if (item?.interestRequestBy?.selfDetails?.[0]) {
+        const profilePictureBy = item?.interestRequestBy?.selfDetails?.[0]?.profilePicture;
         const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
         item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
       } else {

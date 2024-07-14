@@ -1,6 +1,7 @@
 const fs = require("fs");
-const fastcsv = require("fast-csv");
-const json2csv = require('json-2-csv');
+const path = require("path");
+const { json2csv } = require("json-2-csv");
+const { promisify } = require("util");
 const {
   getAggregationPipelineForUsers,
 } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
@@ -226,39 +227,39 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       {
         $facet: {
           totalUsers: [
-            { $match: { accessType: { $nin: ["0", "1"] } } },
+            { $match: { accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalMaleUsers: [
-            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] } } },
+            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalFemaleUsers: [
-            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] } } },
+            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalDeletedUsers: [
-            { $match: { isDeleted: true, accessType: { $nin: ["0", "1"] } } },
+            { $match: { isDeleted: true, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalUsersCategoryA: [
-            { $match: { category: /A/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /A/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalUsersCategoryB: [
-            { $match: { category: /B/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /B/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalUsersCategoryC: [
-            { $match: { category: /C/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /C/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalUsersUnCategorised: [
-            { $match: { category: "", accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: "", accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalActiveUsers: [
-            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] } } },
+            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
         }
@@ -311,15 +312,20 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
   try {
     const users = await User.find();
 
-    // Prepare the data for CSV conversion
-    const csvData = users.map((user) => {
+    // Create a writable stream and write headers to the CSV file
+    const csvStream = fastcsv.format({ headers: true });
+    const writableStream = fs.createWriteStream("users.csv");
+    csvStream.pipe(writableStream);
+
+    // Write each user's data to the CSV file
+    users.forEach((user) => {
       const basicDetails = user.basicDetails[0] || {};
       const additionalDetails = user.additionalDetails[0] || {};
       const careerDetails = user.careerDetails[0] || {};
       const familyDetails = user.familyDetails[0] || {};
       const selfDetails = user.selfDetails[0] || {};
 
-      return {
+      csvStream.write({
         Name: basicDetails.name || "",
         Gender: basicDetails.gender || "",
         "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
@@ -335,9 +341,12 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
         Email: additionalDetails.email || "",
         Contact: additionalDetails.contact || "",
         "Personal Appearance": additionalDetails.personalAppearance || "",
-        "Currently Living In (Country)": additionalDetails.currentlyLivingInCountry || "",
-        "Currently Living In (State)": additionalDetails.currentlyLivingInState || "",
-        "Currently Living In (City)": additionalDetails.currentlyLivingInCity || "",
+        "Currently Living In (Country)":
+          additionalDetails.currentlyLivingInCountry || "",
+        "Currently Living In (State)":
+          additionalDetails.currentlyLivingInState || "",
+        "Currently Living In (City)":
+          additionalDetails.currentlyLivingInCity || "",
         "Country Code": additionalDetails.countryCode || "",
         "Relocation in Future": additionalDetails.relocationInFuture || "",
         Diet: additionalDetails.diet || "",
@@ -379,133 +388,23 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
         Gender: user.gender || "",
         Category: user.category || "",
         "Annual Income Type": careerDetails.currencyType || "",
-      };
+      });
     });
 
-    // Convert JSON to CSV
-    const csvDataString = await json2csv.json2csvAsync(csvData);
-
-    // Save CSV to file
-    const filePath = path.join(__dirname, "..", "csv_exports", "users.csv");
-
-    // Create directory if it doesn't exist
-    const dirPath = path.dirname(filePath);
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-    }
-
-    fs.writeFileSync(filePath, csvDataString);
+    // End the writable stream
+    csvStream.end();
 
     // Set response headers for file download
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", "attachment; filename=users.csv");
 
     // Send the CSV file as response
-    fs.createReadStream(filePath).pipe(res);
+    fs.createReadStream("users.csv").pipe(res);
   } catch (error) {
     console.error("Error downloading users as CSV:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-// exports.downloadAllUsersAsCSV = async (req, res) => {
-//   try {
-//     const users = await User.find();
-
-//     // Create a writable stream and write headers to the CSV file
-//     const csvStream = fastcsv.format({ headers: true });
-//     const writableStream = fs.createWriteStream("users.csv");
-//     csvStream.pipe(writableStream);
-
-//     // Write each user's data to the CSV file
-//     users.forEach((user) => {
-//       const basicDetails = user.basicDetails[0] || {};
-//       const additionalDetails = user.additionalDetails[0] || {};
-//       const careerDetails = user.careerDetails[0] || {};
-//       const familyDetails = user.familyDetails[0] || {};
-//       const selfDetails = user.selfDetails[0] || {};
-
-//       csvStream.write({
-//         Name: basicDetails.name || "",
-//         Gender: basicDetails.gender || "",
-//         "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
-//         "Place of Birth (State)": basicDetails.placeOfBirthState || "",
-//         "Place of Birth (City)": basicDetails.placeOfBirthCity || "",
-//         "Date of Birth": basicDetails.dateOfBirth || "",
-//         "Time of Birth": basicDetails.timeOfBirth || "",
-//         Age: basicDetails.age || "",
-//         Manglik: basicDetails.manglik || "",
-//         Horoscope: basicDetails.horoscope || "",
-//         Height: additionalDetails.height || "",
-//         Weight: additionalDetails.weight || "",
-//         Email: additionalDetails.email || "",
-//         Contact: additionalDetails.contact || "",
-//         "Personal Appearance": additionalDetails.personalAppearance || "",
-//         "Currently Living In (Country)":
-//           additionalDetails.currentlyLivingInCountry || "",
-//         "Currently Living In (State)":
-//           additionalDetails.currentlyLivingInState || "",
-//         "Currently Living In (City)":
-//           additionalDetails.currentlyLivingInCity || "",
-//         "Country Code": additionalDetails.countryCode || "",
-//         "Relocation in Future": additionalDetails.relocationInFuture || "",
-//         Diet: additionalDetails.diet || "",
-//         Alcohol: additionalDetails.alcohol || "",
-//         Smoking: additionalDetails.smoking || "",
-//         "Marital Status": additionalDetails.maritalStatus || "",
-//         "Highest Education": careerDetails.highestEducation || "",
-//         "Highest Qualification": careerDetails.highestQualification || "",
-//         "School/University": careerDetails["school/university"] || "",
-//         "Passing Year": careerDetails.passingYear || "",
-//         Profession: careerDetails.profession || "",
-//         "Current Designation": careerDetails.currentDesignation || "",
-//         "Previous Occupation": careerDetails.previousOccupation || "",
-//         "Annual Income Value": careerDetails.annualIncomeValue || "",
-//         "Father's Name": familyDetails.fatherName || "",
-//         "Father's Occupation": familyDetails.fatherOccupation || "",
-//         "Mother's Name": familyDetails.motherName || "",
-//         "Mother's Occupation": familyDetails.motherOccupation || "",
-//         Siblings: familyDetails.siblings || "",
-//         "With Family Status": familyDetails.withFamilyStatus || "",
-//         "Family Location (Country)": familyDetails.familyLocationCountry || "",
-//         "Family Location (State)": familyDetails.familyLocationState || "",
-//         "Family Location (City)": familyDetails.familyLocationCity || "",
-//         Religion: familyDetails.religion || "",
-//         Caste: familyDetails.caste || "",
-//         Community: familyDetails.community || "",
-//         "Family Annual Income": familyDetails.familyAnnualIncome || "",
-//         Interests: selfDetails.interests || "",
-//         Fun: selfDetails.fun || "",
-//         Fitness: selfDetails.fitness || "",
-//         Other: selfDetails.other || "",
-//         "Profile Picture": selfDetails.profilePicture || "",
-//         "User Photos": selfDetails.userPhotos || "",
-//         "User Photos URL": selfDetails.userPhotosUrl || "",
-//         "Profile Picture URL": selfDetails.profilePictureUrl || "",
-//         "About Yourself": selfDetails.aboutYourself || "",
-//         "WhatsApp Setting": user.whatsAppSetting || "",
-//         "Email Subscribe": user.emailSubscribe || "",
-//         Gender: user.gender || "",
-//         Category: user.category || "",
-//         "Annual Income Type": careerDetails.currencyType || "",
-//       });
-//     });
-
-//     // End the writable stream
-//     csvStream.end();
-
-//     // Set response headers for file download
-//     res.setHeader("Content-Type", "text/csv");
-//     res.setHeader("Content-Disposition", "attachment; filename=users.csv");
-
-//     // Send the CSV file as response
-//     fs.createReadStream("users.csv").pipe(res);
-//   } catch (error) {
-//     console.error("Error downloading users as CSV:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
 
 exports.downloadUserAsCSV = async (req, res) => {
   const userId = req.params.userId; // Assuming you're passing the userId in the request params
