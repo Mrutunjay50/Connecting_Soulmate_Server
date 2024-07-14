@@ -30,7 +30,7 @@ exports.chatSocket = async (socket) => {
   });
 
   socket.on("ON_CHAT_INITIATED", async (data) => {
-    // console.log(data);
+    console.log(data);
     const messages = await checkAcceptedInterestRequest(data);
     socket.emit("ALL_CHAT_MESSAGES", messages);
   });
@@ -46,7 +46,8 @@ exports.chatSocket = async (socket) => {
 
       const savedMessage = await newMessage.save();
       console.log(data.channelId);
-      socket.emit(`NEW_MESSAGE_ON_${data.channelId.toString()}`, savedMessage);
+      socket.broadcast.emit(`NEW_MESSAGE`, savedMessage);
+      socket.emit(`NEW_MESSAGE`, savedMessage);
       const conversation = await getConversations(data.sender);
       socket.emit("CHAT_LISTING_ON_PAGE", conversation);
     } catch (error) {
@@ -55,27 +56,27 @@ exports.chatSocket = async (socket) => {
     }
   });
 
-  socket.on("seen", async (msgByUserId) => {
-    let conversation = await ConversationModel.findOne({
-      $or: [
-        { sender: user._id, receiver: msgByUserId },
-        { sender: msgByUserId, receiver: user._id },
-      ],
-    });
+  // socket.on("seen", async (msgByUserId) => {
+  //   let conversation = await ConversationModel.findOne({
+  //     $or: [
+  //       { sender: user._id, receiver: msgByUserId },
+  //       { sender: msgByUserId, receiver: user._id },
+  //     ],
+  //   });
 
-    const conversationMessageId = conversation?.messages || [];
+  //   const conversationMessageId = conversation?.messages || [];
 
-    await MessageModel.updateMany(
-      { _id: { $in: conversationMessageId }, msgByUserId: msgByUserId },
-      { $set: { seen: true } }
-    );
+  //   await MessageModel.updateMany(
+  //     { _id: { $in: conversationMessageId }, msgByUserId: msgByUserId },
+  //     { $set: { seen: true } }
+  //   );
 
-    const conversationSender = await getConversation(user._id.toString());
-    const conversationReceiver = await getConversation(msgByUserId);
+  //   const conversationSender = await getConversation(user._id.toString());
+  //   const conversationReceiver = await getConversation(msgByUserId);
 
-    socket.to(user._id.toString()).emit("conversation", conversationSender);
-    socket.to(msgByUserId).emit("conversation", conversationReceiver);
-  });
+  //   socket.to(user._id.toString()).emit("conversation", conversationSender);
+  //   socket.to(msgByUserId).emit("conversation", conversationReceiver);
+  // });
 
   socket.on("disconnect", () => {
     onlineUser.delete(user?._id?.toString());

@@ -10,18 +10,19 @@ const getConversations = async (userId) => {
   }).populate('interestRequestBy interestRequestTo');
 
   if (!acceptedRequests.length) {
-    throw new Error('No accepted interest requests found');
+    // throw new Error('No accepted interest requests found');
+    console.log('no request found for this user')
   }
 
   let conversations = [];
 
   for (const request of acceptedRequests) {
-    const otherUser = request.interestRequestBy._id.toString() === userId ? request.interestRequestTo : request.interestRequestBy;
+    const otherUser = request.interestRequestBy?._id.toString() === userId ? request.interestRequestTo : request.interestRequestBy;
 
     const lastMessage = await MessageModel.findOne({
       $or: [
-        { sender: userId, receiver: otherUser._id },
-        { sender: otherUser._id, receiver: userId }
+        { sender: userId, receiver: otherUser?._id },
+        { sender: otherUser?._id, receiver: userId }
       ]
     }).sort({ createdAt: -1 });
 
