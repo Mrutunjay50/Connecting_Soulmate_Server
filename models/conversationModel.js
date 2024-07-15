@@ -17,6 +17,14 @@ const messageSchema = new mongoose.Schema({
         type : Boolean,
         default : false
     },
+    senderVisible : {
+        type : Boolean,
+        default : true
+    },
+    receiverVisible : {
+        type : Boolean,
+        default : true
+    },
     sender : {
         type : mongoose.Schema.Types.ObjectId,
         required : true,

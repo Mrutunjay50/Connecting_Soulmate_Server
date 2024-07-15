@@ -11,6 +11,7 @@ exports.getNotificationsForUser = async (req, res) => {
 
     const notifications = await Notifications.find({
       $or: [{ notificationTo: userId }, { notificationBy: userId }],
+      notificationType: { $ne: "chatInitiated" }
     })
     .sort({ updatedAt: -1 })
     .skip(skip)

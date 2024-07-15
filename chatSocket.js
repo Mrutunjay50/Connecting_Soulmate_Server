@@ -56,6 +56,99 @@ exports.chatSocket = async (socket) => {
     }
   });
 
+  socket.on("ON_EDIT_MESSAGE", async (data) => {
+    try {
+      console.log(data);
+
+      //edit i need textData and messageId
+
+      // Find the message by ID and update its text
+      const updatedMessage = await MessageModel.findByIdAndUpdate(
+        data.messageId,
+        { text: data.message },
+        { new: true }
+      );
+
+      if (!updatedMessage) {
+        socket.emit("error", { message: "Message not found" });
+        return;
+      }
+
+      console.log(`Message with ID ${data.messageId} updated`);
+
+      // Notify other clients about the update
+      socket.broadcast.emit(`EDIT_MESSAGE`, updatedMessage);
+      socket.emit(`EDIT_MESSAGE`, updatedMessage);
+
+      // Update conversation listing for the sender
+      const conversation = await getConversations(data.sender);
+      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+    } catch (error) {
+      console.error("Error updating message:", error);
+      socket.emit("error", { message: "Error updating message" });
+    }
+  });
+
+  socket.on("ON_DELETE_MESSAGE", async (data) => {
+    try {
+      console.log(data);
+      const { messageId, userId, userType } = data; // userType can be 'sender' or 'receiver'
+
+      // Find the message by ID
+      const message = await MessageModel.findById(messageId);
+
+      if (!message) {
+        socket.emit("error", { message: "Message not found" });
+        return;
+      }
+
+      // Check if the message is the latest one in the conversation
+      const latestMessage = await MessageModel.findOne({
+        $or: [
+          { sender: message.sender, receiver: message.receiver },
+          { sender: message.receiver, receiver: message.sender },
+        ],
+        senderVisible: true,
+        receiverVisible: true,
+      }).sort({ createdAt: -1 });
+
+      const isLatestMessage =
+        latestMessage && latestMessage._id.toString() === messageId;
+
+      if (userType === "sender" && isLatestMessage) {
+        // If the delete request comes from the sender and the message is the latest, delete it completely
+        await MessageModel.findByIdAndRemove(messageId);
+        console.log(
+          `Message with ID ${messageId} deleted completely by sender`
+        );
+      } else {
+        // Otherwise, update the visibility status
+        let update;
+        if (userType === "sender") {
+          update = { senderVisible: false };
+        } else if (userType === "receiver") {
+          update = { receiverVisible: false };
+        } else {
+          socket.emit("error", { message: "Invalid user type" });
+          return;
+        }
+        await MessageModel.findByIdAndUpdate(messageId, update, { new: true });
+        console.log(`Message with ID ${messageId} updated for ${userType}`);
+      }
+
+      // Notify the client about the update
+      socket.emit(`DELETE_MESSAGE`, updatedMessage);
+      socket.broadcast.emit(`DELETE_MESSAGE`, updatedMessage);
+
+      // Fetch updated conversation
+      const conversation = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      socket.emit("error", { message: "Error deleting message" });
+    }
+  });
+
   // socket.on("seen", async (msgByUserId) => {
   //   let conversation = await ConversationModel.findOne({
   //     $or: [
