@@ -17,6 +17,9 @@ const messageSchema = new mongoose.Schema({
         type : Boolean,
         default : false
     },
+    isEdited : {
+        type : Boolean,
+    },
     senderVisible : {
         type : Boolean,
         default : true

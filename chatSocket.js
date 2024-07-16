@@ -60,28 +60,35 @@ exports.chatSocket = async (socket) => {
     try {
       console.log(data);
 
-      //edit i need textData and messageId
+      const { userId, messageId, message } = data;
 
-      // Find the message by ID and update its text
-      const updatedMessage = await MessageModel.findByIdAndUpdate(
-        data.messageId,
-        { text: data.message },
-        { new: true }
-      );
-
-      if (!updatedMessage) {
+      // Find the message by ID
+      const originalMessage = await MessageModel.findById(messageId);
+  
+      if (!originalMessage) {
         socket.emit("error", { message: "Message not found" });
         return;
       }
-
-      console.log(`Message with ID ${data.messageId} updated`);
-
+  
+      // Check if the userId matches the senderId of the message
+      if (originalMessage.sender.toString() !== userId) {
+        socket.emit("error", { message: "You are not authorized to edit this message" });
+        return;
+      }
+  
+      // Update the message text and save
+      originalMessage.text = message;
+      originalMessage.isEdited = true;
+      const updatedMessage = await originalMessage.save();
+  
+      console.log(`Message with ID ${messageId} updated`);
+  
       // Notify other clients about the update
       socket.broadcast.emit(`EDIT_MESSAGE`, updatedMessage);
       socket.emit(`EDIT_MESSAGE`, updatedMessage);
 
       // Update conversation listing for the sender
-      const conversation = await getConversations(data.sender);
+      const conversation = await getConversations(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", conversation);
     } catch (error) {
       console.error("Error updating message:", error);
