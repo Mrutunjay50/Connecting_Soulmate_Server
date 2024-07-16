@@ -7,29 +7,41 @@ const populateNotification = async (notification) => {
     .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
     .populate('notificationTo', 'basicDetails.name userId selfDetails.profilePicture');
 
-  const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
-  populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+  if (populatedNotification.notificationBy?.selfDetails[0]) {
+    const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy.selfDetails[0].profilePicture);
+    populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+  }
 
-  const profilePictureUrlTo = getPublicUrlFromS3(populatedNotification.notificationTo?.selfDetails[0]?.profilePicture);
-  populatedNotification.notificationTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
+  if (populatedNotification.notificationTo?.selfDetails[0]) {
+    const profilePictureUrlTo = getPublicUrlFromS3(populatedNotification.notificationTo.selfDetails[0].profilePicture);
+    populatedNotification.notificationTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
+  }
 
   const formattedNotification = {
-    notificationBy: {
-      ...populatedNotification.notificationBy.toObject(),
-      selfDetails: {
-        ...populatedNotification.notificationBy.selfDetails[0],
-        profilePictureUrl: profilePictureUrlBy,
-      },
-      basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name
-    },
-    notificationTo: {
-      ...populatedNotification.notificationTo.toObject(),
-      selfDetails: {
-        ...populatedNotification.notificationTo.selfDetails[0],
-        profilePictureUrl: profilePictureUrlTo,
-      },
-      basicDetails: populatedNotification.notificationTo?.basicDetails[0]?.name
-    },
+    notificationBy: populatedNotification.notificationBy
+      ? {
+          ...populatedNotification.notificationBy.toObject(),
+          selfDetails: populatedNotification.notificationBy?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationBy.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
+        }
+      : {},
+    notificationTo: populatedNotification.notificationTo
+      ? {
+          ...populatedNotification.notificationTo.toObject(),
+          selfDetails: populatedNotification.notificationTo?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationTo.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationTo.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationTo?.basicDetails[0]?.name || ""
+        }
+      : {},
     notificationText: populatedNotification.notificationText,
     notificationType: populatedNotification.notificationType,
     _id: populatedNotification._id,
@@ -40,21 +52,26 @@ const populateNotification = async (notification) => {
 
 const populateAdminNotification = async (notification) => {
   const populatedNotification = await AdminNotifications.findById(notification._id)
-    .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture')
+    .populate('notificationBy', 'basicDetails.name userId selfDetails.profilePicture');
 
-  const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy?.selfDetails[0]?.profilePicture);
-  populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
-
+  if (populatedNotification.notificationBy?.selfDetails[0]) {
+    const profilePictureUrlBy = getPublicUrlFromS3(populatedNotification.notificationBy.selfDetails[0].profilePicture);
+    populatedNotification.notificationBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+  }
 
   const formattedNotification = {
-    notificationBy: {
-      ...populatedNotification.notificationBy.toObject(),
-      selfDetails: {
-        ...populatedNotification.notificationBy?.selfDetails[0],
-        profilePictureUrl: profilePictureUrlBy,
-      },
-      basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name
-    },
+    notificationBy: populatedNotification.notificationBy
+      ? {
+          ...populatedNotification.notificationBy.toObject(),
+          selfDetails: populatedNotification.notificationBy?.selfDetails[0]
+            ? {
+                ...populatedNotification.notificationBy.selfDetails[0].toObject(),
+                profilePictureUrl: populatedNotification.notificationBy.selfDetails[0].profilePictureUrl,
+              }
+            : {},
+          basicDetails: populatedNotification.notificationBy?.basicDetails[0]?.name || ""
+        }
+      : {},
     notificationText: populatedNotification.notificationText,
     notificationType: populatedNotification.notificationType,
     _id: populatedNotification._id,
