@@ -41,14 +41,14 @@ exports.processUserDetails = async (selfDetails) => {
   
     selfDetails.interestsTypes = interest
       ?.map((item) => item.intrest_name)
-      ?.join(", ");
+      ?.join(", ") || "NA";
     selfDetails.funActivitiesTypes = funActivity
       ?.map((item) => item.funActivity_name)
-      ?.join(", ");
+      ?.join(", ") || "NA";
     selfDetails.fitnessTypes = fitness
       ?.map((item) => item.fitness_name)
-      ?.join(", ");
-    selfDetails.otherTypes = other?.map((item) => item.other_name)?.join(", ");
+      ?.join(", ") || "NA";
+    selfDetails.otherTypes = other?.map((item) => item.other_name)?.join(", ") || "NA";
   
     return selfDetails;
   };

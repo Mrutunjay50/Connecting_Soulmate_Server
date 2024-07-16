@@ -11,6 +11,7 @@ const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
+const BannedUsers = require("../models/bannedUsers");
 
 const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
@@ -168,6 +169,53 @@ exports.softDeleteUser = async (req, res) => {
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
       user,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.banUser = async (req, res) => {
+  try {
+    const { userId, banReason } = req.params;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Store the user's contact number before deleting
+    const contactNumber = user.createdBy[0]?.phone; // Adjust this based on your user schema
+    // Find the banned user document
+    let bannedUser = await BannedUsers.findOne();
+
+    if (bannedUser) {
+      // Add the contact number to the existing document
+      if (!bannedUser.contactNumbers.includes(contactNumber)) {
+        bannedUser.contactNumbers.push(contactNumber);
+      }
+    } else {
+      // Create a new document
+      bannedUser = new BannedUsers({
+        contactNumbers: [contactNumber]
+      });
+    }
+    await bannedUser.save();
+
+    // Delete the user completely
+    await User.findByIdAndDelete(userId);
+
+    await deleteUserRelatedData(userId);
+    const email = user?.additionalDetails?.[0]?.email;
+    const name = user?.basicDetails?.[0]?.name || "user";
+
+    if (email && email.trim() !== "") {
+      await sendDeleteEmailFromAdmin(email, name);
+    }
+
+    res.status(200).json({
+      message: `User ${name} banned successfully and contact number stored`,
     });
   } catch (error) {
     console.error("Error deleting user:", error);
