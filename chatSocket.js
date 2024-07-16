@@ -2,10 +2,8 @@
 const getUserDetailsFromToken = require("./helper/getUserDetailsFromToken");
 const User = require("./models/Users");
 const {
-  ConversationModel,
   MessageModel,
 } = require("./models/conversationModel");
-const getConversation = require("./helper/getConversation");
 const {
   checkAcceptedInterestRequest,
 } = require("./middleware/checkAcceptedInterestRequest");
@@ -37,7 +35,19 @@ exports.chatSocket = async (socket) => {
 
   socket.on("ON_NEW_MESSAGE", async (data) => {
     try {
-      console.log(data);
+      // console.log(data);
+    // Check if there are existing messages between sender and receiver
+      const existingMessage = await MessageModel.findOne({
+        $or: [
+          { sender: data.sender, receiver: data.receiver },
+          { sender: data.receiver, receiver: data.sender },
+        ],
+      });
+      if (!existingMessage) {
+        // Call notification function here if no existing messages
+        // Replace the line below with your notification function call
+        console.log("Calling notification function...");
+      }
       const newMessage = new MessageModel({
         text: data.message,
         sender: data.sender,
@@ -45,7 +55,6 @@ exports.chatSocket = async (socket) => {
       });
 
       const savedMessage = await newMessage.save();
-      console.log(data.channelId);
       socket.broadcast.emit(`NEW_MESSAGE`, savedMessage);
       socket.emit(`NEW_MESSAGE`, savedMessage);
       const conversation = await getConversations(data.sender);

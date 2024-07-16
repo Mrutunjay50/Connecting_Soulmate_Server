@@ -22,7 +22,7 @@ const checkAcceptedInterestRequest = async (data) => {
       return new Error("No accepted interest request found between these users");
     }
 
-    console.log("yes have interest request accepted", interestRequest)
+    console.log("yes have interest request accepted");
     const messages = await MessageModel.find({
       $or: [
         { sender: chatInitiatedBy, receiver: chatInitiatedTo },

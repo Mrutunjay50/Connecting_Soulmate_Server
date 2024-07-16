@@ -11,7 +11,7 @@ exports.getNotificationsForUser = async (req, res) => {
 
     const notifications = await Notifications.find({
       $or: [{ notificationTo: userId }, { notificationBy: userId }],
-      notificationType: { $ne: "chatInitiated" }
+      notificationType: { $nin: ["chatinitiated", "blockedusers", "reported"] }
     })
     .sort({ updatedAt: -1 })
     .skip(skip)
@@ -31,27 +31,40 @@ exports.getNotificationsForUser = async (req, res) => {
 
 exports.getAdminNotificationsForUser = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 100 } = req.query;
     const skip = (page - 1) * limit;
 
     const notifications = await AdminNotifications.find()
       .sort({ updatedAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .populate('notificationBy', 'basicDetails.name userId');
 
-    const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
-      return await populateAdminNotification(notification);
-    }));
-
-    res.status(200).json(populatedNotifications);
+    res.status(200).json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+exports.getAllUsersNotificationsForAdmin = async (req, res) => {
+  try {
+    const { page = 1, limit = 100 } = req.query;
+    const skip = (page - 1) * limit;
 
+    const notifications = await Notifications.find()
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('notificationBy', 'basicDetails.name userId')
+      .populate('notificationTo', 'basicDetails.name userId');
 
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.notificationsSeen = async (req, res) => {
     try {
