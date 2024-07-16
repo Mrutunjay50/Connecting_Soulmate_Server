@@ -30,7 +30,7 @@ const getUserDataWithPagination = async (matchCriteria, page, limit) => {
 exports.getTotalUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -42,7 +42,7 @@ exports.getTotalUsers = async (req, res) => {
 exports.getTotalMaleUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { gender: 'M', accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { gender: 'M', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -54,7 +54,7 @@ exports.getTotalMaleUsers = async (req, res) => {
 exports.getTotalFemaleUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { gender: 'F', accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { gender: 'F', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -66,7 +66,7 @@ exports.getTotalFemaleUsers = async (req, res) => {
 exports.getTotalDeletedUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { isDeleted: true, accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { isDeleted: true, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -78,7 +78,7 @@ exports.getTotalDeletedUsers = async (req, res) => {
 exports.getTotalUsersCategoryA = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { category: /A/, accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { category: /A/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -90,7 +90,7 @@ exports.getTotalUsersCategoryA = async (req, res) => {
 exports.getTotalUsersCategoryB = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { category: /B/, accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { category: /B/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -102,7 +102,7 @@ exports.getTotalUsersCategoryB = async (req, res) => {
 exports.getTotalUsersCategoryC = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { category: /C/, accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { category: /C/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -114,7 +114,7 @@ exports.getTotalUsersCategoryC = async (req, res) => {
 exports.getTotalUsersUnCategorised = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const matchCriteria = { category: "", accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { category: "", accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {
@@ -129,7 +129,7 @@ exports.getTotalActiveUsers = async (req, res) => {
     const currentDate = new Date();
     const pastDate = new Date();
     pastDate.setDate(currentDate.getDate() - 15);
-    const matchCriteria = { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] } };
+    const matchCriteria = { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false };
     const result = await getUserDataWithPagination(matchCriteria, page, limit);
     res.status(200).json(result);
   } catch (error) {

@@ -24,7 +24,7 @@ const profileRequestSchema = mongoose.Schema({
     enum: [true, false],
     default: false,
   },
-});
+}, { timestamps: true });
 
 const interestRequestSchema = mongoose.Schema({
   interestRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
@@ -50,7 +50,7 @@ const interestRequestSchema = mongoose.Schema({
     enum: [true, false],
     default: false,
   },
-});
+}, { timestamps: true });
 
 const ProfileRequests = mongoose.model("profilerequests", profileRequestSchema);
 const InterestRequests = mongoose.model(

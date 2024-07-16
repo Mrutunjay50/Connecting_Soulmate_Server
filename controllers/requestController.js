@@ -235,12 +235,24 @@ exports.getProfileRequestsAccepted = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const result = await getRequests(ProfileRequests, userId, "Profile", "accepted", res, page, limit);
     const requests = await Promise.all(result.requests);
+    // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.profileRequestTo?.selfDetails?.[0]) {
-        item.profileRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
+      if (item?.profileRequestTo?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestTo.selfDetails[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else if (item?.profileRequestTo) {
+        item.profileRequestTo.selfDetails = [{}];
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
-      if (item?.profileRequestBy?.selfDetails?.[0]) {
-        item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
+
+      if (item?.profileRequestBy?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else if (item?.profileRequestBy) {
+        item.profileRequestBy.selfDetails = [{}];
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = "";
       }
     }));
     return res.status(200).json({
@@ -267,11 +279,22 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     const requests = await Promise.all(result.requests);
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.profileRequestTo?.selfDetails?.[0]) {
-        item.profileRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestTo.selfDetails[0].profilePicture);
+      if (item?.profileRequestTo?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestTo.selfDetails[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else if (item?.profileRequestTo) {
+        item.profileRequestTo.selfDetails = [{}];
+        item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
-      if (item?.profileRequestBy?.selfDetails?.[0]) {
-        item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.profileRequestBy.selfDetails[0].profilePicture);
+
+      if (item?.profileRequestBy?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else if (item?.profileRequestBy) {
+        item.profileRequestBy.selfDetails = [{}];
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = "";
       }
     }));
     return res.status(200).json({
@@ -299,12 +322,12 @@ exports.getProfileRequestsSent = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      const profilePicture = item?.profileRequestTo?.selfDetails?.[0]?.profilePicture;
-      if (profilePicture) {
+      if (item?.profileRequestTo?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestTo.selfDetails[0]?.profilePicture;
         const profilePictureUrl = getPublicUrlFromS3(profilePicture);
         item.profileRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
       } else {
-        item.profileRequestTo.selfDetails = item.profileRequestTo.selfDetails || [{}];
+        item.profileRequestTo.selfDetails = [{}];
         item.profileRequestTo.selfDetails[0].profilePictureUrl = "";
       }
     }));
@@ -336,7 +359,14 @@ exports.getProfileRequestsReceived = async (req, res) => {
 
     // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      item.profileRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.profileRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.profileRequestBy?.selfDetails?.length > 0) {
+        const profilePicture = item.profileRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrl = getPublicUrlFromS3(profilePicture);
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrl || "";
+      } else {
+        item.profileRequestBy.selfDetails = [{}];
+        item.profileRequestBy.selfDetails[0].profilePictureUrl = "";
+      }
     }));
 
     return res.status(200).json({
@@ -354,6 +384,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 
@@ -563,15 +594,37 @@ exports.getInterestRequestsAccepted = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const result = await getRequests(InterestRequests, userId, "Interest", "accepted", res, page, limit);
     const requests = await Promise.all(result.requests);
-    // Fetch profile picture URLs for each request
+
     await Promise.all(requests.map(async (item) => {
-      if (item?.interestRequestTo?.selfDetails?.[0]) {
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+      // Handle interestRequestTo
+      if (item?.interestRequestTo?.selfDetails?.length > 0) {
+        const profilePictureTo = item.interestRequestTo.selfDetails[0]?.profilePicture;
+        const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
+      } else {
+        item.interestRequestTo = item.interestRequestTo || {};
+        item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
       }
-      if (item?.interestRequestBy?.selfDetails?.[0]) {
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+
+      // Handle interestRequestBy
+      if (item?.interestRequestBy?.selfDetails?.length > 0) {
+        const profilePictureBy = item.interestRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+      } else {
+        item.interestRequestBy = item.interestRequestBy || {};
+        item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
+
     return res.status(200).json({
       requests,
       totalRequests: result.totalRequests,
@@ -594,15 +647,36 @@ exports.getInterestRequestsDeclined = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const result = await getRequests(InterestRequests, userId, "Interest", "declined", res, page, limit);
     const requests = await Promise.all(result.requests);
-    // Fetch profile picture URLs for each request
     await Promise.all(requests.map(async (item) => {
-      if (item?.interestRequestTo?.selfDetails?.[0]) {
-        item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestTo.selfDetails[0].profilePicture);
+      // Handle interestRequestTo
+      if (item?.interestRequestTo?.selfDetails?.length > 0) {
+        const profilePictureTo = item.interestRequestTo.selfDetails[0]?.profilePicture;
+        const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
+      } else {
+        item.interestRequestTo = item.interestRequestTo || {};
+        item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
       }
-      if (item?.interestRequestBy?.selfDetails?.[0]) {
-        item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item.interestRequestBy.selfDetails[0].profilePicture);
+
+      // Handle interestRequestBy
+      if (item?.interestRequestBy?.selfDetails?.length > 0) {
+        const profilePictureBy = item.interestRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+      } else {
+        item.interestRequestBy = item.interestRequestBy || {};
+        item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
       }
     }));
+
     return res.status(200).json({
       requests,
       totalRequests: result.totalRequests,
@@ -625,10 +699,22 @@ exports.getInterestRequestsSent = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const result = await getPendingRequests(InterestRequests, userId, "Interest", res, false, page, limit);
     const requests = await Promise.all(result.requests);
-    // Fetch profile picture URLs for each request
+
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestTo.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.interestRequestTo?.selfDetails[0]?.profilePicture);
+      if (item?.interestRequestTo?.selfDetails?.length > 0) {
+        const profilePictureTo = item.interestRequestTo.selfDetails[0]?.profilePicture;
+        const profilePictureUrlTo = getPublicUrlFromS3(profilePictureTo);
+        item.interestRequestTo.selfDetails[0].profilePictureUrl = profilePictureUrlTo || "";
+      } else {
+        item.interestRequestTo = item.interestRequestTo || {};
+        item.interestRequestTo.selfDetails = item.interestRequestTo.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestTo.selfDetails.length > 0) {
+          item.interestRequestTo.selfDetails[0].profilePictureUrl = "";
+        }
+      }
     }));
+
     return res.status(200).json({
       requests,
       totalRequests: result.totalRequests,
@@ -653,10 +739,22 @@ exports.getInterestRequestsReceived = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const result = await getPendingRequests(InterestRequests, userId, "Interest", res, true, page, limit);
     const requests = await Promise.all(result.requests);
-    // Fetch profile picture URLs for each request
+
     await Promise.all(requests.map(async (item) => {
-      item.interestRequestBy.selfDetails[0].profilePictureUrl = getPublicUrlFromS3(item?.interestRequestBy?.selfDetails[0]?.profilePicture);
+      if (item?.interestRequestBy?.selfDetails?.length > 0) {
+        const profilePictureBy = item.interestRequestBy.selfDetails[0]?.profilePicture;
+        const profilePictureUrlBy = getPublicUrlFromS3(profilePictureBy);
+        item.interestRequestBy.selfDetails[0].profilePictureUrl = profilePictureUrlBy || "";
+      } else {
+        item.interestRequestBy = item.interestRequestBy || {};
+        item.interestRequestBy.selfDetails = item.interestRequestBy.selfDetails || [{}];
+         // Set profilePictureUrl for the first element safely
+         if (item.interestRequestBy.selfDetails.length > 0) {
+          item.interestRequestBy.selfDetails[0].profilePictureUrl = "";
+        }
+      }
     }));
+
     return res.status(200).json({
       requests,
       totalRequests: result.totalRequests,

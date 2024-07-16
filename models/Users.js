@@ -187,6 +187,9 @@ const userSchema = mongoose.Schema(
     isNotification : {
       type: Boolean,
     },
+    declinedOn : {
+      type: Date
+    },
     reviewReason : {
       type: String,
       default: "", 

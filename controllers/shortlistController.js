@@ -106,14 +106,14 @@ exports.addToShortlist = async (req, res) => {
         const user = JSON.parse(JSON.stringify(users));
 
         // Fetch additional data for users
-        const communityIds = user.map(user => user.shortlistedUser.familyDetails[0]?.community);
-        const professionIds = user.map(user => user.shortlistedUser.careerDetails[0]?.profession);
-        const dietIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.diet);
-        const countryIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCountry);
-        const stateIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInState);
-        const borncountryIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthCountry);
-        const bornstateIds = user.map(user => user.shortlistedUser.basicDetails[0]?.placeOfBirthState);
-        const cityIds = user.map(user => user.shortlistedUser.additionalDetails[0]?.currentlyLivingInCity);
+        const communityIds = user?.map(user => user?.shortlistedUser?.familyDetails[0]?.community);
+        const professionIds = user?.map(user => user?.shortlistedUser?.careerDetails[0]?.profession);
+        const dietIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.diet);
+        const countryIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInCountry);
+        const stateIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInState);
+        const borncountryIds = user?.map(user => user?.shortlistedUser?.basicDetails[0]?.placeOfBirthCountry);
+        const bornstateIds = user?.map(user => user?.shortlistedUser?.basicDetails[0]?.placeOfBirthState);
+        const cityIds = user?.map(user => user?.shortlistedUser?.additionalDetails[0]?.currentlyLivingInCity);
 
         const [
             communities, professions, diets, countries, bornCoutnry, bornState, states, cities,
@@ -134,9 +134,14 @@ exports.addToShortlist = async (req, res) => {
         ]);
 
         const promises = user.map(async (user) => {
-            const userIdString = String(user.shortlistedUser._id);
-            const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
-            user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+            let userIdString = String(user.shortlistedUser?._id);
+            if (user.shortlistedUser && user.shortlistedUser.selfDetails && user.shortlistedUser.selfDetails[0]) {
+              userIdString = String(user.shortlistedUser._id);
+              const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
+              if (user.shortlistedUser.selfDetails.length > 0) {
+                user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+              }
+            }
 
             if (user.shortlistedUser.familyDetails && user.shortlistedUser.familyDetails[0]?.community) {
                 const communityData = communities.find(community => community.community_id === user.shortlistedUser.familyDetails[0]?.community);

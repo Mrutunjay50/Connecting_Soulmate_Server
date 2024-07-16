@@ -18,7 +18,7 @@ const shortlistedSchema = mongoose.Schema({
     enum: [true, false],
     default : false
   },
-});
+}, { timestamps: true });
 
 const ShortList = mongoose.model("Shortlist", shortlistedSchema);
 

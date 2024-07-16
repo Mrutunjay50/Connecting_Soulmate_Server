@@ -1,5 +1,6 @@
 const fs = require("fs");
-const fastcsv = require("fast-csv");
+const path = require("path");
+const json2csv = require("json2csv").parse;
 const {
   getAggregationPipelineForUsers,
 } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
@@ -43,22 +44,25 @@ exports.updateRegistrationPhase = async (req, res) => {
         user?.selfDetails?.length > 0 &&
         user?.additionalDetails?.length > 0 &&
         user?.careerDetails?.length > 0 &&
-        user?.familyDetails?.length > 0 &&
-        user?.additionalDetails[0]?.email
+        user?.familyDetails?.length > 0
+        // user?.additionalDetails[0]?.email
       ) {
         user.registrationPhase = registrationPhase;
         user.registrationPage = "";
         user.approvedAt = new Date().toISOString();
-        
-        await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+        if(user?.additionalDetails[0].email){
+          await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
+        }
       }else {
-        return res.status(403).json({message: `Contact the user as some data might be missing and might have missing email`});
+        return res.status(403).json({message: `Some data on respective registration pages might be missing`});
       }
     } else {
       // user.registrationPhase = "deleted"; //this will be added when the review functionality will be added;
       user.registrationPage = "1";
       user.registrationPhase = "rejected";
       user.category = "";
+      // Set the declinedOn date to the current date
+      user.declinedOn = new Date();
       if (
         user?.additionalDetails?.length > 0 &&
         user?.additionalDetails[0]?.email
@@ -272,39 +276,39 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       {
         $facet: {
           totalUsers: [
-            { $match: { accessType: { $nin: ["0", "1"] } } },
+            { $match: { accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalMaleUsers: [
-            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] } } },
+            { $match: { gender: 'M', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalFemaleUsers: [
-            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] } } },
+            { $match: { gender: 'F', accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalDeletedUsers: [
-            { $match: { isDeleted: true, accessType: { $nin: ["0", "1"] } } },
+            { $match: { isDeleted: true, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved" } },
             { $count: "count" }
           ],
           totalUsersCategoryA: [
-            { $match: { category: /A/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /A/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersCategoryB: [
-            { $match: { category: /B/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /B/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersCategoryC: [
-            { $match: { category: /C/, accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: /C/, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalUsersUnCategorised: [
-            { $match: { category: "", accessType: { $nin: ["0", "1"] } } },
+            { $match: { category: "", accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
           totalActiveUsers: [
-            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] } } },
+            { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
         }
@@ -353,26 +357,25 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
 };
 
 
-
 exports.downloadAllUsersAsCSV = async (req, res) => {
   try {
-    const users = await User.find();
+    let query = {
+      registrationPhase: "approved",
+      accessType: { $ne: "0" },
+      name: { $ne: "" },
+      isDeleted : false
+    };
+    const users = await User.find(query);
 
-    // Create a writable stream and write headers to the CSV file
-    const csvStream = fastcsv.format({ headers: true });
-    const writableStream = fs.createWriteStream("users.csv");
-    csvStream.pipe(writableStream);
-
-    // Write each user's data to the CSV file
-    users.forEach((user) => {
+    // Prepare data for CSV
+    const csvData = users.map((user) => {
       const basicDetails = user.basicDetails[0] || {};
       const additionalDetails = user.additionalDetails[0] || {};
       const careerDetails = user.careerDetails[0] || {};
       const familyDetails = user.familyDetails[0] || {};
       const selfDetails = user.selfDetails[0] || {};
-      const partnerPreference = user.partnerPreference[0] || {};
 
-      csvStream.write({
+      return {
         Name: basicDetails.name || "",
         Gender: basicDetails.gender || "",
         "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
@@ -432,27 +435,49 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
         "About Yourself": selfDetails.aboutYourself || "",
         "WhatsApp Setting": user.whatsAppSetting || "",
         "Email Subscribe": user.emailSubscribe || "",
-        "Partner Preference": JSON.stringify(partnerPreference) || "",
         Gender: user.gender || "",
         Category: user.category || "",
-        "Registration Phase": user.registrationPhase || "",
-        "Registration Page": user.registerationPage || "",
-        "Annual Income Type": user.annualIncomeType || "",
-      });
+        "Annual Income Type": careerDetails.currencyType || "",
+      };
     });
 
-    // End the writable stream
-    csvStream.end();
+    const csvDataString = json2csv(csvData, {
+      fields: [
+        "Name", "Gender", "Place of Birth (Country)", "Place of Birth (State)", "Place of Birth (City)",
+        "Date of Birth", "Time of Birth", "Age", "Manglik", "Horoscope", "Height", "Weight", "Email",
+        "Contact", "Personal Appearance", "Currently Living In (Country)", "Currently Living In (State)",
+        "Currently Living In (City)", "Country Code", "Relocation in Future", "Diet", "Alcohol", "Smoking",
+        "Marital Status", "Highest Education", "Highest Qualification", "School/University", "Passing Year",
+        "Profession", "Current Designation", "Previous Occupation", "Annual Income Value", "Father's Name",
+        "Father's Occupation", "Mother's Name", "Mother's Occupation", "Siblings", "With Family Status",
+        "Family Location (Country)", "Family Location (State)", "Family Location (City)", "Religion", "Caste",
+        "Community", "Family Annual Income", "Interests", "Fun", "Fitness", "Other", "Profile Picture",
+        "User Photos", "User Photos URL", "Profile Picture URL", "About Yourself", "WhatsApp Setting",
+        "Email Subscribe", "Gender", "Category", "Annual Income Type"
+      ]
+    });
 
-    // Set response headers for file download
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=users.csv");
+    const folderPath = path.join(__dirname, "..", "csv");
+    const filePath = path.join(folderPath, "users.csv");
 
-    // Send the CSV file as response
-    fs.createReadStream("users.csv").pipe(res);
+    // Ensure the folder exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+
+    // Save the CSV data to a file
+    fs.writeFileSync(filePath, csvDataString);
+
+    // Send the CSV file as a response
+    res.download(filePath, filePath, (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
   } catch (error) {
     console.error("Error downloading users as CSV:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -736,8 +761,9 @@ exports.getAllUsers = async (req, res, next) => {
     const { page, limit, search } = req.query;
     const adminId = req.user._id;
     let query = { 
-      registrationPhase: { $in: ["approved", "notapproved", "rejected", "registering"] },
-      _id: { $ne: adminId }, // Exclude users with _id matching adminId
+      registrationPhase: "approved",
+      _id: { $ne: adminId }, // Exclude users with _id matching adminId,
+      isDeleted : false,
       accessType: { $ne: "0" },
       name: { $ne: "" }
     };
