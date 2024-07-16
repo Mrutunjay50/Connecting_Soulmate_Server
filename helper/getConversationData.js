@@ -36,8 +36,6 @@ const getConversations = async (userId) => {
     });
   }
 
-  // console.log(conversations);
-
   return conversations;
 };
 

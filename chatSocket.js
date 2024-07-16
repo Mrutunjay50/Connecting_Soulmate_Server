@@ -115,16 +115,17 @@ exports.chatSocket = async (socket) => {
           { sender: message.sender, receiver: message.receiver },
           { sender: message.receiver, receiver: message.sender },
         ],
-        senderVisible: true,
-        receiverVisible: true,
       }).sort({ createdAt: -1 });
 
       const isLatestMessage =
         latestMessage && latestMessage._id.toString() === messageId;
-
+        
+      let updatedMessage;
+      let isToBeDeleted = false;
       if (userType === "sender" && isLatestMessage) {
         // If the delete request comes from the sender and the message is the latest, delete it completely
-        await MessageModel.findByIdAndRemove(messageId);
+        updatedMessage = await MessageModel.findByIdAndDelete(messageId);
+        isToBeDeleted = true;
         console.log(
           `Message with ID ${messageId} deleted completely by sender`
         );
@@ -139,13 +140,13 @@ exports.chatSocket = async (socket) => {
           socket.emit("error", { message: "Invalid user type" });
           return;
         }
-        await MessageModel.findByIdAndUpdate(messageId, update, { new: true });
+        updatedMessage = await MessageModel.findByIdAndUpdate(messageId, update, { new: true });
         console.log(`Message with ID ${messageId} updated for ${userType}`);
       }
 
       // Notify the client about the update
-      socket.emit(`DELETE_MESSAGE`, updatedMessage);
-      socket.broadcast.emit(`DELETE_MESSAGE`, updatedMessage);
+      socket.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
+      socket.broadcast.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
 
       // Fetch updated conversation
       const conversation = await getConversations(userId);
