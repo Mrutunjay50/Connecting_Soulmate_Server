@@ -1,6 +1,7 @@
-const { populateNotification, populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
+const { populateNotification, populateAdminNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
+const io = require("../socket");
 // const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 
 exports.getNotificationsForUser = async (req, res) => {
@@ -79,5 +80,47 @@ exports.notificationsSeen = async (req, res) => {
     } catch (error) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
+
+
+  exports.sendAndCreateNotification = async (senderId, receiverId, notificationType) => {
+    try {
+      if (!["chatinitiated", "blockedusers", "reported"].includes(notificationType)) {
+        throw new Error("Invalid notification type");
+      }
+  
+      // Create or update notification for the receiver
+      const notification = await Notification.findOneAndUpdate(
+        {
+          notificationTo: receiverId,
+          notificationBy: senderId,
+          notificationType: notificationType,
+        },
+        {
+          notificationTo: receiverId,
+          notificationBy: senderId,
+          notificationText: `You have received a ${notificationType.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()} notification from user ${senderId}`,
+          notificationType: notificationType,
+        },
+        {
+          new: true, // Return the updated document
+          upsert: true, // Create the document if it doesn't exist
+          setDefaultsOnInsert: true, // Apply default values if creating
+        }
+      );
+  
+      // Find all admin users
+      const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+      const adminIds = admins.map(admin => admin._id);
+      const formattedNotification = await populateNotificationOfUsersForAdmin(notification);
+      // Emit the notification to the receiver and all admins
+      // io.getIO().emit(`notification/${receiverId}`, formattedNotification);
+      adminIds.forEach(adminId => {
+        io.getIO().emit(`notification/${adminId}`, formattedNotification);
+      });
+  
+    } catch (error) {
+      console.error('Error sending notification:', error);
     }
   };

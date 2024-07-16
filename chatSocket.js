@@ -8,6 +8,7 @@ const {
   checkAcceptedInterestRequest,
 } = require("./middleware/checkAcceptedInterestRequest");
 const { getConversations } = require("./helper/getConversationData");
+const { sendAndCreateNotification } = require("./controllers/notificationController");
 
 exports.chatSocket = async (socket) => {
   const onlineUser = new Set();
@@ -45,7 +46,7 @@ exports.chatSocket = async (socket) => {
       });
       if (!existingMessage) {
         // Call notification function here if no existing messages
-        // Replace the line below with your notification function call
+        await sendAndCreateNotification(data.sender, data.receiver, 'chatinitiated');
         console.log("Calling notification function...");
       }
       const newMessage = new MessageModel({
