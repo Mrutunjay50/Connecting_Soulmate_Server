@@ -170,7 +170,6 @@ exports.chatSocket = async (socket) => {
   socket.on("ON_MESSAGE_SEEN", async (data) => {
     try {
       const { userId, messageId } = data;
-  
       // Find the message by its ID and update its seen flag
       const updatedMessage = await MessageModel.findOneAndUpdate(
         { _id: messageId, receiver : userId },
