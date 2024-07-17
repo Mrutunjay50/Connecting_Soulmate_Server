@@ -167,27 +167,32 @@ exports.chatSocket = async (socket) => {
     }
   });
 
-  // socket.on("seen", async (msgByUserId) => {
-  //   let conversation = await ConversationModel.findOne({
-  //     $or: [
-  //       { sender: user._id, receiver: msgByUserId },
-  //       { sender: msgByUserId, receiver: user._id },
-  //     ],
-  //   });
+  socket.on("ON_MESSAGE_SEEN", async (data) => {
+    try {
+      const { userId, messageId } = data;
+  
+      // Find the message by its ID and update its seen flag
+      const updatedMessage = await MessageModel.findOneAndUpdate(
+        { _id: messageId, receiver : userId },
+        { $set: { seen: true } },
+        { new: true }
+      );
+  
+      if (!updatedMessage) {
+        throw new Error("Message not found");
+      }
+  
+      // Emit the updated conversations back to both users
+      socket.emit("ON_SEEN", updatedMessage);
+      socket.broadcast.emit("ON_SEEN", updatedMessage);
 
-  //   const conversationMessageId = conversation?.messages || [];
-
-  //   await MessageModel.updateMany(
-  //     { _id: { $in: conversationMessageId }, msgByUserId: msgByUserId },
-  //     { $set: { seen: true } }
-  //   );
-
-  //   const conversationSender = await getConversation(user._id.toString());
-  //   const conversationReceiver = await getConversation(msgByUserId);
-
-  //   socket.to(user._id.toString()).emit("conversation", conversationSender);
-  //   socket.to(msgByUserId).emit("conversation", conversationReceiver);
-  // });
+      // Fetch updated conversation
+      const conversation = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+    } catch (error) {
+      console.error("Error updating seen status:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     onlineUser.delete(user?._id?.toString());
