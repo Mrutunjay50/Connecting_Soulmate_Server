@@ -1,4 +1,5 @@
 const User = require("../models/Users");
+const BannedUsers = require("../models/bannedUsers");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 
 
@@ -177,3 +178,37 @@ exports.getSuccessfulMarriages = async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   };
+
+  exports.getBannedUsers = async (req, res) => {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+  
+      const pageNumber = parseInt(page, 10);
+      const pageSize = parseInt(limit, 10);
+  
+      // Fetch all banned users
+      const totalRecords = await BannedUsers.countDocuments();
+      const totalPages = Math.ceil(totalRecords / pageSize);
+      const startIndex = (pageNumber - 1) * pageSize;
+  
+      const bannedUsers = await BannedUsers.find()
+        .skip(startIndex)
+        .limit(pageSize)
+        .select('userId name contact bannedReason gender');
+  
+      res.status(200).json({
+        bannedUsers,
+        totalRecords,
+        totalPages,
+        currentPage: pageNumber,
+        hasNextPage: startIndex + pageSize < totalRecords,
+        hasPreviousPage: startIndex > 0,
+        nextPage: pageNumber + 1,
+        previousPage: pageNumber - 1
+      });
+    } catch (error) {
+      console.error('Error fetching banned users:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  

@@ -9,6 +9,7 @@ const {
   downloadAllUsersAsCSV,
   downloadUserAsCSV,
   getUserImageInBase64ByIdForAdmin,
+  banUser,
 } = require("../controllers/admin");
 // getUserPDFForAdmin,
 // reviewRequest,
@@ -23,6 +24,7 @@ module.exports = (app) => {
   // app.put("/review-user-data/:userId", isAdmin, reviewRequest);
   app.put("/admin-notifications", isAdmin, getAdminNotificationsForUser);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
+  app.post("/ban-user", isAdmin, banUser);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   // app.get("/download-single-user-data/pdf/:userId", generatePDF);
   app.get("/userLogo-base64/pdf/:userId", getUserImageInBase64ByIdForAdmin);

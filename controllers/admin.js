@@ -182,7 +182,7 @@ exports.softDeleteUser = async (req, res) => {
 
 exports.banUser = async (req, res) => {
   try {
-    const { userId, banReason } = req.params;
+    const { userId, banReason } = req.body;
     let user = await User.findById(userId);
 
     if (!user) {
@@ -191,28 +191,34 @@ exports.banUser = async (req, res) => {
 
     // Store the user's contact number before deleting
     const contactNumber = user.createdBy[0]?.phone; // Adjust this based on your user schema
+    const name = user?.basicDetails?.[0]?.name || "user";
+    const gender = user?.basicDetails?.[0]?.gender || "";
+    const email = user?.additionalDetails?.[0]?.email;
+
     // Find the banned user document
-    let bannedUser = await BannedUsers.findOne();
+    let bannedUser = await BannedUsers.findOne({ contact: contactNumber });
 
     if (bannedUser) {
-      // Add the contact number to the existing document
-      if (!bannedUser.contactNumbers.includes(contactNumber)) {
-        bannedUser.contactNumbers.push(contactNumber);
-      }
+      // If bannedUser is found, no need to update contactNumber again since it's already included
+      res.status(200).json({
+        message: `User ${bannedUser.name} already banned`,
+      });
     } else {
       // Create a new document
       bannedUser = new BannedUsers({
-        contactNumbers: [contactNumber]
+        name: name,
+        contact: contactNumber,
+        userId: userId,
+        bannedReason: banReason || "",
+        gender: gender,
       });
     }
+
     await bannedUser.save();
 
     // Delete the user completely
     await User.findByIdAndDelete(userId);
-
     await deleteUserRelatedData(userId);
-    const email = user?.additionalDetails?.[0]?.email;
-    const name = user?.basicDetails?.[0]?.name || "user";
 
     if (email && email.trim() !== "") {
       await sendDeleteEmailFromAdmin(email, name);
@@ -332,6 +338,8 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
     const successfulMarriageRecord = await SuccessfulMarriage.findOne();
     const totalSuccessfulMarriages = successfulMarriageRecord ? successfulMarriageRecord.count : 0;
 
+    const totalBannedUsers = await BannedUsers.countDocuments();
+
     // console.log("----------------");
     // console.timeEnd('getUserStatisticsForAdmin'); // End timing
     // console.log("----------------");
@@ -348,7 +356,8 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       totalUsersCategoryC: stats.totalUsersCategoryC || 0,
       totalUsersUnCategorised: stats.totalUsersUnCategorised || 0,
       totalActiveUsers: stats.totalActiveUsers || 0,
-      totalSuccessfulMarriages: totalSuccessfulMarriages || 0
+      totalSuccessfulMarriages: totalSuccessfulMarriages || 0,
+      totalBannedUsers: totalBannedUsers || 0,
     });
   } catch (error) {
     console.error("Error fetching user statistics:", error);
