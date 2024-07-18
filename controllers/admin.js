@@ -202,7 +202,7 @@ exports.banUser = async (req, res) => {
 
     if (bannedUser) {
       // If bannedUser is found, no need to update contactNumber again since it's already included
-      res.status(200).json({
+      return res.status(200).json({
         message: `User ${bannedUser.name} already banned`,
       });
     } else {
@@ -227,7 +227,7 @@ exports.banUser = async (req, res) => {
       await sendBannedEmailFromAdmin(email, name, banReason);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `User ${name} banned successfully and contact number stored`,
     });
   } catch (error) {
