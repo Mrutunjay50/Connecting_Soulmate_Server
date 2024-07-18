@@ -195,6 +195,11 @@ const signupController = async (req, res) => {
     };
 
     createdFor = mapFrontendToEnum[createdFor] || null;
+    // Check if the user is in the banned list
+    const bannedUser = await BannedUsers.findOne({ contact: phone });
+    if (bannedUser) {
+      return res.status(403).json({ message: "This number is banned can't sigup with this number" });
+    }
     // Check if user already exists with the provided phone number
     const existingUser = await User.findOne({ "createdBy.phone": phone });
     if (existingUser) {
