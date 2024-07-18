@@ -224,7 +224,7 @@ exports.banUser = async (req, res) => {
     io.getIO().emit(`DELETE_TOKEN_FOR_USER/${userId}`, { "message": "number changed login again" });
 
     if (email && email.trim() !== "") {
-      await sendBannedEmailFromAdmin(email, name, reason);
+      await sendBannedEmailFromAdmin(email, name, banReason);
     }
 
     res.status(200).json({
