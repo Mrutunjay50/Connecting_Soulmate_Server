@@ -7,7 +7,7 @@ const {
 // const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
-const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
+const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendBannedEmailFromAdmin, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
@@ -223,7 +223,7 @@ exports.banUser = async (req, res) => {
     io.getIO().emit(`DELETE_TOKEN_FOR_USER/${userId}`, { "message": "number changed login again" });
 
     if (email && email.trim() !== "") {
-      await sendDeleteEmailFromAdmin(email, name);
+      await sendBannedEmailFromAdmin(email, name, reason);
     }
 
     res.status(200).json({

@@ -7,6 +7,7 @@ const User = require("../models/Users");
 // const { UserDetail } = require("otpless-node-js-auth-sdk");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { getAggregationPipelineForUsers } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
+const BannedUsers = require("../models/bannedUsers");
 
 // const client_id = process.env.CLIENT_ID;
 // const client_secret = process.env.CLIENT_SECRET;
@@ -22,6 +23,13 @@ const signinController = async (req, res) => {
     // const user = await UserDetail.verifyCode(code, client_id, client_secret);
     // console.log(user);
     // const num = user.name;
+
+    // Check if the user is in the banned list
+    const bannedUser = await BannedUsers.findOne({ contact: num });
+    if (bannedUser) {
+      return res.status(403).json({ message: "You are banned" });
+    }
+
     const existingUser = await User.findOne({
       "createdBy.phone": num,
     });
