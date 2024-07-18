@@ -264,7 +264,7 @@ exports.sendDeleteEmailFromAdmin = async (userEmail, name) => {
 };
 exports.sendBannedEmailFromAdmin = async (userEmail, name, reason) => {
   const subject = "Profile Blocked by Admin - Connecting Soulmate";
-  const htmlContent = getEmailTemplate("banProfileByAdmin", [], name, reason);
+  const htmlContent = getEmailTemplate("banProfileByAdmin", [], name, "", reason);
 
   await sendUserEmail({ to: userEmail, subject, htmlContent });
 };
