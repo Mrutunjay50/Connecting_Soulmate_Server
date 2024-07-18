@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const io = require("../socket");
 const {InterestRequests} = require('../models/interests');
 const { MessageModel } = require('../models/conversationModel');
 const { getPublicUrlFromS3 } = require('../utils/s3Utils');
@@ -36,6 +37,7 @@ const getConversations = async (userId) => {
     });
   }
 
+  io.getIO().emit(`CHAT_LIST/${userId}`, conversations);
   return conversations;
 };
 

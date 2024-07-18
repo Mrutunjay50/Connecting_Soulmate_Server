@@ -10,22 +10,42 @@ const {
 const { getConversations } = require("./helper/getConversationData");
 const { sendAndCreateNotification } = require("./controllers/notificationController");
 
+const onlineUsers = new Map();
+
 exports.chatSocket = async (socket) => {
-  const onlineUser = new Set();
-  const token = socket.handshake.auth.token || "";
-  const user = await getUserDetailsFromToken(token);
-  if (user) {
-    socket.user = user; // Store user in socket for later use
-    socket.join(user?._id?.toString());
-    onlineUser.add(user?._id?.toString());
-  } else {
-    new Error("Authentication error");
-    console.log("nakko no user here");
-  }
+  socket.on("ONLINE", async (userId) => {
+    onlineUsers.set(userId, socket.id);
+    socket.broadcast.emit("USER_ONLINE", userId);
+    // socket.emit("USER_ONLINE", userId);
+    console.log(`${userId} connected: ${socket.id}`);
+  });
+
+  socket.on("OFFLINE", (userId) => {
+    onlineUsers.delete(userId);
+    socket.broadcast.emit("USER_OFFLINE", userId);
+    // socket.emit("USER_OFFLINE", userId);
+    console.log(`${userId} disconnected: ${socket.id}`);
+  });
+
+  socket.on("disconnect", () => {
+    let disconnectedUserId;
+    for (let [userId, id] of onlineUsers) {
+      if (id === socket.id) {
+        disconnectedUserId = userId;
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+    if (disconnectedUserId) {
+      socket.broadcast.emit("USER_OFFLINE", disconnectedUserId);
+      socket.emit("USER_OFFLINE", disconnectedUserId);
+      console.log(`${disconnectedUserId} disconnected: ${socket.id}`);
+    }
+  });
 
   socket.on("ON_CHAT_PAGE", async (userId) => {
-    const data = await getConversations(userId);
-    socket.emit("CHAT_LISTING_ON_PAGE", data);
+      const data = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", data);
   });
 
   socket.on("ON_CHAT_INITIATED", async (data) => {
@@ -58,6 +78,11 @@ exports.chatSocket = async (socket) => {
       const savedMessage = await newMessage.save();
       socket.broadcast.emit(`NEW_MESSAGE`, savedMessage);
       socket.emit(`NEW_MESSAGE`, savedMessage);
+
+      // Update conversation listing for the sender and receiver
+      const otherUserIdConversation = await getConversations(data.receiver);
+      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
+
       const conversation = await getConversations(data.sender);
       socket.emit("CHAT_LISTING_ON_PAGE", conversation);
     } catch (error) {
@@ -97,9 +122,13 @@ exports.chatSocket = async (socket) => {
       socket.broadcast.emit(`EDIT_MESSAGE`, updatedMessage);
       socket.emit(`EDIT_MESSAGE`, updatedMessage);
 
+      // Update conversation listing for the sender and receiver
+      const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
+      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
+
       // Update conversation listing for the sender
-      const conversation = await getConversations(userId);
-      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+      const userIdConversation = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error updating message:", error);
       socket.emit("error", { message: "Error updating message" });
@@ -158,9 +187,13 @@ exports.chatSocket = async (socket) => {
       socket.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
       socket.broadcast.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
 
+      // Update conversation listing for the sender and receiver
+      const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
+      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
+
       // Fetch updated conversation
-      const conversation = await getConversations(userId);
-      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+      const userIdConversation = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error deleting message:", error);
       socket.emit("error", { message: "Error deleting message" });
@@ -186,15 +219,12 @@ exports.chatSocket = async (socket) => {
       socket.broadcast.emit("ON_SEEN", updatedMessage);
 
       // Fetch updated conversation
-      const conversation = await getConversations(userId);
-      socket.emit("CHAT_LISTING_ON_PAGE", conversation);
+      const otherIdConversation = await getConversations(updatedMessage.sender);
+      socket.emit("CHAT_LISTING_ON_PAGE", otherIdConversation);
+      const userIdConversation = await getConversations(userId);
+      socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error updating seen status:", error);
     }
-  });
-
-  socket.on("disconnect", () => {
-    onlineUser.delete(user?._id?.toString());
-    console.log("User disconnected:", socket.id);
   });
 };
