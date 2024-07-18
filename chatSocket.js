@@ -81,7 +81,6 @@ exports.chatSocket = async (socket) => {
 
       // Update conversation listing for the sender and receiver
       const otherUserIdConversation = await getConversations(data.receiver);
-      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
 
       const conversation = await getConversations(data.sender);
       socket.emit("CHAT_LISTING_ON_PAGE", conversation);
@@ -124,7 +123,6 @@ exports.chatSocket = async (socket) => {
 
       // Update conversation listing for the sender and receiver
       const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
-      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
 
       // Update conversation listing for the sender
       const userIdConversation = await getConversations(userId);
@@ -189,7 +187,6 @@ exports.chatSocket = async (socket) => {
 
       // Update conversation listing for the sender and receiver
       const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
-      socket.emit("CHAT_LISTING_ON_PAGE", otherUserIdConversation);
 
       // Fetch updated conversation
       const userIdConversation = await getConversations(userId);
@@ -220,7 +217,7 @@ exports.chatSocket = async (socket) => {
 
       // Fetch updated conversation
       const otherIdConversation = await getConversations(updatedMessage.sender);
-      socket.emit("CHAT_LISTING_ON_PAGE", otherIdConversation);
+
       const userIdConversation = await getConversations(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
