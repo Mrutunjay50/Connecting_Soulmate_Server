@@ -194,7 +194,8 @@ exports.banUser = async (req, res) => {
     const contactNumber = user.createdBy[0]?.phone; // Adjust this based on your user schema
     const name = user?.basicDetails?.[0]?.name || "user";
     const gender = user?.basicDetails?.[0]?.gender || "";
-    const email = user?.additionalDetails?.[0]?.email;
+    const email = user?.additionalDetails?.[0]?.email || "";
+    const userIdentityId = user?.basicDetails?.[0]?.userId || "";
 
     // Find the banned user document
     let bannedUser = await BannedUsers.findOne({ contact: contactNumber });
@@ -209,7 +210,7 @@ exports.banUser = async (req, res) => {
       bannedUser = new BannedUsers({
         name: name,
         contact: contactNumber,
-        userId: userId,
+        userId: userIdentityId,
         bannedReason: banReason || "",
         gender: gender,
       });
