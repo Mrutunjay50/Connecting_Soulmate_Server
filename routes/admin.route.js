@@ -16,6 +16,7 @@ const {
 const { getAdminNotificationsForUser } = require("../controllers/notificationController");
 const { isAdmin } = require("../middleware/is_auth");
 const { updateAllUsersAnnualIncomeUSD } = require("../controllers/testing");
+const { getReportedIssues } = require("../controllers/reportController");
 // const { generatePDF } = require("../helper/generatePDF");
 
 module.exports = (app) => {
@@ -33,5 +34,6 @@ module.exports = (app) => {
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);
   app.get("/get-user-data-admin", isAdmin, getAllPendingUsersForAdmin);
   app.get("/get-all-user-data-admin", isAdmin, getAllUsers);
+  app.get("/get-all-reports", isAdmin, getReportedIssues);
   app.put("/admin-update-income",updateAllUsersAnnualIncomeUSD );
 };

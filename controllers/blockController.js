@@ -1,6 +1,8 @@
 const BlockedUser = require('../models/blockedUser');
+const { MessageModel } = require('../models/conversationModel');
 const { InterestRequests, ProfileRequests } = require('../models/interests');
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
+const Notifications = require('../models/notifications');
 const ShortList = require('../models/shortlistUsers');
 const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 
@@ -25,7 +27,11 @@ exports.blockUser = async (req, res) => {
       InterestRequests.deleteMany({ interestRequestBy: blockBy, interestRequestTo: blockUserId }),
       InterestRequests.deleteMany({ interestRequestBy: blockUserId, interestRequestTo: blockBy }),
       ShortList.deleteMany({ user: blockBy, shortlistedUser: blockUserId }),
-      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy })
+      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy }),
+      MessageModel.deleteMany({ receiver: blockBy, sender: blockUserId}),
+      MessageModel.deleteMany({ receiver: blockUserId, sender: blockBy}),
+      Notifications.deleteMany({ notificationTo: blockBy, notificationBy: blockUserId}),
+      Notifications.deleteMany({ notificationTo: blockUserId, notificationBy: blockBy})
     ]);
 
     // Create a new blocked user entry
