@@ -59,7 +59,6 @@ async function startServer() {
     },
   });
   io.on("connection", async (socket) => {
-    console.log(socket.id)
     await chatSocket(socket);
   });
 

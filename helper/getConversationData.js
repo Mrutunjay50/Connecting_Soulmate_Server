@@ -37,7 +37,6 @@ const getConversations = async (userId) => {
     });
   }
 
-  io.getIO().emit(`CHAT_LIST/${userId}`, conversations);
   return conversations;
 };
 
