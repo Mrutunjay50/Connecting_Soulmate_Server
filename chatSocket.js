@@ -12,17 +12,28 @@ const { sendAndCreateNotification } = require("./controllers/notificationControl
 
 const onlineUsers = new Map();
 
+const getConversationsWithOnlineStatus = async (userId) => {
+  const conversations = await getConversations(userId);
+  return conversations.map(conversation => {
+    const isOnline = onlineUsers.has(conversation._id.toString());
+    return {
+      ...conversation,
+      isOnline,
+    };
+  });
+};
+
 exports.chatSocket = async (socket) => {
   socket.on("ONLINE", async (userId) => {
     onlineUsers.set(userId, socket.id);
-    socket.broadcast.emit("USER_ONLINE", userId);
+    socket.broadcast.emit("USER_ONLINE");
     // socket.emit("USER_ONLINE", userId);
     console.log(`${userId} connected: ${socket.id}`);
   });
 
   socket.on("OFFLINE", (userId) => {
     onlineUsers.delete(userId);
-    socket.broadcast.emit("USER_OFFLINE", userId);
+    socket.broadcast.emit("USER_OFFLINE");
     // socket.emit("USER_OFFLINE", userId);
     console.log(`${userId} disconnected: ${socket.id}`);
   });
@@ -44,7 +55,7 @@ exports.chatSocket = async (socket) => {
   });
 
   socket.on("ON_CHAT_PAGE", async (userId) => {
-      const data = await getConversations(userId);
+      const data = await getConversationsWithOnlineStatus(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", data);
   });
 
@@ -80,9 +91,9 @@ exports.chatSocket = async (socket) => {
       socket.emit(`NEW_MESSAGE`, savedMessage);
 
       // Update conversation listing for the sender and receiver
-      const otherUserIdConversation = await getConversations(data.receiver);
+      const otherUserIdConversation = await getConversationsWithOnlineStatus(data.receiver);
 
-      const conversation = await getConversations(data.sender);
+      const conversation = await getConversationsWithOnlineStatus(data.sender);
       socket.emit("CHAT_LISTING_ON_PAGE", conversation);
     } catch (error) {
       console.error("Error creating new message:", error);
@@ -122,10 +133,10 @@ exports.chatSocket = async (socket) => {
       socket.emit(`EDIT_MESSAGE`, updatedMessage);
 
       // Update conversation listing for the sender and receiver
-      const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
+      const otherUserIdConversation = await getConversationsWithOnlineStatus(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
 
       // Update conversation listing for the sender
-      const userIdConversation = await getConversations(userId);
+      const userIdConversation = await getConversationsWithOnlineStatus(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error updating message:", error);
@@ -186,10 +197,10 @@ exports.chatSocket = async (socket) => {
       socket.broadcast.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
 
       // Update conversation listing for the sender and receiver
-      const otherUserIdConversation = await getConversations(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
+      const otherUserIdConversation = await getConversationsWithOnlineStatus(updatedMessage.receiver === userId ? updatedMessage.sender : updatedMessage.reciever);
 
       // Fetch updated conversation
-      const userIdConversation = await getConversations(userId);
+      const userIdConversation = await getConversationsWithOnlineStatus(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error deleting message:", error);
@@ -216,9 +227,9 @@ exports.chatSocket = async (socket) => {
       socket.broadcast.emit("ON_SEEN", updatedMessage);
 
       // Fetch updated conversation
-      const otherIdConversation = await getConversations(updatedMessage.sender);
+      const otherIdConversation = await getConversationsWithOnlineStatus(updatedMessage.sender);
 
-      const userIdConversation = await getConversations(userId);
+      const userIdConversation = await getConversationsWithOnlineStatus(userId);
       socket.emit("CHAT_LISTING_ON_PAGE", userIdConversation);
     } catch (error) {
       console.error("Error updating seen status:", error);
