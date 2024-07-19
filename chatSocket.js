@@ -55,13 +55,13 @@ exports.chatSocket = async (socket) => {
 
   socket.on("ON_CHAT_PAGE", async (userId) => {
       const data = await getConversationsWithOnlineStatus(userId);
-      console.log("ON_CHAT_PAGE", data);
+      // console.log("ON_CHAT_PAGE", data);
       socket.emit("CHAT_LISTING_ON_PAGE", data);
   });
 
   socket.on("ON_CHAT_INITIATED", async (data) => {
     const messages = await checkAcceptedInterestRequest(data);
-    console.log("ON_CHAT_INITIATED", data);
+    // console.log("ON_CHAT_INITIATED", data);
     socket.emit("ALL_CHAT_MESSAGES", messages);
   });
 
@@ -93,16 +93,10 @@ exports.chatSocket = async (socket) => {
         socket.to(onlineUsers.get(data.receiver)).emit(`NEW_MESSAGE`, savedMessage);
       }
 
-      // Update conversation listing for the sender and receiver
-      // const otherUserIdConversation = await getConversationsWithOnlineStatus(data.receiver);
-
-      // const conversation = await getConversationsWithOnlineStatus(data.sender);
-      // socket.emit("CHAT_LISTING_ON_PAGE", conversation);
-
       // Fetch and emit updated conversation list to both users
       const senderConversations = await getConversationsWithOnlineStatus(data.sender);
       const receiverConversations = await getConversationsWithOnlineStatus(data.receiver);
-      console.log("NEW_MESSAGE", senderConversations, receiverConversations);
+      // console.log("NEW_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(data.receiver)) {
         socket.to(onlineUsers.get(data.receiver)).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
@@ -140,7 +134,6 @@ exports.chatSocket = async (socket) => {
       console.log(`Message with ID ${messageId} updated`);
   
       // Notify other clients about the update
-      // socket.broadcast.emit(`EDIT_MESSAGE`, updatedMessage);
       socket.emit(`EDIT_MESSAGE`, updatedMessage);
       if (onlineUsers.has(originalMessage.receiver.toString())) {
         socket.to(onlineUsers.get(originalMessage.receiver.toString())).emit(`EDIT_MESSAGE`, updatedMessage);
@@ -148,7 +141,7 @@ exports.chatSocket = async (socket) => {
 
       const senderConversations = await getConversationsWithOnlineStatus(userId);
       const receiverConversations = await getConversationsWithOnlineStatus(originalMessage.receiver);
-      console.log("ON_EDIT_MESSAGE", senderConversations, receiverConversations);
+      // console.log("ON_EDIT_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(originalMessage.receiver.toString())) {
         socket.to(onlineUsers.get(originalMessage.receiver.toString())).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
@@ -209,14 +202,12 @@ exports.chatSocket = async (socket) => {
 
       // Notify the client about the update
       socket.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
-      // socket.broadcast.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
       if (onlineUsers.has(message.receiver.toString())) {
         socket.to(onlineUsers.get(message.receiver.toString())).emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
       }
 
       const senderConversations = await getConversationsWithOnlineStatus(userId);
       const receiverConversations = await getConversationsWithOnlineStatus(message.receiver);
-      console.log("ON_DELETE_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(message.receiver.toString())) {
         socket.to(onlineUsers.get(message.receiver.toString())).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
@@ -229,10 +220,10 @@ exports.chatSocket = async (socket) => {
 
   socket.on("ON_MESSAGE_SEEN", async (data) => {
     try {
-      const { userId, messageId } = data;
+      const { receiverId, messageId, senderId } = data;
       // Find the message by its ID and update its seen flag
       const updatedMessage = await MessageModel.findOneAndUpdate(
-        { _id: messageId, receiver : userId },
+        { _id: messageId, receiver : receiverId },
         { $set: { seen: true } },
         { new: true }
       );
@@ -242,24 +233,23 @@ exports.chatSocket = async (socket) => {
       }
   
       // Emit the updated conversations back to both users
-      // socket.emit("ON_SEEN", updatedMessage);
-      // socket.broadcast.emit("ON_SEEN", updatedMessage);
-      if (onlineUsers.has(updatedMessage.sender.toString())) {
-        socket.to(onlineUsers.get(updatedMessage.sender.toString())).emit("ON_SEEN", updatedMessage);
+      if (onlineUsers.has(senderId)) {
+        socket.to(onlineUsers.get(senderId)).emit("ON_SEEN", updatedMessage);
       }
-      if (onlineUsers.has(updatedMessage.receiver.toString())) {
-        socket.to(onlineUsers.get(updatedMessage.receiver.toString())).emit("ON_SEEN", updatedMessage);
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit("ON_SEEN", updatedMessage);
       }
+      socket.emit("ON_SEEN", updatedMessage);
 
       // Fetch and emit updated conversation list to both users
-      const userIdConversations = await getConversationsWithOnlineStatus(updatedMessage.receiver);
-      const senderConversations = await getConversationsWithOnlineStatus(updatedMessage.sender);
+      const userIdConversations = await getConversationsWithOnlineStatus(receiverId);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId);
       console.log("ON_MESSAGE_SEEN", senderConversations, userIdConversations);
-      if (onlineUsers.has(updatedMessage.receiver.toString())) {
-        socket.to(onlineUsers.get(updatedMessage.receiver.toString())).emit("CHAT_LISTING_ON_PAGE", userIdConversations);
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit("CHAT_LISTING_ON_PAGE", userIdConversations);
       }
-      if (onlineUsers.has(updatedMessage.sender.toString())) {
-        socket.to(onlineUsers.get(updatedMessage.sender.toString())).emit("CHAT_LISTING_ON_PAGE", senderConversations);
+      if (onlineUsers.has(senderId)) {
+        socket.to(onlineUsers.get(senderId)).emit("CHAT_LISTING_ON_PAGE", senderConversations);
       }
     } catch (error) {
       console.error("Error updating seen status:", error);
