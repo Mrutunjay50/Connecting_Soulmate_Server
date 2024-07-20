@@ -8,7 +8,15 @@ exports.getNotificationsForUser = async (req, res) => {
   try {
     const userId = req.params.userId;
     const { page = 1, limit = 100 } = req.query;
-    const skip = (page - 1) * limit;
+    
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * pageSize;
+
+    const totalRecords = await Notifications.countDocuments({
+      $or: [{ notificationTo: userId }, { notificationBy: userId }],
+      notificationType: { $nin: ["chatinitiated", "blockedusers", "reported"] }
+    });
 
     const notifications = await Notifications.find({
       $or: [{ notificationTo: userId }, { notificationBy: userId }],
@@ -16,56 +24,102 @@ exports.getNotificationsForUser = async (req, res) => {
     })
     .sort({ updatedAt: -1 })
     .skip(skip)
-    .limit(parseInt(limit));
+    .limit(pageSize);
 
     const populatedNotifications = await Promise.all(notifications.map(async (notification) => {
       return await populateNotification(notification);
     }));
 
-    res.status(200).json(populatedNotifications);
+    const totalPages = Math.ceil(totalRecords / pageSize);
+
+    res.status(200).json({
+      notifications: populatedNotifications,
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      hasNextPage: skip + pageSize < totalRecords,
+      hasPreviousPage: skip > 0,
+      nextPage: pageNumber + 1,
+      previousPage: pageNumber - 1
+    });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 exports.getAdminNotificationsForUser = async (req, res) => {
   try {
     const { page = 1, limit = 100 } = req.query;
-    const skip = (page - 1) * limit;
+    
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * pageSize;
+
+    const totalRecords = await AdminNotifications.countDocuments();
 
     const notifications = await AdminNotifications.find()
       .sort({ updatedAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(pageSize)
       .populate('notificationBy', 'basicDetails.name userId');
 
-    res.status(200).json(notifications);
+    const totalPages = Math.ceil(totalRecords / pageSize);
+
+    res.status(200).json({
+      notifications,
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      hasNextPage: skip + pageSize < totalRecords,
+      hasPreviousPage: skip > 0,
+      nextPage: pageNumber + 1,
+      previousPage: pageNumber - 1
+    });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 exports.getAllUsersNotificationsForAdmin = async (req, res) => {
   try {
     const { page = 1, limit = 100 } = req.query;
-    const skip = (page - 1) * limit;
+    
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * pageSize;
+
+    const totalRecords = await Notifications.countDocuments();
 
     const notifications = await Notifications.find()
       .sort({ updatedAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(pageSize)
       .populate('notificationBy', 'basicDetails.name userId')
       .populate('notificationTo', 'basicDetails.name userId');
 
-    res.status(200).json(notifications);
+    const totalPages = Math.ceil(totalRecords / pageSize);
+
+    res.status(200).json({
+      notifications,
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      hasNextPage: skip + pageSize < totalRecords,
+      hasPreviousPage: skip > 0,
+      nextPage: pageNumber + 1,
+      previousPage: pageNumber - 1
+    });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 exports.notificationsSeen = async (req, res) => {
     try {
