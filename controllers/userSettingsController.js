@@ -11,6 +11,8 @@ const SuccessfulMarriage = require("../models/successFullMarraige");
 const { sendDeleteEmail, sendChangeRegistrationEmail } = require("../helper/emailGenerator/emailHelper");
 const { City, State, Proffesion } = require("../models/masterSchemas");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
+const AdminNotifications = require("../models/adminNotification");
+const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
 function formatName(name) {
@@ -112,7 +114,7 @@ exports.subscribeEveryFifteenDays = async (req, res) => {
       }
 };
 
-exports.notificationStatus = async (req, res) => {
+exports.notificationStatusUserType = async (req, res) => {
     try {
         const { userId, isValue } = req.body;
     
@@ -123,6 +125,28 @@ exports.notificationStatus = async (req, res) => {
         }
     
         user.isNotification = isValue;
+    
+        await user.save();
+    
+        res.status(200).json({ message: "notification status updated" });
+      } catch (error) {
+        console.error("Error updating notification status :", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+};
+
+
+exports.notificationStatusAdminType = async (req, res) => {
+    try {
+        const { userId, isValue } = req.body;
+    
+        // Find the user by userId
+        const user = await User.findById(userId);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+    
+        user.isAdminNotification = isValue;
     
         await user.save();
     
@@ -411,8 +435,32 @@ exports.reApprovalRequest = async (req, res) => {
     user.registrationPage = "6"
     // Save the updated user
     await user.save();
-
     res.status(200).json({ message: "Profile resent for approval successfully" });
+    const notification = await AdminNotifications.findOneAndUpdate(
+      {
+        notificationBy: userId,
+        notificationType: "reapproval",
+      },
+      {
+        notificationBy: userId,
+        notificationType: "reapproval",
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create the document if it doesn't exist
+        setDefaultsOnInsert: true // Apply default values if creating
+      }
+    );
+
+    const formattedNotification = await populateAdminNotification(notification);
+    // Find all admin users
+    const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+    const adminIds = admins.map(admin => admin._id);
+    // Emit the notification to all admins
+    adminIds.forEach(adminId => {
+      io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
+    });
+
   } catch (error) {
     console.error("Error deleting profile:", error);
     res.status(500).json({ error: "Internal Server Error" });

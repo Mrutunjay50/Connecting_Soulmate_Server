@@ -77,9 +77,11 @@ exports.registerUser = async (req, res) => {
       const notification = await AdminNotifications.findOneAndUpdate(
         {
           notificationBy: userId,
+          notificationType: "approval",
         },
         {
           notificationBy: userId,
+          notificationType: "approval",
         },
         {
           new: true, // Return the updated document
@@ -94,7 +96,7 @@ exports.registerUser = async (req, res) => {
       const adminIds = admins.map(admin => admin._id);
       // Emit the notification to all admins
       adminIds.forEach(adminId => {
-        io.getIO().emit(`notification/${adminId}`, formattedNotification);
+        io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
       });
       await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }

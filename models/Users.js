@@ -187,6 +187,9 @@ const userSchema = mongoose.Schema(
     isNotification : {
       type: Boolean,
     },
+    isAdminNotification : {
+      type: Boolean,
+    },
     declinedOn : {
       type: Date
     },
