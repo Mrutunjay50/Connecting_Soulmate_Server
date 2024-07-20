@@ -72,20 +72,6 @@ exports.registerUser = async (req, res) => {
     await user.save();
 
     if(page === "6" && type === "add"){
-      // Find users with accessType 0 or 1 and select only the email field
-      // const Admins = await User.find(
-      //   { accessType: { $in: [0, 1] } },
-      //   { "additionalDetails.email": 1 }
-      // );
-
-      // Send approval emails to each user's email address
-      // const approvalPromises = Admins.map(async (user) => {
-      //   const email = user.additionalDetails[0]?.email;
-      //   if (email) {
-      //     await sendApprovalRequestToAdmin(email);
-      //   }
-      // });
-      // await Promise.all(approvalPromises);
       // for notifications
       // Create or update notification for profile request sent
       const notification = await AdminNotifications.findOneAndUpdate(
@@ -103,8 +89,13 @@ exports.registerUser = async (req, res) => {
       );
 
       const formattedNotification = await populateAdminNotification(notification);
-
-      io.getIO().emit(`notification/Admin`, formattedNotification);
+      // Find all admin users
+      const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+      const adminIds = admins.map(admin => admin._id);
+      // Emit the notification to all admins
+      adminIds.forEach(adminId => {
+        io.getIO().emit(`notification/${adminId}`, formattedNotification);
+      });
       await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }
 

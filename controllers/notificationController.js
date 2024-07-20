@@ -114,8 +114,7 @@ exports.notificationsSeen = async (req, res) => {
       const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
       const adminIds = admins.map(admin => admin._id);
       const formattedNotification = await populateNotificationOfUsersForAdmin(notification);
-      // Emit the notification to the receiver and all admins
-      // io.getIO().emit(`notification/${receiverId}`, formattedNotification);
+      // Emit the notification to all admins
       adminIds.forEach(adminId => {
         io.getIO().emit(`notification/${adminId}`, formattedNotification);
       });

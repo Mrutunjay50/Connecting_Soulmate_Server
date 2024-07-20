@@ -37,6 +37,7 @@ exports.blockUser = async (req, res) => {
     // Create a new blocked user entry
     const blockedUser = new BlockedUser({ blockedBy: blockBy, blockedUser: blockUserId });
     await blockedUser.save();
+    await sendAndCreateNotification(blockBy, blockUserId, 'blockedusers');
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
   } catch (err) {

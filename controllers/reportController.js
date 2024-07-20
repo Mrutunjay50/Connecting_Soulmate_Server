@@ -1,4 +1,5 @@
 const Report = require("../models/reports");
+const { sendAndCreateNotification } = require("./notificationController");
 
 exports.reportUser = async (req, res) => {
     try {
@@ -16,8 +17,8 @@ exports.reportUser = async (req, res) => {
       });
   
       await report.save();
-  
-      res.status(200).json({ message: "User reported successfully", report });
+      await sendAndCreateNotification(reportedBy, reportedOne, 'reported');
+      return res.status(200).json({ message: "User reported successfully", report });
     } catch (err) {
       console.log(err);
       res.status(500).json({ error: "Internal Server Error", err });
