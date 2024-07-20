@@ -228,7 +228,7 @@ exports.chatSocket = async (socket) => {
         { $set: { seen: true } }
       );
 
-      if (updateResult.nModified === 0) {
+      if (updateResult.modifiedCount === 0) {
         throw new Error("No messages found to update");
       }
       // Find the message by its ID and update its seen flag
@@ -239,7 +239,7 @@ exports.chatSocket = async (socket) => {
         seen: true,
       })
       .sort({ updatedAt: -1 }) // Sort by updated time in descending order
-      .limit(updateResult.nModified); // Limit to the number of messages that were updated
+      .limit(updateResult.modifiedCount); // Limit to the number of messages that were updated
   
       // Emit the updated conversations back to both users
       if (onlineUsers.has(senderId)) {
