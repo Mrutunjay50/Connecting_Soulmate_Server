@@ -15,7 +15,6 @@ exports.chatSocket = async (socket) => {
   socket.on("ONLINE", async (userId) => {
     socket.join(userId);
     onlineUsers.set(userId, socket.id);
-    await updateLastLogin(userId, "logged in");
     socket.broadcast.emit("USER_ONLINE");
     console.log(`${userId} connected: ${socket.id}`);
   });
@@ -221,26 +220,35 @@ exports.chatSocket = async (socket) => {
 
   socket.on("ON_MESSAGE_SEEN", async (data) => {
     try {
-      const { receiverId, messageId, senderId } = data;
-      // Find the message by its ID and update its seen flag
-      const updatedMessage = await MessageModel.findOneAndUpdate(
-        { _id: messageId, receiver : receiverId },
-        { $set: { seen: true } },
-        { new: true }
+      const { receiverId, senderId } = data;
+
+          // Find all messages between sender and receiver that are not seen and update their seen flag
+      const updateResult = await MessageModel.updateMany(
+        { sender: senderId, receiver: receiverId, seen: false },
+        { $set: { seen: true } }
       );
-  
-      if (!updatedMessage) {
-        throw new Error("Message not found");
+
+      if (updateResult.nModified === 0) {
+        throw new Error("No messages found to update");
       }
+      // Find the message by its ID and update its seen flag
+      // Fetch only the messages that were just updated
+      const updatedMessages = await MessageModel.find({
+        sender: senderId,
+        receiver: receiverId,
+        seen: true,
+      })
+      .sort({ updatedAt: -1 }) // Sort by updated time in descending order
+      .limit(updateResult.nModified); // Limit to the number of messages that were updated
   
       // Emit the updated conversations back to both users
       if (onlineUsers.has(senderId)) {
-        socket.to(onlineUsers.get(senderId)).emit("ON_SEEN", updatedMessage);
+        socket.to(onlineUsers.get(senderId)).emit("ON_SEEN", updatedMessages);
       }
       if (onlineUsers.has(receiverId)) {
-        socket.to(onlineUsers.get(receiverId)).emit("ON_SEEN", updatedMessage);
+        socket.to(onlineUsers.get(receiverId)).emit("ON_SEEN", updatedMessages);
       }
-      socket.emit("ON_SEEN", updatedMessage);
+      socket.emit("ON_SEEN", updatedMessages);
 
       // Fetch and emit updated conversation list to both users
       const userIdConversations = await getConversationsWithOnlineStatus(receiverId, onlineUsers);

@@ -5,7 +5,7 @@ const User = require("../models/Users");
 exports.getUserDashboard = async (req, res) => {
   try {
     const {userId} = req.params;
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
     if(!user){
       return res.status(404).json({ message: "User not found" });
     }
@@ -52,8 +52,6 @@ exports.getUserDashboard = async (req, res) => {
         user : userId
     });
 
-    const lastLogin = user?.lastLogin
-
     res.status(200).json({
       interestRequestsByUser,
       interestRequestsToUser,
@@ -62,7 +60,7 @@ exports.getUserDashboard = async (req, res) => {
       acceptedProfileRequests,
       acceptedInterestRequests,
       shortListed,
-      lastLogin
+      lastLoggedIn : user?.lastLogin
     });
   } catch (error) {
     console.error(error);
