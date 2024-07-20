@@ -1,9 +1,15 @@
 const { ProfileRequests, InterestRequests } = require("../models/interests");
 const ShortList = require("../models/shortlistUsers");
+const User = require("../models/Users");
 
 exports.getUserDashboard = async (req, res) => {
   try {
-    const {userId} = req.params; // Assuming you have user information in the request object
+    const {userId} = req.params;
+    const user = User.findById(userId);
+    if(!user){
+      return res.status(404).json({ message: "User not found" });
+    }
+     // Assuming you have user information in the request object
 
     // Count interest requests where the user is the requester and action is pending
     const interestRequestsByUser = await InterestRequests.countDocuments({
@@ -46,6 +52,8 @@ exports.getUserDashboard = async (req, res) => {
         user : userId
     });
 
+    const lastLogin = user?.lastLogin
+
     res.status(200).json({
       interestRequestsByUser,
       interestRequestsToUser,
@@ -53,7 +61,8 @@ exports.getUserDashboard = async (req, res) => {
       profileRequestsToUser,
       acceptedProfileRequests,
       acceptedInterestRequests,
-      shortListed
+      shortListed,
+      lastLogin
     });
   } catch (error) {
     console.error(error);

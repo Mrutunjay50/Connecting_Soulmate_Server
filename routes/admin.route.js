@@ -26,8 +26,8 @@ module.exports = (app) => {
   app.put("/admin-notifications", isAdmin, getAdminNotificationsForUser);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
   app.post("/ban-user", isAdmin, banUser);
-  app.get("/admin-notification-data/:userId", isAdmin, getAdminNotificationsForUser);
-  app.get("/admin-user-notification-data/:userId", isAdmin, getAllUsersNotificationsForAdmin);
+  app.get("/admin-notification-data", isAdmin, getAdminNotificationsForUser);
+  app.get("/admin-user-notification-data", isAdmin, getAllUsersNotificationsForAdmin);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   // app.get("/download-single-user-data/pdf/:userId", generatePDF);
   app.get("/userLogo-base64/pdf/:userId", getUserImageInBase64ByIdForAdmin);

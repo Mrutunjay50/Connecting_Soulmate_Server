@@ -1,5 +1,4 @@
 // chatSocket.js
-const getUserDetailsFromToken = require("./helper/getUserDetailsFromToken");
 const User = require("./models/Users");
 const {
   MessageModel,
@@ -7,33 +6,24 @@ const {
 const {
   checkAcceptedInterestRequest,
 } = require("./middleware/checkAcceptedInterestRequest");
-const { getConversations } = require("./helper/getConversationData");
 const { sendAndCreateNotification } = require("./controllers/notificationController");
+const { getConversationsWithOnlineStatus, updateLastLogin, getUnseenMessages } = require("./helper/socketHelperMethods/socketHelpers");
 
 const onlineUsers = new Map();
-
-const getConversationsWithOnlineStatus = async (userId) => {
-  const conversations = await getConversations(userId);
-  return conversations.map(conversation => {
-    const isOnline = onlineUsers.has(conversation._id.toString());
-    return {
-      ...conversation,
-      isOnline,
-    };
-  });
-};
 
 exports.chatSocket = async (socket) => {
   socket.on("ONLINE", async (userId) => {
     socket.join(userId);
     onlineUsers.set(userId, socket.id);
+    await updateLastLogin(userId, "logged in");
     socket.broadcast.emit("USER_ONLINE");
     console.log(`${userId} connected: ${socket.id}`);
   });
 
-  socket.on("OFFLINE", (userId) => {
+  socket.on("OFFLINE", async (userId) => {
     onlineUsers.delete(userId);
     socket.broadcast.emit("USER_OFFLINE");
+    await updateLastLogin(userId, "logged out");
     console.log(`${userId} disconnected: ${socket.id}`);
   });
 
@@ -54,7 +44,7 @@ exports.chatSocket = async (socket) => {
   });
 
   socket.on("ON_CHAT_PAGE", async (userId) => {
-      const data = await getConversationsWithOnlineStatus(userId);
+      const data = await getConversationsWithOnlineStatus(userId, onlineUsers);
       // console.log("ON_CHAT_PAGE", data);
       socket.emit("CHAT_LISTING_ON_PAGE", data);
   });
@@ -65,9 +55,17 @@ exports.chatSocket = async (socket) => {
     socket.emit("ALL_CHAT_MESSAGES", messages);
   });
 
+  socket.on("UNSEEN_MESSAGES", async (userId) => {
+    try {
+      const unseenMessagesCount = await getUnseenMessages(userId);
+      socket.emit("UNSEEN_MESSAGES", unseenMessagesCount);
+    } catch (error) {
+      console.error("Error fetching unseen messages:", error);
+    }
+  });
+
   socket.on("ON_NEW_MESSAGE", async (data) => {
     try {
-      // console.log(data);
     // Check if there are existing messages between sender and receiver
       const existingMessage = await MessageModel.findOne({
         $or: [
@@ -94,8 +92,8 @@ exports.chatSocket = async (socket) => {
       }
 
       // Fetch and emit updated conversation list to both users
-      const senderConversations = await getConversationsWithOnlineStatus(data.sender);
-      const receiverConversations = await getConversationsWithOnlineStatus(data.receiver);
+      const senderConversations = await getConversationsWithOnlineStatus(data.sender, onlineUsers);
+      const receiverConversations = await getConversationsWithOnlineStatus(data.receiver, onlineUsers);
       // console.log("NEW_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(data.receiver)) {
@@ -139,8 +137,8 @@ exports.chatSocket = async (socket) => {
         socket.to(onlineUsers.get(receiverId)).emit(`EDIT_MESSAGE`, updatedMessage);
       }
 
-      const senderConversations = await getConversationsWithOnlineStatus(senderId);
-      const receiverConversations = await getConversationsWithOnlineStatus(receiverId);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId, onlineUsers);
+      const receiverConversations = await getConversationsWithOnlineStatus(receiverId, onlineUsers);
       // console.log("ON_EDIT_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(receiverId)) {
@@ -154,7 +152,6 @@ exports.chatSocket = async (socket) => {
 
   socket.on("ON_DELETE_MESSAGE", async (data) => {
     try {
-      // console.log(data);
       const { senderId, receiverId, messageId, userType } = data; // userType can be 'sender' or 'receiver'
 
       console.log(messageId, senderId, receiverId, userType)
@@ -210,8 +207,8 @@ exports.chatSocket = async (socket) => {
         socket.to(onlineUsers.get(senderId)).emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
       }
 
-      const senderConversations = await getConversationsWithOnlineStatus(senderId);
-      const receiverConversations = await getConversationsWithOnlineStatus(receiverId);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId, onlineUsers);
+      const receiverConversations = await getConversationsWithOnlineStatus(receiverId, onlineUsers);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
       if (onlineUsers.has(receiverId)) {
         socket.to(onlineUsers.get(receiverId)).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
@@ -246,8 +243,8 @@ exports.chatSocket = async (socket) => {
       socket.emit("ON_SEEN", updatedMessage);
 
       // Fetch and emit updated conversation list to both users
-      const userIdConversations = await getConversationsWithOnlineStatus(receiverId);
-      const senderConversations = await getConversationsWithOnlineStatus(senderId);
+      const userIdConversations = await getConversationsWithOnlineStatus(receiverId, onlineUsers);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId, onlineUsers);
       console.log("ON_MESSAGE_SEEN", senderConversations, userIdConversations);
       if (onlineUsers.has(receiverId)) {
         socket.to(onlineUsers.get(receiverId)).emit("CHAT_LISTING_ON_PAGE", userIdConversations);
