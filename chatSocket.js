@@ -110,7 +110,7 @@ exports.chatSocket = async (socket) => {
   socket.on("ON_EDIT_MESSAGE", async (data) => {
     try {
 
-      const { userId, messageId, message } = data;
+      const { senderId, receiverId, messageId, message } = data;
 
       // Find the message by ID
       const originalMessage = await MessageModel.findById(messageId);
@@ -120,8 +120,8 @@ exports.chatSocket = async (socket) => {
         return;
       }
   
-      // Check if the userId matches the senderId of the message
-      if (originalMessage.sender.toString() !== userId) {
+      // Check if the senderId matches the senderId of the message
+      if (originalMessage.sender.toString() !== senderId) {
         socket.emit("error", { message: "You are not authorized to edit this message" });
         return;
       }
@@ -135,16 +135,16 @@ exports.chatSocket = async (socket) => {
   
       // Notify other clients about the update
       socket.emit(`EDIT_MESSAGE`, updatedMessage);
-      if (onlineUsers.has(originalMessage.receiver.toString())) {
-        socket.to(onlineUsers.get(originalMessage.receiver.toString())).emit(`EDIT_MESSAGE`, updatedMessage);
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit(`EDIT_MESSAGE`, updatedMessage);
       }
 
-      const senderConversations = await getConversationsWithOnlineStatus(userId);
-      const receiverConversations = await getConversationsWithOnlineStatus(originalMessage.receiver);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId);
+      const receiverConversations = await getConversationsWithOnlineStatus(receiverId);
       // console.log("ON_EDIT_MESSAGE", senderConversations, receiverConversations);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
-      if (onlineUsers.has(originalMessage.receiver.toString())) {
-        socket.to(onlineUsers.get(originalMessage.receiver.toString())).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
       }
     } catch (error) {
       console.error("Error updating message:", error);
@@ -155,8 +155,9 @@ exports.chatSocket = async (socket) => {
   socket.on("ON_DELETE_MESSAGE", async (data) => {
     try {
       // console.log(data);
-      const { messageId, userId, userType } = data; // userType can be 'sender' or 'receiver'
+      const { senderId, receiverId, messageId, userType } = data; // userType can be 'sender' or 'receiver'
 
+      console.log(messageId, senderId, receiverId, userType)
       // Find the message by ID
       const message = await MessageModel.findById(messageId);
 
@@ -202,15 +203,18 @@ exports.chatSocket = async (socket) => {
 
       // Notify the client about the update
       socket.emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
-      if (onlineUsers.has(message.receiver.toString())) {
-        socket.to(onlineUsers.get(message.receiver.toString())).emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
+      }
+      if (onlineUsers.has(senderId)) {
+        socket.to(onlineUsers.get(senderId)).emit(`DELETE_MESSAGE`, { ...updatedMessage.toObject(), isToBeDeleted });
       }
 
-      const senderConversations = await getConversationsWithOnlineStatus(userId);
-      const receiverConversations = await getConversationsWithOnlineStatus(message.receiver);
+      const senderConversations = await getConversationsWithOnlineStatus(senderId);
+      const receiverConversations = await getConversationsWithOnlineStatus(receiverId);
       socket.emit("CHAT_LISTING_ON_PAGE", senderConversations);
-      if (onlineUsers.has(message.receiver.toString())) {
-        socket.to(onlineUsers.get(message.receiver.toString())).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
+      if (onlineUsers.has(receiverId)) {
+        socket.to(onlineUsers.get(receiverId)).emit("CHAT_LISTING_ON_PAGE", receiverConversations);
       }
     } catch (error) {
       console.error("Error deleting message:", error);
