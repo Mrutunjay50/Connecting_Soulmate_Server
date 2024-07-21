@@ -1,4 +1,5 @@
 const { populateNotification, populateAdminNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
+const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
 const io = require("../socket");
@@ -165,13 +166,9 @@ exports.notificationsSeen = async (req, res) => {
       );
   
       // Find all admin users
-      const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
-      const adminIds = admins.map(admin => admin._id);
       const formattedNotification = await populateNotificationOfUsersForAdmin(notification);
-      // Emit the notification to all admins
-      adminIds.forEach(adminId => {
-        io.getIO().emit(`notification/${adminId}`, formattedNotification);
-      });
+      sendNotificationToAdmins(formattedNotification);
+      // // Emit the notification to all admins
   
     } catch (error) {
       console.log('Error sending notification:', error);
