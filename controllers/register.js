@@ -98,10 +98,19 @@ exports.registerUser = async (req, res) => {
       adminIds.forEach(adminId => {
         io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
       });
+
+      // Send approval emails to each user's email address
+      const approvalPromises = admins.map(async (user) => {
+        const email = user.additionalDetails[0]?.email;
+        if (email) {
+          await sendApprovalEmail(email, user.basicDetails[0].name);
+        }
+      });
+      await Promise.all(approvalPromises);
       await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }
 
-    res.status(200).json({ message: "Data added successfully", user });
+    return res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
     if (err.message === 'A user with the same email or phone number already exists.') {
       return res.status(400).json({ error: err.message });
