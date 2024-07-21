@@ -182,7 +182,7 @@ exports.declineProfileRequest = async (req, res) => {
     );
 
     // Emit notification event
-    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
+    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // Send formatted notification to admin and users with accessType 0 or 1
     // sendNotificationToAdmins(formattedNotification);
     return res.status(200).json({responseMsg, msg : "message declined"})
@@ -544,7 +544,7 @@ exports.declineInterestRequest = async (req, res) => {
     );
 
     // Emit notification event
-    io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
+    // io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining interest request:", error);

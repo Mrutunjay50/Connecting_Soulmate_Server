@@ -2,6 +2,7 @@ const ShortList = require("../../models/shortlistUsers");
 const { ProfileRequests, InterestRequests } = require("../../models/interests");
 const { ListData } = require("../cardListedData");
 const BlockedUser = require("../../models/blockedUser");
+const Notifications = require("../../models/notifications");
 
 const processRequest = async (
   Model,
@@ -162,6 +163,26 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
       return { message: `${type} request has been cancelled and deleted` };
     }
     request.action = status;
+
+    // If the status is declined, delete specific notifications
+    if (status === "declined") {
+      const notificationTypesToDelete = [
+        "profilesent",
+        "profileaccepted",
+        "interestsent",
+        "interestaccepted"
+      ];
+
+      await Notifications.deleteMany({
+        notificationTo: request[`${type.toLowerCase()}RequestTo`],
+        notificationType: { $in: notificationTypesToDelete }
+      });
+
+      await Notifications.deleteMany({
+        notificationBy: request[`${type.toLowerCase()}RequestBy`],
+        notificationType: { $in: notificationTypesToDelete }
+      });
+    }
 
     return await processRequest(
       Model,
