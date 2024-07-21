@@ -22,8 +22,8 @@ const getConversations = async (userId) => {
 
     const lastMessage = await MessageModel.findOne({
       $or: [
-        { sender: userId, receiver: otherUser?._id },
-        { sender: otherUser?._id, receiver: userId }
+        { sender: userId, receiver: otherUser?._id, senderVisible: true },
+        { sender: otherUser?._id, receiver: userId, receiverVisible: true }
       ]
     }).sort({ createdAt: -1 });
 
