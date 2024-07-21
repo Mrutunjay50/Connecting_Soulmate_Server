@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { MessageModel } = require("../../models/conversationModel");
 const User = require("../../models/Users");
 const { getConversations } = require("../getConversationData");
