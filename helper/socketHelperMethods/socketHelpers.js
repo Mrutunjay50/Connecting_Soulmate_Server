@@ -16,12 +16,24 @@ const updateLastLogin = async (userId, action) => {
 const getUnseenMessages = async (userId) => {
   try {
     // Count all messages where the user is the receiver and the message has not been seen
-    const unseenMessageCount = await MessageModel.countDocuments({
-      receiver: userId,
-      seen: false,
-    });
+    const unseenMessages = await MessageModel.aggregate([
+      {
+        $match: {
+          receiver: mongoose.Types.ObjectId(userId),
+          seen: false
+        }
+      },
+      {
+        $group: {
+          _id: "$sender",
+        }
+      },
+      {
+        $count: "unseenMessageCount"
+      }
+    ]);
 
-    return unseenMessageCount;
+    return unseenMessages.length > 0 ? unseenMessages[0].unseenMessageCount : 0;
   } catch (error) {
     console.error("Error fetching unseen messages:", error);
     return [];

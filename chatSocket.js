@@ -22,11 +22,11 @@ exports.chatSocket = async (socket) => {
   socket.on("OFFLINE", async (userId) => {
     onlineUsers.delete(userId);
     socket.broadcast.emit("USER_OFFLINE");
-    await updateLastLogin(userId, "logged out");
+    // await updateLastLogin(userId, "logged out");
     console.log(`${userId} disconnected: ${socket.id}`);
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     let disconnectedUserId;
     for (let [userId, id] of onlineUsers) {
       if (id === socket.id) {
@@ -38,6 +38,7 @@ exports.chatSocket = async (socket) => {
     if (disconnectedUserId) {
       socket.broadcast.emit("USER_OFFLINE", disconnectedUserId);
       socket.emit("USER_OFFLINE", disconnectedUserId);
+      await updateLastLogin(disconnectedUserId, "logged out");
       console.log(`${disconnectedUserId} disconnected: ${socket.id}`);
     }
   });
