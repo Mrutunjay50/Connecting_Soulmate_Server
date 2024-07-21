@@ -39,6 +39,7 @@ exports.getReportedIssues = async (req, res) => {
     const startIndex = (pageNumber - 1) * pageSize;
 
     const reports = await Report.find()
+      .sort({ createdAt: -1 })
       .skip(startIndex)
       .limit(pageSize)
       .populate('reportedBy', 'basicDetails.name userId')

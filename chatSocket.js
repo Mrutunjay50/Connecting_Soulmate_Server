@@ -50,7 +50,7 @@ exports.chatSocket = async (socket) => {
   });
 
   socket.on("ON_CHAT_INITIATED", async (data) => {
-    const messages = await checkAcceptedInterestRequest(data);
+    const messages = await checkAcceptedInterestRequest(data, data?.page || 1, data?.limit || 20);
     // console.log("ON_CHAT_INITIATED", data);
     socket.emit("ALL_CHAT_MESSAGES", messages);
   });

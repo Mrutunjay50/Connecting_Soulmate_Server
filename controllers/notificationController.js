@@ -7,7 +7,7 @@ const Report = require("../models/reports");
 exports.getNotificationsForUser = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const { page = 1, limit = 100 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
@@ -52,7 +52,7 @@ exports.getNotificationsForUser = async (req, res) => {
 
 exports.getAdminNotificationsForUser = async (req, res) => {
   try {
-    const { page = 1, limit = 100 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
@@ -87,7 +87,7 @@ exports.getAdminNotificationsForUser = async (req, res) => {
 
 exports.getAllUsersNotificationsForAdmin = async (req, res) => {
   try {
-    const { page = 1, limit = 100 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
