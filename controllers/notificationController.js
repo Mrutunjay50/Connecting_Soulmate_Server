@@ -145,7 +145,7 @@ exports.notificationsSeen = async (req, res) => {
       }
   
       // Create or update notification for the receiver
-      const notification = await Notification.findOneAndUpdate(
+      const notification = await Notifications.findOneAndUpdate(
         {
           notificationTo: receiverId,
           notificationBy: senderId,
