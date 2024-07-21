@@ -5,6 +5,7 @@ const { Country, State, City, Diet, Proffesion, Community } = require("../models
 const Notifications = require('../models/notifications');
 const ShortList = require('../models/shortlistUsers');
 const { getPublicUrlFromS3 } = require('../utils/s3Utils');
+const { sendAndCreateNotification } = require('./notificationController');
 
 exports.blockUser = async (req, res) => {
   try {

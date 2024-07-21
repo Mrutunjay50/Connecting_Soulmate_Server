@@ -154,7 +154,7 @@ exports.notificationsSeen = async (req, res) => {
         {
           notificationTo: receiverId,
           notificationBy: senderId,
-          notificationText: `You have received a ${notificationType.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()} notification from user ${senderId}`,
+          notificationText: `You have received a ${notificationType?.toLowerCase()} notification from user ${senderId}`,
           notificationType: notificationType,
         },
         {
@@ -174,6 +174,6 @@ exports.notificationsSeen = async (req, res) => {
       });
   
     } catch (error) {
-      console.error('Error sending notification:', error);
+      console.log('Error sending notification:', error);
     }
   };
