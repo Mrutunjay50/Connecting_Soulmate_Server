@@ -9,8 +9,6 @@ exports.getUserDashboard = async (req, res) => {
     if(!user){
       return res.status(404).json({ message: "User not found" });
     }
-     // Assuming you have user information in the request object
-
     // Count interest requests where the user is the requester and action is pending
     const interestRequestsByUser = await InterestRequests.countDocuments({
       interestRequestBy: userId,
@@ -60,7 +58,6 @@ exports.getUserDashboard = async (req, res) => {
       acceptedProfileRequests,
       acceptedInterestRequests,
       shortListed,
-      lastLoggedIn : user?.lastLogin
     });
   } catch (error) {
     console.error(error);

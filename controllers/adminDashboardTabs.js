@@ -140,6 +140,22 @@ exports.getTotalActiveUsers = async (req, res) => {
 };
 
 
+exports.getRejectedUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const currentDate = new Date();
+    const pastDate = new Date();
+    pastDate.setDate(currentDate.getDate() - 15);
+    const matchCriteria = { declinedOn: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "rejected", isDeleted : false };
+    const result = await getUserDataWithPagination(matchCriteria, page, limit);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching active users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 exports.getSuccessfulMarriages = async (req, res) => {
     try {
       const { page = 1, limit = 10 } = req.query;

@@ -1,9 +1,8 @@
-const { populateNotification, populateAdminNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
+const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
 const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
-const io = require("../socket");
-// const { getPublicUrlFromS3 } = require("../utils/s3Utils");
+const Report = require("../models/reports");
 
 exports.getNotificationsForUser = async (req, res) => {
   try {
@@ -172,5 +171,28 @@ exports.notificationsSeen = async (req, res) => {
   
     } catch (error) {
       console.log('Error sending notification:', error);
+    }
+  };
+
+
+  // Function to delete notifications and reports
+  exports.deleteOldData = async () => {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  
+    try {
+      // Delete notifications older than 3 months
+      await Notifications.deleteMany({ createdAt: { $lt: threeMonthsAgo } });
+      console.log("Old notifications deleted successfully.");
+  
+      // Delete admin notifications older than 3 months
+      await AdminNotifications.deleteMany({ createdAt: { $lt: threeMonthsAgo } });
+      console.log("Old admin notifications deleted successfully.");
+  
+      // Delete reports older than 3 months
+      await Report.deleteMany({ createdAt: { $lt: threeMonthsAgo } });
+      console.log("Old reports deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting old data:", error);
     }
   };

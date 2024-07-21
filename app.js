@@ -15,6 +15,7 @@ const {
 } = require("./controllers/userSettingsController");
 const {chatSocket} = require("./chatSocket");
 const getUserDetailsFromToken = require("./helper/getUserDetailsFromToken");
+const { deleteOldData } = require("./controllers/notificationController");
 initializeRoutes(router);
 
 dotenv.config();
@@ -81,6 +82,28 @@ async function startServer() {
     {
       scheduled: true,
       timezone: "Asia/Tokyo", // Replace "your-timezone-here" with your timezone
+    }
+  );
+
+  cron.schedule(
+    "0 0 1 * *",
+    async () => {
+      const startTime = new Date().toLocaleString();
+      console.log(`Cron job started at: ${startTime}`);
+  
+      try {
+        // Call the function to delete notifications and admin notifications
+        await deleteOldData();
+        const endTime = new Date().toLocaleString();
+        console.log(`Cron job executed successfully at: ${endTime}`);
+      } catch (error) {
+        const errorTime = new Date().toLocaleString();
+        console.error(`Error executing cron job at: ${errorTime}`, error);
+      }
+    },
+    {
+      scheduled: true,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Automatically use local timezone
     }
   );
 

@@ -320,6 +320,10 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
             { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
+          totalRejectedUsers: [
+            { $match: { declinedOn: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "rejected", isDeleted : false } },
+            { $count: "count" }
+          ],
         }
       },
       {
@@ -333,6 +337,7 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
           totalUsersCategoryC: { $arrayElemAt: ["$totalUsersCategoryC.count", 0] },
           totalUsersUnCategorised: { $arrayElemAt: ["$totalUsersUnCategorised.count", 0] },
           totalActiveUsers: { $arrayElemAt: ["$totalActiveUsers.count", 0] },
+          totalRejectedUsers: { $arrayElemAt: ["$totalRejectedUsers.count", 0] },
         }
       }
     ]);
@@ -361,6 +366,7 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       totalActiveUsers: stats.totalActiveUsers || 0,
       totalSuccessfulMarriages: totalSuccessfulMarriages || 0,
       totalBannedUsers: totalBannedUsers || 0,
+      totalRejectedUsers: stats.totalRejectedUsers || 0, 
     });
   } catch (error) {
     console.error("Error fetching user statistics:", error);
