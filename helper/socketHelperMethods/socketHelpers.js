@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 const { MessageModel } = require("../../models/conversationModel");
 const User = require("../../models/Users");
 const { getConversations } = require("../getConversationData");
@@ -20,7 +21,7 @@ const getUnseenMessages = async (userId) => {
     const unseenMessages = await MessageModel.aggregate([
       {
         $match: {
-          receiver: mongoose.Types.ObjectId(userId),
+          receiver: new ObjectId(userId),
           seen: false
         }
       },
