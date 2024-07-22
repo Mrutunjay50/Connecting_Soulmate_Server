@@ -3,7 +3,7 @@ const {
 } = require("../helper/AggregationOfUserData/getUserAggregationPipeline");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/RegistrationHelper/registerationPageHandler");
-const { sendApprovalEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendApprovalEmail, sendApprovalEmailToAdmin } = require("../helper/emailGenerator/emailHelper");
 const User = require("../models/Users");
 const io = require("../socket");
 const {
@@ -103,7 +103,7 @@ exports.registerUser = async (req, res) => {
       const approvalPromises = admins.map(async (user) => {
         const email = user.additionalDetails[0]?.email;
         if (email) {
-          await sendApprovalEmail(email, user.basicDetails[0].name);
+          await sendApprovalEmailToAdmin(email, user.basicDetails[0].name);
         }
       });
       await Promise.all(approvalPromises);
