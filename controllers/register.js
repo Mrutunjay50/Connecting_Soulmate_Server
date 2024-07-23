@@ -100,13 +100,7 @@ exports.registerUser = async (req, res) => {
       });
 
       // Send approval emails to each user's email address
-      const approvalPromises = admins.map(async (user) => {
-        const email = user.additionalDetails[0]?.email;
-        if (email) {
-          await sendApprovalEmailToAdmin(email, user.basicDetails[0].name);
-        }
-      });
-      await Promise.all(approvalPromises);
+      await sendApprovalEmailToAdmin(user.basicDetails[0].name);
       await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }
 

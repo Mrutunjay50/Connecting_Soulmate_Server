@@ -4,7 +4,6 @@ const { sendEmail } = require("../../utils/emailUtils");
 
 dotenv.config();
 
-// const DOMAIN = process.env.FRONTEND_URL;
 const ADMIN_EMAIL = "work.connectingsoulmate@gmail.com";
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 
@@ -47,7 +46,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                         <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;">Connecting Soulmate</p>
                         
                     </p>
-                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                    <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                 </div>
             </div>
         `;
@@ -69,7 +68,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                     <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                     Connecting Soulmate
                 </p>
-                <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
             </div>
           </div>
         `;
@@ -93,7 +92,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                       <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                       Connecting Soulmate
                   </p>
-                  <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                  <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
               </div>
           </div>
         `;
@@ -106,7 +105,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                       <p>Dear ${userName},</p>
                       <p>We hope you are having a good day!</p>
                       <p>This is to inform you that your profile has been Rejected by the Admin Team.</p>
-                      <p>If this has happened by mistake please connect with the team at work.connectingsoulmate@gmail.com and try creating a profile again after 15 days.</p>
+                      <p>If this has happened by mistake please connect with the team at ${ADMIN_EMAIL} and try creating a profile again after 15 days.</p>
                       <p>Thank You</p>
                       <p>Team - Connecting Soulmate</p>
                       <hr>
@@ -115,7 +114,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                           <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                           Connecting Soulmate
                       </p>
-                      <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                      <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                   </div>
               </div>
           `;
@@ -146,7 +145,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                     <p>We hope you are having a good day!</p>
                     <p>You are getting this email as you have decided to delete your profile from the Connecting Soulmate platform.</p>
                     <p>We would like to inform you that all your details will be deleted and will not be visible to anyone.</p>
-                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at work.connectingsoulmate@gmail.com</p>
+                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at ${ADMIN_EMAIL}</p>
                     <p>Thank You</p>
                     <p>Team - Connecting Soulmate</p>
                     <hr>
@@ -155,7 +154,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                         <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                         Connecting Soulmate
                     </p>
-                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                    <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                 </div>
             </div>
         `;
@@ -169,7 +168,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                     <p>We hope you are having a good day!</p>
                     <p>You are getting this email as you the Admin has deleted your profile from Connecting Soulmate platform. </p>
                     <p>We would like to inform you that all your details will be deleted and will not be visible to anyone. </p>
-                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at work.connectingsoulmate@gmail.com</p>
+                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at ${ADMIN_EMAIL}</p>
                     <p>Thank You</p>
                     <p>Team - Connecting Soulmate</p>
                     <hr>
@@ -178,7 +177,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                         <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                         Connecting Soulmate
                     </p>
-                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                    <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                 </div>
             </div>
         `;
@@ -200,7 +199,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                         <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                         Connecting Soulmate
                     </p>
-                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                    <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                 </div>
             </div>
         `;
@@ -216,7 +215,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                     <p>We would like to inform you that all your details will be deleted and will not be visible to anyone. </p>
                     <p>Reason for the ban : </p>
                     <p>${banReason}</p>
-                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at work.connectingsoulmate@gmail.com</p>
+                    <p>We hope we were able to serve you. If you have any feedback or suggestions for us, please write to us at ${ADMIN_EMAIL}</p>
                     <p>Thank You</p>
                     <p>Team - Connecting Soulmate</p>
                     <hr>
@@ -225,7 +224,7 @@ const getEmailTemplate = (type, issues = [], name, verificationLink, banReason) 
                         <img src="${LOGO_URL}" alt="Connecting Soulmate Logo" style="vertical-align: middle; width: 55px; height: 55px; border-radius: 4px;"> <p style="margin-left: 20px;"></p>
                         Connecting Soulmate
                     </p>
-                    <p>For any queries please reach out to us at work.connectingsoulmate@gmail.com</p>
+                    <p>For any queries please reach out to us at ${ADMIN_EMAIL}</p>
                 </div>
             </div>
         `;
@@ -290,9 +289,9 @@ exports.sendBannedEmailFromAdmin = async (userEmail, name, reason) => {
 
   await sendUserEmail({ to: userEmail, subject, htmlContent });
 };
-exports.sendApprovalEmailToAdmin = async (userEmail, name) => {
+exports.sendApprovalEmailToAdmin = async (name) => {
   const subject = `${name?.replaceAll('undefined', '')} New Registration Approval Request Received`;
   const htmlContent = getEmailTemplate("approvalEmailToAdmin", [], name, "");
-
+  const userEmail = ADMIN_EMAIL;
   await sendUserEmail({ to: userEmail, subject, htmlContent });
 };
