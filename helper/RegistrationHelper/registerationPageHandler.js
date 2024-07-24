@@ -137,7 +137,9 @@ exports.handlePage5 = async (req, user, type) => {
       selfDetails.other = other;
     } else {
       // Update all fields, including profilePicture and userPhotos
-      selfDetails.profilePicture = profileImage;
+      if (typeof profileImage === 'string') {
+        selfDetails.profilePicture = profileImage;
+      }
       selfDetails.aboutYourself = aboutYourself;
       selfDetails.interests = interests;
       selfDetails.fun = fun;
