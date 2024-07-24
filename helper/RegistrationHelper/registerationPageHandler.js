@@ -158,8 +158,7 @@ exports.handlePage5 = async (req, user, type) => {
     await user.save();
 
     // Process images in the background
-    handleImageProcessing(userPhotos, selfDetails, profilePicture);
-
+    handleImageProcessing(userPhotos, selfDetails, profilePicture, user);
   } catch (err) {
     console.error("Error in handlePage5:", err);
     // res.status(500).json({ message: 'Internal server error' });
