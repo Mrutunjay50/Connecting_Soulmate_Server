@@ -1,8 +1,7 @@
 const User = require("../../models/Users");
 const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
-const { handleImageProcessing } = require("./backgroundProcessing");
-
+const { generateFileName, uploadToS3, resizeImage } = require("../../utils/s3Utils");
 
 function generateUniqueNumber() {
   const randomNumber = Math.floor(Math.random() * 100);
@@ -120,7 +119,7 @@ exports.handlePage5 = async (req, user, type) => {
   try {
     const userPhotos = req.files;
     const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } = JSON.parse(req.body.selfDetails);
-
+  
     console.log(aboutYourself, interests, fun, fitness, other, profilePicture, profileImage);
 
     if (!user.selfDetails || !user.selfDetails[0]) {
@@ -131,6 +130,7 @@ exports.handlePage5 = async (req, user, type) => {
 
     if (type === "edit") {
       // Only update the interests, fun, fitness, and other fields
+      // selfDetails.aboutYourself = aboutYourself;
       selfDetails.interests = interests;
       selfDetails.fun = fun;
       selfDetails.fitness = fitness;
@@ -145,23 +145,34 @@ exports.handlePage5 = async (req, user, type) => {
       selfDetails.fun = fun;
       selfDetails.fitness = fitness;
       selfDetails.other = other;
-
+  
       if (userPhotos && userPhotos.length > 0) {
         if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
           const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
           selfDetails.userPhotos.splice(0, excessCount);
         }
+  
+        try {
+          const uploadedPhotos = await Promise.all(
+            userPhotos.map(async (photo) => {
+              const { buffer, originalname, mimetype } = photo;
+              const resizedImageBuffer = await resizeImage(buffer);
+              const fileName = generateFileName(originalname);
+              await uploadToS3(resizedImageBuffer, fileName, mimetype);
+              if (originalname === profilePicture) {
+                selfDetails.profilePicture = String(fileName); 
+              } 
+              return fileName;
+            })
+          );
+          selfDetails.userPhotos.push(...uploadedPhotos);
+        } catch (error) {
+          console.error("Error uploading images to S3:", error);
+        }
       }
     }
-
-    // Save the user details immediately
-    await user.save();
-
-    // Process images in the background
-    handleImageProcessing(userPhotos, selfDetails, profilePicture, user);
   } catch (err) {
     console.error("Error in handlePage5:", err);
-    // res.status(500).json({ message: 'Internal server error' });
   }
 };
 
