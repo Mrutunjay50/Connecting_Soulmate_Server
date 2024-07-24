@@ -160,7 +160,7 @@ exports.handlePage5 = async (req, user, type) => {
 
   } catch (err) {
     console.error("Error in handlePage5:", err);
-    res.status(500).json({ message: 'Internal server error' });
+    // res.status(500).json({ message: 'Internal server error' });
   }
 };
 
