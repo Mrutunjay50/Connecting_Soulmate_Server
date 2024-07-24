@@ -155,9 +155,6 @@ exports.handlePage5 = async (req, user, type) => {
     // Save the user details immediately
     await user.save();
 
-    // Respond immediately
-    res.status(200).json({ message: 'Details saved successfully' });
-
     // Process images in the background
     handleImageProcessing(userPhotos, selfDetails, profilePicture);
 
