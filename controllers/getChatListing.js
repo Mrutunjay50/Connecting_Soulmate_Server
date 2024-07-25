@@ -40,3 +40,30 @@ exports.getChatUsers = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const { checkAcceptedInterestRequest } = require('../middleware/checkAcceptedInterestRequest');
+
+exports.getPaginatedMessages = async (req, res) => {
+  try {
+    const { chatInitiatedBy, chatInitiatedTo, page, limit } = req.query;
+
+    if (!chatInitiatedBy || !chatInitiatedTo) {
+      return res.status(400).json({ error: 'Both chatInitiatedBy and chatInitiatedTo are required' });
+    }
+
+    const messages = await checkAcceptedInterestRequest(
+      { chatInitiatedBy, chatInitiatedTo },
+      page,
+      limit
+    );
+
+    if (messages instanceof Error) {
+      return res.status(404).json({ error: messages.message });
+    }
+
+    return res.status(200).json(messages);
+  } catch (error) {
+    console.error('Error fetching paginated messages:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
