@@ -18,7 +18,7 @@ const checkAcceptedInterestRequest = async (data, page = 1, limit = 20) => {
         { interestRequestBy: chatInitiatedTo, interestRequestTo: chatInitiatedBy }
       ]
     })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: 1 })
     
     if (!interestRequest) {
       return new Error("No accepted interest request found between these users");
@@ -31,7 +31,7 @@ const checkAcceptedInterestRequest = async (data, page = 1, limit = 20) => {
         { sender: chatInitiatedTo, receiver: chatInitiatedBy }
       ]
     })
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
 
