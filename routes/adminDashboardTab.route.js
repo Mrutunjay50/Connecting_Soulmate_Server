@@ -9,6 +9,8 @@ const {
   getTotalUsersUnCategorised,
   getTotalActiveUsers,
   getSuccessfulMarriages,
+  // getBannedUsers,
+  // getRejectedUsers
 } = require("../controllers/adminDashboardTabs");
 const { isAdmin } = require("../middleware/is_auth");
 
@@ -23,4 +25,6 @@ module.exports = (app) => {
   app.get("/total-users-uncategorised", getTotalUsersUnCategorised);
   app.get("/total-active-users", getTotalActiveUsers);
   app.get("/total-successful-marriages", getSuccessfulMarriages);
+  // app.get("/total-banned-users", getBannedUsers);
+  // app.get("/total-rejected-users", getRejectedUsers);
 };
