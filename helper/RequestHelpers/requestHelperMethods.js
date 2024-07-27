@@ -72,7 +72,10 @@ const processRequest = async (Model, requestBy, requestTo, type, action) => {
         return `${type}: request can't be sent as your request to this person has been accepted`;
       } else {
         existingRequest.action = action;
-        await existingRequest.save();
+        await Model.updateOne(
+          { [`${type.toLowerCase()}RequestBy`]: requestBy, [`${type.toLowerCase()}RequestTo`]: requestTo },
+          { action }
+        );
         return `${type} request updated to ${action}`;
       }
     }
