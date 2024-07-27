@@ -26,17 +26,18 @@ const port = process.env.PORT || 5000;
 async function connectToMongoDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    // Get a reference to the collection
+    // // Get a reference to the collection
     // const collectionName = "users";
-    // const userCollection = mongoose.connection.collection(collectionName);
+    // const userCollection1 = mongoose.connection.collection("profilerequests");
 
     // // Displaying indexes on the Users collection
-    // // const userCollection = mongoose.connection.collection("users");
-    // const indexes = await userCollection.indexes();
-    // // // Drop all indexes
+    // const userCollection2 = mongoose.connection.collection("interestrequests");
+    // const indexes1 = await userCollection1.indexes();
+    // const indexes2 = await userCollection2.indexes();
+    // // Drop all indexes
     // await userCollection.dropIndexes();
 
-    // console.log("Indexes on Users collection:", indexes);
+    // console.log("Indexes on Users collection:", indexes1, indexes2);
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("Error connecting to MongoDB", error);

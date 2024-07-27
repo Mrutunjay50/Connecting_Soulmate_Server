@@ -6,10 +6,24 @@ const Notifications = require("../../models/notifications");
 
 const processRequest = async (Model, requestBy, requestTo, type, action) => {
   try {
-    // Fetch all blocked users for requestBy and check if requestTo is in the blockedUsers list (blockedBy requestBy)
-    const [blockedUsers, blockedByRequestTo] = await Promise.all([
-      BlockedUser.find({ blockedBy: requestBy }).distinct('blockedUser'),
-      BlockedUser.findOne({ blockedBy: requestTo, blockedUser: requestBy })
+    const [
+      blockedUsers,
+      blockedByRequestTo,
+      existingInterestRequest,
+      viceVersaInterestRequest,
+      existingRequest,
+      viceVersaRequest
+    ] = await Promise.all([
+      BlockedUser.find({ blockedBy: requestBy }).distinct('blockedUser').lean(),
+      BlockedUser.findOne({ blockedBy: requestTo, blockedUser: requestBy }).lean(),
+      type === "Profile" 
+        ? InterestRequests.findOne({ interestRequestBy: requestBy, interestRequestTo: requestTo, action: "accepted" }).lean() 
+        : Promise.resolve(null),
+      type === "Profile" 
+        ? InterestRequests.findOne({ interestRequestBy: requestTo, interestRequestTo: requestBy, action: "accepted" }).lean() 
+        : Promise.resolve(null),
+      Model.findOne({ [`${type.toLowerCase()}RequestBy`]: requestBy, [`${type.toLowerCase()}RequestTo`]: requestTo }).lean(),
+      Model.findOne({ [`${type.toLowerCase()}RequestBy`]: requestTo, [`${type.toLowerCase()}RequestTo`]: requestBy }).lean()
     ]);
 
     if (blockedUsers.includes(requestTo.toString())) {
@@ -26,11 +40,6 @@ const processRequest = async (Model, requestBy, requestTo, type, action) => {
         ProfileRequests.deleteOne({ profileRequestBy: requestTo, profileRequestTo: requestBy })
       ]);
     } else if (type === "Profile") {
-      const [existingInterestRequest, viceVersaInterestRequest] = await Promise.all([
-        InterestRequests.findOne({ interestRequestBy: requestBy, interestRequestTo: requestTo, action: "accepted" }),
-        InterestRequests.findOne({ interestRequestBy: requestTo, interestRequestTo: requestBy, action: "accepted" })
-      ]);
-
       if (existingInterestRequest) {
         return `Already have an accepted interest request from you`;
       }
@@ -39,23 +48,13 @@ const processRequest = async (Model, requestBy, requestTo, type, action) => {
         return `Already have an accepted interest request from this user`;
       }
     }
-       // Check for an existing request from requestBy to requestTo
-// Check for an existing request from requestTo to requestBy (vice versa)
-    const [existingRequest, viceVersaRequest] = await Promise.all([
-      Model.findOne({ [`${type.toLowerCase()}RequestBy`]: requestBy, [`${type.toLowerCase()}RequestTo`]: requestTo }),
-      Model.findOne({ [`${type.toLowerCase()}RequestBy`]: requestTo, [`${type.toLowerCase()}RequestTo`]: requestBy })
-    ]);
 
-    // If vice versa request exists, return the appropriate message
-    // Handle vice versa request
     if (viceVersaRequest) {
       if (viceVersaRequest.action === "accepted") {
         return `You have accepted the ${type} request from this user`;
       } else if (viceVersaRequest.action === "declined") {
         if (action === "pending") {
-          // Delete the declined vice versa request
           await Model.deleteOne({ [`${type.toLowerCase()}RequestBy`]: requestTo, [`${type.toLowerCase()}RequestTo`]: requestBy });
-          // Create a new request and indicate it was sent from the declined section
           const newRequest = new Model({ [`${type.toLowerCase()}RequestBy`]: requestBy, [`${type.toLowerCase()}RequestTo`]: requestTo, action });
           await newRequest.save();
           return `You have sent the ${type} request from your declined section`;
@@ -66,7 +65,6 @@ const processRequest = async (Model, requestBy, requestTo, type, action) => {
       return `This person has already sent an ${type} request to you`;
     }
 
-        // Handle existing request from requestBy to requestTo
     if (existingRequest) {
       if (existingRequest.action === "pending" && action === "pending") {
         return `${type} request already sent`;
