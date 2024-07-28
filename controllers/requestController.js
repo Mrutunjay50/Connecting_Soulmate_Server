@@ -437,13 +437,18 @@ exports.sendInterestRequest = async (req, res) => {
       `You have accepted the Interest request from this user`,
       `Interest: request can't be sent as your request to this person has been accepted`
     ];
+
+    const noNotificationMessages = [
+      "This person has already sent an Interest request to you",
+      "Interest request already sent"
+    ];
     
     if (blockedMessages.includes(message) || acceptedMessages.includes(message)) {
       console.timeEnd('sendInterestRequest');
       return res.status(403).json(message);
     }
 
-    if(message !== "This person has already sent an Interest request to you"){
+    if(!noNotificationMessages.includes(message)){
           // Create or update notification for interest request sent
       const notification = await Notifications.findOneAndUpdate(
         {
