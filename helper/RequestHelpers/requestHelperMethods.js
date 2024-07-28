@@ -166,24 +166,31 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
 
     // If the status is declined, delete specific notifications
     if (status === "declined") {
-      const notificationTypesToDelete = [
-        "profilesent",
-        "profileaccepted",
-        "interestsent",
-        "interestaccepted"
-      ];
-
-      await Notifications.deleteMany({
-        notificationTo: request[`${type.toLowerCase()}RequestTo`],
-        notificationType: { $in: notificationTypesToDelete }
-      });
-
-      await Notifications.deleteMany({
-        notificationBy: request[`${type.toLowerCase()}RequestBy`],
-        notificationType: { $in: notificationTypesToDelete }
-      });
+      let notificationTypesToDelete;
+    
+      if (type === "Profile") {
+        notificationTypesToDelete = ["profilesent", "profileaccepted"];
+      } else if (type === "Interest") {
+        notificationTypesToDelete = ["interestsent", "interestaccepted"];
+      }
+    
+      if (notificationTypesToDelete) {
+        await Notifications.deleteMany({
+          $or: [
+            {
+              notificationBy: request[`${type.toLowerCase()}RequestBy`],
+              notificationTo: request[`${type.toLowerCase()}RequestTo`],
+              notificationType: { $in: notificationTypesToDelete }
+            },
+            {
+              notificationTo: request[`${type.toLowerCase()}RequestBy`],
+              notificationBy: request[`${type.toLowerCase()}RequestTo`],
+              notificationType: { $in: notificationTypesToDelete }
+            }
+          ]
+        });
+      }
     }
-
     return await processRequest(
       Model,
       request[`${type.toLowerCase()}RequestBy`],
