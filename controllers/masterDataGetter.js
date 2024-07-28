@@ -60,7 +60,7 @@ const {
       }
       res.status(200).json(data);
     } catch (error) {
-      console.error(`Error fetching ${type}:`, error);
+      console.log(`Error fetching :`, error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
