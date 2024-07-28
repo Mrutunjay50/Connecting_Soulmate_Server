@@ -55,13 +55,18 @@ exports.sendProfileRequest = async (req, res) => {
     const acceptedProfileMessages = [
       `You have accepted the Profile request from this user`
     ];
+
+    const noNotificationMessages = [
+      "This person has already sent a Profile request to you",
+      "Profile request already sent"
+    ];
     
     if (blockedMessages.includes(message) || acceptedInterestMessages.includes(message) || acceptedProfileMessages.includes(message)) {
       console.timeEnd('sendProfileRequest'); // End timing before returning
       return res.status(403).json(message);
     }
 
-    if(message !== "This person has already sent an Profile request to you"){
+    if(!noNotificationMessages.includes(message)){
           // Create or update notification for profile request sent
       const notification = await Notifications.findOneAndUpdate(
         {

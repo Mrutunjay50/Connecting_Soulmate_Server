@@ -295,8 +295,9 @@ const setRequestFlags = async (request, requestBy, requestTo) => {
   request.isShortListedTo = !!shortlistTo;
   request.isInterestRequestBy = !!interestlistBy;
   request.isInterestRequestTo = !!interestlistTo;
-  request.isProfileRequestBy = !!profilelistBy;
-  request.isProfileRequestTo = !!profilelistTo;
+  // Check profile requests and set flags accordingly
+  request.isProfileRequestBy = profilelistBy ? true : (profilelistTo && profilelistTo.action === "accepted") ? true : false;
+  request.isProfileRequestTo = profilelistTo ? true : (profilelistBy && profilelistBy.action === "accepted") ? true : false;
 
   return request;
 };
