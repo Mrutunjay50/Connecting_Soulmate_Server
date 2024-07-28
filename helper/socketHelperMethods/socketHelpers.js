@@ -44,8 +44,11 @@ const getUnseenMessages = async (userId) => {
 
 const getConversationsWithOnlineStatus = async (userId, onlineUsers) => {
   const conversations = await getConversations(userId);
+  if (!conversations || conversations.length === 0) {
+    return []; // Return an empty array or handle it as needed
+  }
   return conversations.map((conversation) => {
-    const isOnline = onlineUsers.has(conversation._id.toString());
+    const isOnline = onlineUsers.has(conversation?._id?.toString());
     return {
       ...conversation,
       isOnline,
