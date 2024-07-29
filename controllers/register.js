@@ -24,7 +24,6 @@ const {
 } = require("../utils/s3Utils");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
-// const pLimit = require('p-limit');
 
 
 exports.registerUser = async (req, res) => {
@@ -338,7 +337,6 @@ exports.addImagesInUser = async (req, res) => {
 
 exports.updateUserPhotos = async (req, res) => {
   try {
-    const { default: pLimit } = await import('p-limit');
     const userPhotos = req.files;
     const { userId } = req.params;
     const { userPhotosKeys, profilePictureIndex, profilePictureKey } = req.body;
@@ -374,7 +372,6 @@ exports.updateUserPhotos = async (req, res) => {
     }
 
     if (userPhotos && userPhotos.length > 0) {
-      const limit = pLimit(5);
       // Remove excess photos if total count exceeds 5
       if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
         const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
@@ -384,20 +381,16 @@ exports.updateUserPhotos = async (req, res) => {
 
       // Upload new photos to S3 and add their file names and URLs to userPhotos and userPhotosUrl arrays
       try {
-              // Create an array of tasks with limited concurrency
-      const uploadTasks = userPhotos.map((photo) =>
-        limit(async () => {
-          const { buffer, originalname, mimetype } = photo;
-          const resizedImageBuffer = await resizeImage(buffer);
-          const fileName = generateFileName(originalname);
-          await uploadToS3(resizedImageBuffer, fileName, mimetype);
-          const publicUrl = getPublicUrlFromS3(fileName);
-          return { fileName, publicUrl };
-        })
-      );
-
-      // Wait for all upload tasks to complete
-      const uploadedPhotos = await Promise.all(uploadTasks);
+        const uploadedPhotos = await Promise.all(
+          userPhotos.map(async (photo) => {
+            const { buffer, originalname, mimetype } = photo;
+            const resizedImageBuffer = await resizeImage(buffer);
+            const fileName = generateFileName(originalname);
+            await uploadToS3(resizedImageBuffer, fileName, mimetype);
+            const publicUrl = getPublicUrlFromS3(fileName);
+            return { fileName, publicUrl };
+          })
+        );
 
         // If profilePictureIndex is present and matches any uploaded photo, add it to selfDetails.profilePicture
         if (profilePictureIndex !== undefined && uploadedPhotos.length > 0) {
