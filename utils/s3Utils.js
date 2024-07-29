@@ -2,6 +2,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
+const { PassThrough } = require("stream");
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -58,6 +59,8 @@ const resizeImage = async (buffer, resizeFactor = 0.10) => {
 
 const uploadToS3 = async (buffer, fileName, mimeType) => {
   try {
+    const stream = new PassThrough();
+    stream.end(buffer);
     const params = {
       Bucket: process.env.BUCKET_NAME,
       Key: fileName,
