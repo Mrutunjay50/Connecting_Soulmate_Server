@@ -104,7 +104,7 @@ exports.advanceSearch = async (req, res) => {
       // If no search parameters were valid, return an appropriate response
       return res.status(400).json({ error: "No valid search parameters provided" });
     }
-    // console.log(query, orQueries);
+    console.log(query, orQueries);
     // Execute the query
     const filters = { ...query };
     await getFilteredProfiles(req, res, filters);
