@@ -24,7 +24,7 @@ const {
 } = require("../utils/s3Utils");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
-const pLimit = require('p-limit');
+// const pLimit = require('p-limit');
 
 
 exports.registerUser = async (req, res) => {
@@ -338,6 +338,7 @@ exports.addImagesInUser = async (req, res) => {
 
 exports.updateUserPhotos = async (req, res) => {
   try {
+    const { default: pLimit } = await import('p-limit');
     const userPhotos = req.files;
     const { userId } = req.params;
     const { userPhotosKeys, profilePictureIndex, profilePictureKey } = req.body;
