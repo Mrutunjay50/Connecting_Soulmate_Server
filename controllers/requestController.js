@@ -57,7 +57,7 @@ exports.sendProfileRequest = async (req, res) => {
     ];
 
     const noNotificationMessages = [
-      "This person has already sent a Profile request to you",
+      "This person has already sent an Profile request to you",
       "Profile request already sent"
     ];
     
