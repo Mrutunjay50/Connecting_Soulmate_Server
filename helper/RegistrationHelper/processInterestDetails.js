@@ -54,7 +54,7 @@ exports.processUserDetails = async (selfDetails) => {
     selfDetails.otherTypes = others === "NA"
       ? "NA"
       : other.map((item) => item.other_name).join(", ");
-  
+
     return selfDetails;
   };
   

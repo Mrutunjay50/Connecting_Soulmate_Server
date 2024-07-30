@@ -59,7 +59,6 @@ exports.sendProfileRequest = async (req, res) => {
     ];
 
     const noNotificationMessages = [
-      "This person has already sent an Profile request to you",
       "Profile request already sent"
     ];
     
@@ -437,7 +436,12 @@ exports.sendInterestRequest = async (req, res) => {
     
     const acceptedMessages = [
       `You have accepted the Interest request from this user`,
-      `Interest: request can't be sent as your request to this person has been accepted`
+      `Interest: request can't be sent as your request to this person has been accepted`,
+      `This person has already sent an Interest request to you`,
+    ];
+    
+    const noNotificationMessages = [
+      "Interest request already sent"
     ];
 
     const noNotificationMessages = [

@@ -65,10 +65,10 @@ const familyDetailsSchema = mongoose.Schema({
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: { type: String, default: "NA", required: false  },
-  fun: { type: String, default: "NA", required: false  },
-  fitness: { type: String, default: "NA", required: false  },
-  other: { type: String, default: "NA", required: false  },
+  interests: { type: String, required: false  },
+  fun: { type: String, required: false  },
+  fitness: { type: String, required: false  },
+  other: { type: String, required: false  },
   profilePicture: { type: String, default: "", required: false },
   userPhotos: [{ type: String, default: "", required: false  }],
   userPhotosUrl: [{ type: String, default: "", required: false  }],

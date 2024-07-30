@@ -143,6 +143,7 @@ exports.updateRequestStatus = async (Model, requestId, type, status, res) => {
 
     return await processRequest(Model, request[`${type.toLowerCase()}RequestBy`], request[`${type.toLowerCase()}RequestTo`], type, status);
 
+
   } catch (error) {
     console.log(`Error updating ${type} request status:`, error);
   }
