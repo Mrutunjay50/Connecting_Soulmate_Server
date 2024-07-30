@@ -443,11 +443,6 @@ exports.sendInterestRequest = async (req, res) => {
     const noNotificationMessages = [
       "Interest request already sent"
     ];
-
-    const noNotificationMessages = [
-      "This person has already sent an Interest request to you",
-      "Interest request already sent"
-    ];
     
     if (blockedMessages.includes(message) || acceptedMessages.includes(message)) {
       console.timeEnd('sendInterestRequest');
