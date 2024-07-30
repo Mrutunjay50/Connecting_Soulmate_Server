@@ -414,7 +414,7 @@ exports.updateUserPhotos = async (req, res) => {
     // Send success response
     res.status(200).json({ message: "User image updated successfully" });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };
