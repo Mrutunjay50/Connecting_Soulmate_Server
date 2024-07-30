@@ -85,6 +85,7 @@ exports.registerUser = async (req, res) => {
       //     await sendApprovalRequestToAdmin(email);
       //   }
       // });
+      
       // await Promise.all(approvalPromises);
       // for notifications
       // Create or update notification for profile request sent
