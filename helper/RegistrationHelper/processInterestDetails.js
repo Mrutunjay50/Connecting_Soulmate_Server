@@ -29,9 +29,9 @@ exports.processUserDetails = async (selfDetails) => {
     const others = parseValues(selfDetails.other);
     const fitnesses = parseValues(selfDetails.fitness);
 
-    if (interests === "NA" && funActivities === "NA" && others === "NA" && fitnesses === "NA") {
-      return selfDetails;
-    }
+    // if (interests === "NA" && funActivities === "NA" && others === "NA" && fitnesses === "NA") {
+    //   return selfDetails;
+    // }
   
     // Fetch the corresponding types from the database
     const [interest, funActivity, fitness, other] = await Promise.all([
