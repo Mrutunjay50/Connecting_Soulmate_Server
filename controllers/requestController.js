@@ -54,7 +54,8 @@ exports.sendProfileRequest = async (req, res) => {
     
     const acceptedProfileMessages = [
       `You have accepted the Profile request from this user`,
-      `This person has already sent an Profile request to you`
+      `This person has already sent an Profile request to you`,
+      `Profile: request can't be sent as your request to this person has been accepted`
     ];
 
     const noNotificationMessages = [
