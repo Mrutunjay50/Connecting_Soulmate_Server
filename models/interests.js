@@ -26,6 +26,12 @@ const profileRequestSchema = mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Add indexes
+profileRequestSchema.index({ profileRequestBy: 1, profileRequestTo: 1 });
+profileRequestSchema.index({ profileRequestTo: 1, profileRequestBy: 1 });
+profileRequestSchema.index({ profileRequestBy: 1 });
+profileRequestSchema.index({ profileRequestTo: 1 });
+
 const interestRequestSchema = mongoose.Schema({
   interestRequestBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
   interestRequestTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", required :true  },
@@ -51,6 +57,12 @@ const interestRequestSchema = mongoose.Schema({
     default: false,
   },
 }, { timestamps: true });
+
+// Add indexes
+interestRequestSchema.index({ interestRequestBy: 1, interestRequestTo: 1 });
+interestRequestSchema.index({ interestRequestTo: 1, interestRequestBy: 1 });
+interestRequestSchema.index({ interestRequestBy: 1 });
+interestRequestSchema.index({ interestRequestTo: 1 });
 
 const ProfileRequests = mongoose.model("profilerequests", profileRequestSchema);
 const InterestRequests = mongoose.model(

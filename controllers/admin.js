@@ -7,11 +7,13 @@ const {
 // const { generateUserPDFForAdmin } = require("../helper/generatePDF");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const User = require("../models/Users");
-const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendDeleteEmail, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
+const { sendReviewEmail, sendRejectionEmail, sendSuccessfulRegisterationMessage, sendBannedEmailFromAdmin, sendDeleteEmailFromAdmin } = require("../helper/emailGenerator/emailHelper");
 const SuccessfulMarriage = require("../models/successFullMarraige");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const axios = require("axios");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
+const BannedUsers = require("../models/bannedUsers");
+const io = require("../socket");
 
 const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
@@ -161,7 +163,7 @@ exports.softDeleteUser = async (req, res) => {
     await deleteUserRelatedData(user?._id);
     const email = user?.additionalDetails?.[0]?.email;
     const name = user?.basicDetails?.[0]?.name || "user";
-
+    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${user._id?.toString()}`, { "message": "number changed login again" });
     if (email && email.trim() !== "") {
       await sendDeleteEmailFromAdmin(email, name);
     }
@@ -172,6 +174,61 @@ exports.softDeleteUser = async (req, res) => {
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
       user,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.banUser = async (req, res) => {
+  try {
+    const { userId, banReason } = req.body;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Store the user's contact number before deleting
+    const contactNumber = user.createdBy[0]?.phone; // Adjust this based on your user schema
+    const name = user?.basicDetails[0]?.name || "user";
+    const gender = user?.basicDetails[0]?.gender || "";
+    const email = user?.additionalDetails[0]?.email || "";
+    const userIdentityId = user?.basicDetails[0]?.userId || "";
+
+    // Find the banned user document
+    let bannedUser = await BannedUsers.findOne({ contact: contactNumber });
+
+    if (bannedUser) {
+      // If bannedUser is found, no need to update contactNumber again since it's already included
+      return res.status(200).json({
+        message: `User ${bannedUser.name} already banned`,
+      });
+    } else {
+      // Create a new document
+      bannedUser = new BannedUsers({
+        name: name,
+        contact: contactNumber,
+        userId: userIdentityId,
+        bannedReason: banReason || "",
+        gender: gender,
+      });
+    }
+
+    await bannedUser.save();
+
+    // Delete the user completely
+    await User.findByIdAndDelete(userId);
+    await deleteUserRelatedData(userId);
+    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${userId}`, { "message": "number changed login again" });
+
+    if (email && email.trim() !== "") {
+      await sendBannedEmailFromAdmin(email, name, banReason);
+    }
+
+    return res.status(200).json({
+      message: `User ${name} banned successfully and contact number stored`,
     });
   } catch (error) {
     console.error("Error deleting user:", error);
@@ -263,6 +320,10 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
             { $match: { lastLogin: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "approved", isDeleted : false } },
             { $count: "count" }
           ],
+          totalRejectedUsers: [
+            { $match: { declinedOn: { $gte: pastDate }, accessType: { $nin: ["0", "1"] }, registrationPhase : "rejected", isDeleted : false } },
+            { $count: "count" }
+          ],
         }
       },
       {
@@ -276,6 +337,7 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
           totalUsersCategoryC: { $arrayElemAt: ["$totalUsersCategoryC.count", 0] },
           totalUsersUnCategorised: { $arrayElemAt: ["$totalUsersUnCategorised.count", 0] },
           totalActiveUsers: { $arrayElemAt: ["$totalActiveUsers.count", 0] },
+          totalRejectedUsers: { $arrayElemAt: ["$totalRejectedUsers.count", 0] },
         }
       }
     ]);
@@ -283,6 +345,8 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
     // Query for the count of successful marriages
     const successfulMarriageRecord = await SuccessfulMarriage.findOne();
     const totalSuccessfulMarriages = successfulMarriageRecord ? successfulMarriageRecord.count : 0;
+
+    const totalBannedUsers = await BannedUsers.countDocuments();
 
     // console.log("----------------");
     // console.timeEnd('getUserStatisticsForAdmin'); // End timing
@@ -300,7 +364,9 @@ exports.getUserStatisticsForAdmin = async (req, res) => {
       totalUsersCategoryC: stats.totalUsersCategoryC || 0,
       totalUsersUnCategorised: stats.totalUsersUnCategorised || 0,
       totalActiveUsers: stats.totalActiveUsers || 0,
-      totalSuccessfulMarriages: totalSuccessfulMarriages || 0
+      totalSuccessfulMarriages: totalSuccessfulMarriages || 0,
+      totalBannedUsers: totalBannedUsers || 0,
+      totalRejectedUsers: stats.totalRejectedUsers || 0, 
     });
   } catch (error) {
     console.error("Error fetching user statistics:", error);

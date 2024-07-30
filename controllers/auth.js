@@ -7,6 +7,7 @@ const User = require("../models/Users");
 // const { UserDetail } = require("otpless-node-js-auth-sdk");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const { getAggregationPipelineForUsers } = require("../helper/AggregationOfUserData/aggregationPipelineForUsers");
+const BannedUsers = require("../models/bannedUsers");
 
 // const client_id = process.env.CLIENT_ID;
 // const client_secret = process.env.CLIENT_SECRET;
@@ -22,6 +23,13 @@ const signinController = async (req, res) => {
     // const user = await UserDetail.verifyCode(code, client_id, client_secret);
     // console.log(user);
     // const num = user.name;
+
+    // Check if the user is in the banned list
+    const bannedUser = await BannedUsers.findOne({ contact: num });
+    if (bannedUser) {
+      return res.status(403).json({ message: "You are banned" });
+    }
+
     const existingUser = await User.findOne({
       "createdBy.phone": num,
     });
@@ -79,11 +87,12 @@ const signinController = async (req, res) => {
     
     existingUser.lastLogin = new Date().toISOString();
     const isNotification = existingUser?.isNotification || false;
+    const isAdminNotification = existingUser?.isAdminNotification || false;
     await existingUser.save();
 
     return res
       .status(200)
-      .json({ user, existingUser, token, isNotification, message: "Can Now Login" });
+      .json({ user, existingUser, token, isNotification, isAdminNotification, message: "Can Now Login" });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ message: "Something went wrong!" });
@@ -187,6 +196,11 @@ const signupController = async (req, res) => {
     };
 
     createdFor = mapFrontendToEnum[createdFor] || null;
+    // Check if the user is in the banned list
+    const bannedUser = await BannedUsers.findOne({ contact: phone });
+    if (bannedUser) {
+      return res.status(403).json({ message: "This number is banned can't sigup with this number" });
+    }
     // Check if user already exists with the provided phone number
     const existingUser = await User.findOne({ "createdBy.phone": phone });
     if (existingUser) {

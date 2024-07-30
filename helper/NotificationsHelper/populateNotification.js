@@ -80,4 +80,30 @@ const populateAdminNotification = async (notification) => {
   return formattedNotification;
 };
 
-module.exports = { populateNotification, populateAdminNotification };
+const populateNotificationOfUsersForAdmin = async (notification) => {
+  const populatedNotification = await Notifications.findById(notification._id)
+    .populate('notificationBy', 'basicDetails.name userId')
+    .populate('notificationTo', 'basicDetails.name userId');
+
+  const formattedNotification = {
+    notificationBy: populatedNotification.notificationBy
+      ? {
+          userId: populatedNotification.notificationBy.userId,
+          name: populatedNotification.notificationBy.basicDetails[0]?.name || "",
+        }
+      : {},
+    notificationTo: populatedNotification.notificationTo
+      ? {
+          userId: populatedNotification.notificationTo.userId,
+          name: populatedNotification.notificationTo.basicDetails[0]?.name || "",
+        }
+      : {},
+    notificationText: populatedNotification.notificationText,
+    notificationType: populatedNotification.notificationType,
+    _id: populatedNotification._id,
+  };
+
+  return formattedNotification;
+};
+
+module.exports = { populateNotification, populateAdminNotification, populateNotificationOfUsersForAdmin };

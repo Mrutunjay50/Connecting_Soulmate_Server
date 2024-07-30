@@ -1,27 +1,44 @@
+const jwt = require('jsonwebtoken');
 const { InterestRequests } = require('../models/interests');
+const { MessageModel } = require('../models/conversationModel');
 
-const checkAcceptedInterestRequest = async (socket, next) => {
+const checkAcceptedInterestRequest = async (data, page = 1, limit = 20) => {
   try {
-    const { requestId } = socket.handshake.query;
+    const {chatInitiatedBy, chatInitiatedTo} = data
 
-    // Find the interest request by its ID
-    const interestRequest = await InterestRequests.findById(requestId);
-
-    // Check if the interest request exists
+    if (!chatInitiatedBy || !chatInitiatedTo) {
+      return new Error("Both chatInitiatedBy and chatInitiatedTo are required");
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const interestRequest = await InterestRequests.findOne({
+      action: "accepted",
+      $or: [
+        { interestRequestBy: chatInitiatedBy, interestRequestTo: chatInitiatedTo },
+        { interestRequestBy: chatInitiatedTo, interestRequestTo: chatInitiatedBy }
+      ]
+    })
+    .sort({ createdAt: 1 })
+    
     if (!interestRequest) {
-      return next(new Error("Interest request not found"));
+      return new Error("No accepted interest request found between these users");
     }
 
-    // Check if the interest request action is accepted
-    if (interestRequest.action !== "accepted") {
-      return next(new Error("Only accepted interest requests can send messages"));
-    }
+    console.log("yes have interest request accepted");
+    const messages = await MessageModel.find({
+      $or: [
+        { sender: chatInitiatedBy, receiver: chatInitiatedTo },
+        { sender: chatInitiatedTo, receiver: chatInitiatedBy }
+      ]
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
 
-    // If the interest request is accepted, proceed to the next middleware or event handler
-    next();
+    // console.log(messages);
+    return messages;
   } catch (error) {
-    console.error("Error checking interest request status:", error);
-    next(new Error("Internal Server Error"));
+    console.log("Error checking interest request status:", error);
   }
 };
 

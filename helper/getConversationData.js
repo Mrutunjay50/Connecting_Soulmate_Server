@@ -1,39 +1,45 @@
-const { ConversationModel } = require("../models/conversationModel")
+const mongoose = require('mongoose');
+const io = require("../socket");
+const {InterestRequests} = require('../models/interests');
+const { MessageModel } = require('../models/conversationModel');
+const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 
-const getConversation = async(currentUserId)=>{
-    if(currentUserId){
-        const currentUserConversation = await ConversationModel.find({
-            "$or" : [
-                { sender : currentUserId },
-                { receiver : currentUserId}
-            ]
-        }).sort({  updatedAt : -1 }).populate('messages').populate('sender').populate('receiver')
+const getConversations = async (userId) => {
+  const acceptedRequests = await InterestRequests.find({
+    $or: [{ interestRequestBy: userId }, { interestRequestTo: userId }],
+    action: 'accepted'
+  }).populate('interestRequestBy interestRequestTo');
 
-        const conversation = currentUserConversation.map((conv)=>{
-            const countUnseenMsg = conv?.messages?.reduce((preve,curr) => {
-                const msgByUserId = curr?.msgByUserId?.toString()
+  if (!acceptedRequests.length) {
+    // throw new Error('No accepted interest requests found');
+    console.log('no request found for this user')
+  }
 
-                if(msgByUserId !== currentUserId){
-                    return  preve + (curr?.seen ? 0 : 1)
-                }else{
-                    return preve
-                }
-             
-            },0)
-            
-            return{
-                _id : conv?._id,
-                sender : conv?.sender,
-                receiver : conv?.receiver,
-                unseenMsg : countUnseenMsg,
-                lastMsg : conv.messages[conv?.messages?.length - 1]
-            }
-        })
+  let conversations = [];
 
-        return conversation
-    }else{
-        return []
-    }
-}
+  for (const request of acceptedRequests) {
+    const otherUser = request.interestRequestBy?._id.toString() === userId ? request.interestRequestTo : request.interestRequestBy;
 
-module.exports = getConversation
+    const lastMessage = await MessageModel.findOne({
+      $or: [
+        { sender: userId, receiver: otherUser?._id, senderVisible: true },
+        { sender: otherUser?._id, receiver: userId, receiverVisible: true }
+      ]
+    }).sort({ createdAt: -1 });
+
+    conversations.push({
+      _id: otherUser?._id,
+      channelId: request?._id,
+      userId: otherUser?.userId,
+      profilePictureUrl : getPublicUrlFromS3(otherUser?.selfDetails[0].profilePicture),
+      userName: otherUser?.basicDetails[0]?.name,
+      lastMessage: lastMessage || {}
+    });
+  }
+
+  return conversations;
+};
+
+module.exports = {
+  getConversations
+};

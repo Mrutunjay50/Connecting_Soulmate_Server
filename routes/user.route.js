@@ -10,6 +10,7 @@ const {
   getPageData,
   updateUserPhotos,
 } = require("../controllers/register.js");
+const { reportUser } = require("../controllers/reportController.js");
 const searchController = require("../controllers/search.js");
 const { imageMulter, handleMulterError, logImageSizes } = require("../multer/multerImg.js");
 
@@ -26,4 +27,5 @@ module.exports = (app) => {
   app.get("/user-notification-data/:userId", getNotificationsForUser);
   app.post("/search-user/:userId", searchController.searchById);
   app.post("/search-users/:userId", searchController.advanceSearch);
+  app.post("/report-users", reportUser);
 };
