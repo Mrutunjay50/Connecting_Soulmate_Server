@@ -1,8 +1,11 @@
 const BlockedUser = require('../models/blockedUser');
+const { MessageModel } = require('../models/conversationModel');
 const { InterestRequests, ProfileRequests } = require('../models/interests');
 const { Country, State, City, Diet, Proffesion, Community } = require("../models/masterSchemas");
+const Notifications = require('../models/notifications');
 const ShortList = require('../models/shortlistUsers');
 const { getPublicUrlFromS3 } = require('../utils/s3Utils');
+const { sendAndCreateNotification } = require('./notificationController');
 
 exports.blockUser = async (req, res) => {
   try {
@@ -25,12 +28,17 @@ exports.blockUser = async (req, res) => {
       InterestRequests.deleteMany({ interestRequestBy: blockBy, interestRequestTo: blockUserId }),
       InterestRequests.deleteMany({ interestRequestBy: blockUserId, interestRequestTo: blockBy }),
       ShortList.deleteMany({ user: blockBy, shortlistedUser: blockUserId }),
-      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy })
+      ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy }),
+      MessageModel.deleteMany({ receiver: blockBy, sender: blockUserId}),
+      MessageModel.deleteMany({ receiver: blockUserId, sender: blockBy}),
+      Notifications.deleteMany({ notificationTo: blockBy, notificationBy: blockUserId}),
+      Notifications.deleteMany({ notificationTo: blockUserId, notificationBy: blockBy})
     ]);
 
     // Create a new blocked user entry
     const blockedUser = new BlockedUser({ blockedBy: blockBy, blockedUser: blockUserId });
     await blockedUser.save();
+    await sendAndCreateNotification(blockBy, blockUserId, 'blockedusers');
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
   } catch (err) {
@@ -113,8 +121,12 @@ exports.getBlockedUsers = async (req, res) => {
     ]);
 
     const promises = user.map(async (user) => {
-      const profileUrl = getPublicUrlFromS3(user?.selfDetails[0]?.profilePicture || "");
-      user.selfDetails[0].profilePictureUrl = profileUrl || "";
+      if (user.shortlistedUser && user.shortlistedUser.selfDetails && user.shortlistedUser.selfDetails[0]) {
+        const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
+        if (user.shortlistedUser.selfDetails.length > 0) {
+          user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+        }
+      }
 
       if (user?.familyDetails && user?.familyDetails[0]?.community) {
         const communityData = communities.find(community => community.community_id === user?.familyDetails[0]?.community);

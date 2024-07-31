@@ -32,7 +32,7 @@ const sendEmail = async ({ to, subject, htmlContent, restrict }) => {
     // console.log("Email sent successfully:", data);
     // return data;
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email:", error.message);
     throw error; // Propagate the error up to the caller
   }
 };

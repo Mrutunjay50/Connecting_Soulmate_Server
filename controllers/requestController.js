@@ -2,7 +2,7 @@ const { ProfileRequests, InterestRequests } = require("../models/interests");
 const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
-const { populateNotification } = require("../helper/NotificationsHelper/populateNotification");
+const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
 const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
@@ -31,6 +31,7 @@ const notificationStatus = async (userId) => {
 // Profile Request Section
 
 exports.sendProfileRequest = async (req, res) => {
+  console.time('sendProfileRequest'); // Start timing
   try {
     const { profileRequestBy, profileRequestTo } = req.body;
     const message = await sendRequest(
@@ -52,14 +53,21 @@ exports.sendProfileRequest = async (req, res) => {
     ];
     
     const acceptedProfileMessages = [
-      `You have accepted the Profile request from this user`
+      `You have accepted the Profile request from this user`,
+      `This person has already sent an Profile request to you`,
+      `Profile: request can't be sent as your request to this person has been accepted`
+    ];
+
+    const noNotificationMessages = [
+      "Profile request already sent"
     ];
     
     if (blockedMessages.includes(message) || acceptedInterestMessages.includes(message) || acceptedProfileMessages.includes(message)) {
+      console.timeEnd('sendProfileRequest'); // End timing before returning
       return res.status(403).json(message);
     }
 
-    if(message !== "This person has already sent an Profile request to you"){
+    if(!noNotificationMessages.includes(message)){
           // Create or update notification for profile request sent
       const notification = await Notifications.findOneAndUpdate(
         {
@@ -85,10 +93,13 @@ exports.sendProfileRequest = async (req, res) => {
       io.getIO().emit(`notification/${profileRequestBy}`, formattedNotification);
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
+      // Find all admin users
+      const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
       io.getIO().emit(`profileRequestSent/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
-      sendNotificationToAdmins(formattedNotification);
+      sendNotificationToAdmins(formattedNotificationAdmin);
     }
+    console.timeEnd('sendProfileRequest'); // End timing before returning
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending profile request:", error);
@@ -97,6 +108,7 @@ exports.sendProfileRequest = async (req, res) => {
 };
 
 exports.acceptProfileRequest = async (req, res) => {
+  console.time('acceptProfileRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {profileRequestToId} = req.query;
@@ -104,11 +116,13 @@ exports.acceptProfileRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('acceptProfileRequest');
       return res.status(404).json({ error: "Profile request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.profileRequestTo.toString() !== profileRequestToId) {
+      console.timeEnd('acceptProfileRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot accept this profile request" });
     }
     const responseMsg = await updateRequestStatus(
@@ -145,9 +159,11 @@ exports.acceptProfileRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.profileRequestTo}`, formattedNotification);
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
+    const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
-    sendNotificationToAdmins(formattedNotification);
+    sendNotificationToAdmins(formattedNotificationAdmin);
+    console.timeEnd('acceptProfileRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting profile request:", error);
@@ -156,6 +172,7 @@ exports.acceptProfileRequest = async (req, res) => {
 };
 
 exports.declineProfileRequest = async (req, res) => {
+  console.time('declineProfileRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {profileRequestToId} = req.query;
@@ -163,11 +180,13 @@ exports.declineProfileRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('declineProfileRequest');
       return res.status(404).json({ error: "Profile request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.profileRequestTo.toString() !== profileRequestToId) {
+      console.timeEnd('declineProfileRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot decline this profile request" });
     }
     const responseMsg = await updateRequestStatus(
@@ -179,9 +198,10 @@ exports.declineProfileRequest = async (req, res) => {
     );
 
     // Emit notification event
-    io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
+    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
     // Send formatted notification to admin and users with accessType 0 or 1
     // sendNotificationToAdmins(formattedNotification);
+    console.timeEnd('declineProfileRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining profile request:", error);
@@ -190,6 +210,7 @@ exports.declineProfileRequest = async (req, res) => {
 };
 
 exports.cancelProfileRequest = async (req, res) => {
+  console.time('cancelProfileRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {profileRequestById} = req.query;
@@ -197,11 +218,13 @@ exports.cancelProfileRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('cancelProfileRequest');
       return res.status(404).json({ error: "Profile request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.profileRequestBy.toString() !== profileRequestById) {
+      console.timeEnd('cancelProfileRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this profile request" });
     }
     const responseMsg = await updateRequestStatus(
@@ -222,6 +245,7 @@ exports.cancelProfileRequest = async (req, res) => {
       // Delete the existing notification
       await Notifications.findByIdAndDelete(existingNotification._id);
     }
+    console.timeEnd('cancelProfileRequest');
     return res.status(200).json({responseMsg, notification : "also deleted or not found"})
   } catch (error) {
     console.error("Error cancelling profile request:", error);
@@ -312,7 +336,6 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -348,6 +371,7 @@ exports.getProfileRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 exports.getProfileRequestsReceived = async (req, res) => {
   try {
@@ -393,6 +417,7 @@ exports.getProfileRequestsReceived = async (req, res) => {
 // Interest Request Section
 
 exports.sendInterestRequest = async (req, res) => {
+  console.time('sendInterestRequest'); // Start timing
   try {
     const { interestRequestBy, interestRequestTo } = req.body;
     const message = await sendRequest(
@@ -411,14 +436,20 @@ exports.sendInterestRequest = async (req, res) => {
     
     const acceptedMessages = [
       `You have accepted the Interest request from this user`,
-      `Interest: request can't be sent as your request to this person has been accepted`
+      `Interest: request can't be sent as your request to this person has been accepted`,
+      `This person has already sent an Interest request to you`,
+    ];
+    
+    const noNotificationMessages = [
+      "Interest request already sent"
     ];
     
     if (blockedMessages.includes(message) || acceptedMessages.includes(message)) {
+      console.timeEnd('sendInterestRequest');
       return res.status(403).json(message);
     }
 
-    if(message !== "This person has already sent an Interest request to you"){
+    if(!noNotificationMessages.includes(message)){
           // Create or update notification for interest request sent
       const notification = await Notifications.findOneAndUpdate(
         {
@@ -443,11 +474,12 @@ exports.sendInterestRequest = async (req, res) => {
       io.getIO().emit(`notification/${interestRequestBy}`, formattedNotification);
       notificationStatus(interestRequestTo);
       notificationStatus(interestRequestBy);
+      const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
       io.getIO().emit(`interestRequestSent/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
-      sendNotificationToAdmins(formattedNotification);
+      sendNotificationToAdmins(formattedNotificationAdmin);
     }
-
+    console.timeEnd('sendInterestRequest');
     return res.status(200).json(message);
   } catch (error) {
     console.error("Error sending interest request:", error);
@@ -456,6 +488,7 @@ exports.sendInterestRequest = async (req, res) => {
 };
 
 exports.acceptInterestRequest = async (req, res) => {
+  console.time('acceptInterestRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {interestRequestToId} = req.query;
@@ -463,11 +496,13 @@ exports.acceptInterestRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('acceptInterestRequest');
       return res.status(404).json({ error: "Interest request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.interestRequestTo.toString() !== interestRequestToId) {
+      console.timeEnd('acceptInterestRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot accept this interest request" });
     }
     const responseMsg = await updateRequestStatus(
@@ -504,9 +539,11 @@ exports.acceptInterestRequest = async (req, res) => {
     io.getIO().emit(`notification/${request.interestRequestTo}`, formattedNotification);
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
+    const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
-    sendNotificationToAdmins(formattedNotification);
+    sendNotificationToAdmins(formattedNotificationAdmin);
+    console.timeEnd('acceptInterestRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
     console.error("Error accepting interest request:", error);
@@ -515,6 +552,7 @@ exports.acceptInterestRequest = async (req, res) => {
 };
 
 exports.declineInterestRequest = async (req, res) => {
+  console.time('declineInterestRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {interestRequestToId} = req.query;
@@ -522,11 +560,13 @@ exports.declineInterestRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('declineInterestRequest');
       return res.status(404).json({ error: "Interest request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.interestRequestTo.toString() !== interestRequestToId) {
+      console.timeEnd('declineInterestRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot dcline this interest request" });
     }
 
@@ -539,7 +579,8 @@ exports.declineInterestRequest = async (req, res) => {
     );
 
     // Emit notification event
-    io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
+    // io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
+    console.timeEnd('declineInterestRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
     console.error("Error declining interest request:", error);
@@ -548,6 +589,7 @@ exports.declineInterestRequest = async (req, res) => {
 };
 
 exports.cancelInterestRequest = async (req, res) => {
+  console.time('cancelInterestRequest'); // Start timing
   try {
     const { requestId } = req.params;
     const {interestRequestById} = req.query
@@ -555,11 +597,13 @@ exports.cancelInterestRequest = async (req, res) => {
 
     // Check if the request exists
     if (!request) {
+      console.timeEnd('cancelInterestRequest');
       return res.status(404).json({ error: "Interest request not found" });
     }
 
     // Check if the user is authorized to cancel the request
     if (request.interestRequestBy.toString() !== interestRequestById) {
+      console.timeEnd('cancelInterestRequest');
       return res.status(403).json({ error: "Unauthorized: You cannot cancel this interest request" });
     }
 
@@ -581,6 +625,7 @@ exports.cancelInterestRequest = async (req, res) => {
       // Delete the existing notification
       await Notifications.findByIdAndDelete(existingNotification._id);
     }
+    console.timeEnd('cancelInterestRequest');
     return res.status(201).json({responseMsg, notification : "also deleted or not found"})
   } catch (error) {
     console.error("Error declining interest request:", error);
@@ -730,6 +775,8 @@ exports.getInterestRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 
 exports.getInterestRequestsReceived = async (req, res) => {
   try {

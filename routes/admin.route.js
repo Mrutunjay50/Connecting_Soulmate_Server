@@ -9,12 +9,14 @@ const {
   downloadAllUsersAsCSV,
   downloadUserAsCSV,
   getUserImageInBase64ByIdForAdmin,
+  banUser,
 } = require("../controllers/admin");
 // getUserPDFForAdmin,
 // reviewRequest,
-const { getAdminNotificationsForUser } = require("../controllers/notificationController");
+const { getAdminNotificationsForUser, getAllUsersNotificationsForAdmin } = require("../controllers/notificationController");
 const { isAdmin } = require("../middleware/is_auth");
 const { updateAllUsersAnnualIncomeUSD } = require("../controllers/testing");
+const { getReportedIssues } = require("../controllers/reportController");
 // const { generatePDF } = require("../helper/generatePDF");
 
 module.exports = (app) => {
@@ -23,6 +25,9 @@ module.exports = (app) => {
   // app.put("/review-user-data/:userId", isAdmin, reviewRequest);
   app.put("/admin-notifications", isAdmin, getAdminNotificationsForUser);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
+  app.post("/ban-user", isAdmin, banUser);
+  app.get("/admin-notification-data", isAdmin, getAdminNotificationsForUser);
+  app.get("/admin-user-notification-data", isAdmin, getAllUsersNotificationsForAdmin);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);
   // app.get("/download-single-user-data/pdf/:userId", generatePDF);
   app.get("/userLogo-base64/pdf/:userId", getUserImageInBase64ByIdForAdmin);
@@ -31,5 +36,6 @@ module.exports = (app) => {
   app.get("/get-user-statistics", isAdmin, getUserStatisticsForAdmin);
   app.get("/get-user-data-admin", isAdmin, getAllPendingUsersForAdmin);
   app.get("/get-all-user-data-admin", isAdmin, getAllUsers);
+  app.get("/get-all-reports", isAdmin, getReportedIssues);
   app.put("/admin-update-income",updateAllUsersAnnualIncomeUSD );
 };

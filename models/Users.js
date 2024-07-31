@@ -65,10 +65,10 @@ const familyDetailsSchema = mongoose.Schema({
 });
 
 const selfDescriptionSchema = mongoose.Schema({
-  interests: { type: String, default: "", required: false  },
-  fun: { type: String, default: "", required: false  },
-  fitness: { type: String, default: "", required: false  },
-  other: { type: String, default: "", required: false  },
+  interests: { type: String, required: false  },
+  fun: { type: String, required: false  },
+  fitness: { type: String, required: false  },
+  other: { type: String, required: false  },
   profilePicture: { type: String, default: "", required: false },
   userPhotos: [{ type: String, default: "", required: false  }],
   userPhotosUrl: [{ type: String, default: "", required: false  }],
@@ -185,6 +185,9 @@ const userSchema = mongoose.Schema(
       default : new Date().toISOString()
     },
     isNotification : {
+      type: Boolean,
+    },
+    isAdminNotification : {
       type: Boolean,
     },
     declinedOn : {

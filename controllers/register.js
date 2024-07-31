@@ -3,7 +3,7 @@ const {
 } = require("../helper/AggregationOfUserData/getUserAggregationPipeline");
 const { processUserDetails } = require("../helper/RegistrationHelper/processInterestDetails");
 const { handlePage1, handlePage2, handlePage3, handlePage4, handlePage5, handlePage6 } = require("../helper/RegistrationHelper/registerationPageHandler");
-const { sendApprovalEmail } = require("../helper/emailGenerator/emailHelper");
+const { sendApprovalEmail, sendApprovalEmailToAdmin } = require("../helper/emailGenerator/emailHelper");
 const User = require("../models/Users");
 const io = require("../socket");
 const {
@@ -56,7 +56,9 @@ exports.registerUser = async (req, res) => {
         break;
       case "6":
         await handlePage6(req, user);
-        user.registrationPhase = "notapproved";
+        if(type !== "edit"){
+          user.registrationPhase = "notapproved";
+        }
         break;
       default:
         return res.status(400).json({ error: "Invalid page number" });
@@ -72,28 +74,16 @@ exports.registerUser = async (req, res) => {
     await user.save();
 
     if(page === "6" && type === "add"){
-      // Find users with accessType 0 or 1 and select only the email field
-      // const Admins = await User.find(
-      //   { accessType: { $in: [0, 1] } },
-      //   { "additionalDetails.email": 1 }
-      // );
-
-      // Send approval emails to each user's email address
-      // const approvalPromises = Admins.map(async (user) => {
-      //   const email = user.additionalDetails[0]?.email;
-      //   if (email) {
-      //     await sendApprovalRequestToAdmin(email);
-      //   }
-      // });
-      // await Promise.all(approvalPromises);
       // for notifications
       // Create or update notification for profile request sent
       const notification = await AdminNotifications.findOneAndUpdate(
         {
           notificationBy: userId,
+          notificationType: "approval",
         },
         {
           notificationBy: userId,
+          notificationType: "approval",
         },
         {
           new: true, // Return the updated document
@@ -103,12 +93,20 @@ exports.registerUser = async (req, res) => {
       );
 
       const formattedNotification = await populateAdminNotification(notification);
+      // Find all admin users
+      const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+      const adminIds = admins.map(admin => admin._id);
+      // Emit the notification to all admins
+      adminIds.forEach(adminId => {
+        io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
+      });
 
-      io.getIO().emit(`notification/Admin`, formattedNotification);
+      // Send approval emails to each user's email address
+      await sendApprovalEmailToAdmin(user.basicDetails[0].name);
       await sendApprovalEmail(user.additionalDetails[0].email, user.basicDetails[0].name);
     }
 
-    res.status(200).json({ message: "Data added successfully", user });
+    return res.status(200).json({ message: "Data added successfully", user });
   } catch (err) {
     if (err.message === 'A user with the same email or phone number already exists.') {
       return res.status(400).json({ error: err.message });
@@ -416,7 +414,7 @@ exports.updateUserPhotos = async (req, res) => {
     // Send success response
     res.status(200).json({ message: "User image updated successfully" });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
   }
 };

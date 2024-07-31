@@ -1,20 +1,21 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/Users')
 
-const getUserDetailsFromToken = async(token)=>{
-    
-    if(!token){
-        return {
-            message : "session out",
-            logout : true,
+const getUserDetailsFromToken = async (token)=>{
+    try{
+        if(!token){
+            return {
+                message : "session out",
+                logout : true,
+            }
         }
+        const decode = jwt.verify(token, process.env.SECRET_KEY)
+    
+        const user = await User.findById(decode.id)
+        return user
+    }catch(err){
+        console.log(err)
     }
-
-    const decode = await jwt.verify(token,process.env.JWT_SECREAT_KEY)
-
-    const user = await User.findById(decode.id)
-
-    return user
 }
 
 module.exports = getUserDetailsFromToken

@@ -3,7 +3,6 @@ const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
 const { generateFileName, uploadToS3, resizeImage } = require("../../utils/s3Utils");
 
-
 function generateUniqueNumber() {
   const randomNumber = Math.floor(Math.random() * 100);
   const uniqueNumber = `${randomNumber}`;
@@ -82,7 +81,7 @@ exports.handlePage2 = async (req, user) => {
 
   } catch (err) {
     // Handle any errors that occur
-    console.error(err);
+    console.log(err);
     return { error: 'An error occurred while updating the user.' };
   }
 };
@@ -138,7 +137,9 @@ exports.handlePage5 = async (req, user, type) => {
       selfDetails.other = other;
     } else {
       // Update all fields, including profilePicture and userPhotos
-      selfDetails.profilePicture = profileImage;
+      if (typeof profileImage === 'string') {
+        selfDetails.profilePicture = profileImage;
+      }
       selfDetails.aboutYourself = aboutYourself;
       selfDetails.interests = interests;
       selfDetails.fun = fun;
@@ -174,6 +175,7 @@ exports.handlePage5 = async (req, user, type) => {
     console.error("Error in handlePage5:", err);
   }
 };
+
 
 
 exports.handlePage6 = async (req, user) => {

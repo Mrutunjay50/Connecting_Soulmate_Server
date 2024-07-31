@@ -13,6 +13,9 @@ const { initializeRoutes } = require("./routes/index");
 const {
   sendLatestUserDetails,
 } = require("./controllers/userSettingsController");
+const {chatSocket} = require("./chatSocket");
+const getUserDetailsFromToken = require("./helper/getUserDetailsFromToken");
+const { deleteOldData } = require("./controllers/notificationController");
 initializeRoutes(router);
 
 dotenv.config();
@@ -23,17 +26,18 @@ const port = process.env.PORT || 5000;
 async function connectToMongoDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    // Get a reference to the collection
+    // // Get a reference to the collection
     // const collectionName = "users";
-    // const userCollection = mongoose.connection.collection(collectionName);
+    // const userCollection1 = mongoose.connection.collection("profilerequests");
 
     // // Displaying indexes on the Users collection
-    // // const userCollection = mongoose.connection.collection("users");
-    // const indexes = await userCollection.indexes();
-    // // // Drop all indexes
+    // const userCollection2 = mongoose.connection.collection("interestrequests");
+    // const indexes1 = await userCollection1.indexes();
+    // const indexes2 = await userCollection2.indexes();
+    // // Drop all indexes
     // await userCollection.dropIndexes();
 
-    // console.log("Indexes on Users collection:", indexes);
+    // console.log("Indexes on Users collection:", indexes1, indexes2);
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("Error connecting to MongoDB", error);
@@ -56,8 +60,8 @@ async function startServer() {
       methods: ["GET", "POST", "PUT", "DELETE"],
     },
   });
-  io.on("connection", (socket) => {
-    console.log(`User connected ${socket.id}`);
+  io.on("connection", async (socket) => {
+    await chatSocket(socket);
   });
 
   cron.schedule(
@@ -79,6 +83,28 @@ async function startServer() {
     {
       scheduled: true,
       timezone: "Asia/Tokyo", // Replace "your-timezone-here" with your timezone
+    }
+  );
+
+  cron.schedule(
+    "0 0 1 * *",
+    async () => {
+      const startTime = new Date().toLocaleString();
+      console.log(`Cron job started at: ${startTime}`);
+  
+      try {
+        // Call the function to delete notifications and admin notifications
+        await deleteOldData();
+        const endTime = new Date().toLocaleString();
+        console.log(`Cron job executed successfully at: ${endTime}`);
+      } catch (error) {
+        const errorTime = new Date().toLocaleString();
+        console.error(`Error executing cron job at: ${errorTime}`, error);
+      }
+    },
+    {
+      scheduled: true,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Automatically use local timezone
     }
   );
 
