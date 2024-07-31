@@ -105,6 +105,8 @@ const populateNotificationOfUsersForAdmin = async (notification) => {
     notificationText: populatedNotification.notificationText,
     notificationType: populatedNotification.notificationType,
     _id: populatedNotification._id,
+    createdAt : populatedNotification.createdAt,
+    updatedAt : populatedNotification.updatedAt
   };
 
   return formattedNotification;
