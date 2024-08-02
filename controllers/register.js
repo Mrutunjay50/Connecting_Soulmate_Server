@@ -28,8 +28,14 @@ const AdminNotifications = require("../models/adminNotification");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    let userId;
     const { page, type } = req.query; // Assuming you have a userId to identify the user
+
+    if (req.user.accessType !== "0") {
+      userId = req.user._id;
+    }else {
+      userId = req.params.userId;
+    }
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
@@ -118,9 +124,14 @@ exports.registerUser = async (req, res) => {
 
 exports.getPageData = async (req, res) => {
   try {
-    const { userId } = req.params;
+    let userId;
     const { page } = req.query;
 
+    if (req.user.accessType !== "0") {
+      userId = req.user._id;
+    }else {
+      userId = req.params.userId;
+    }
     // Fetch the user based on userId
     const user = await User.findById(userId);
 
@@ -217,7 +228,12 @@ exports.getPageData = async (req, res) => {
 exports.deleteImagesInUser = async (req, res) => {
   try {
     const { imageKey } = req.body;
-    const { userId } = req.params;
+    let userId;
+    if (req.user.accessType !== "0") {
+      userId = req.user._id;
+    }else {
+      userId = req.params.userId;
+    }
     const user = await User.findById(userId); // Corrected variable name from 'id' to 'userId'
     if (!user) {
       return res.status(404).json({ message: "User not found" }); // Added 'return' statement
@@ -338,7 +354,12 @@ exports.addImagesInUser = async (req, res) => {
 exports.updateUserPhotos = async (req, res) => {
   try {
     const userPhotos = req.files;
-    const { userId } = req.params;
+    let userId;
+    if (req.user.accessType !== "0") {
+      userId = req.user._id;
+    }else {
+      userId = req.params.userId;
+    }
     const { userPhotosKeys, profilePictureIndex, profilePictureKey } = req.body;
 
     const user = await User.findById(userId);
@@ -457,7 +478,7 @@ exports.createProfession = async (req, res) => {
 
 exports.changeUserDetailsText = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     const { type, text } = req.body;
 
     const user = await User.findById(userId);

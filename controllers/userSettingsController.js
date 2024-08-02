@@ -14,6 +14,13 @@ const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const AdminNotifications = require("../models/adminNotification");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
+const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret-token-csm-change-registration-number-key";
+
+
+// Function to generate a token with a 10-minute expiration
+const generateToken = (userId, email) => {
+  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '10m' });
+};
 
 function formatName(name) {
   // Remove "undefined" from the name
@@ -39,12 +46,7 @@ function formatName(name) {
 
 exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
   try {
-    const { userId } = req.body;
-    // Check if the user exists
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const user = req.user;
 
     // Check if the user has provided an email
     const email = user?.additionalDetails[0]?.email;
@@ -52,7 +54,10 @@ exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
       return res.status(400).json({ error: "You have not provided an email for this account." });
     }
 
-    const verificationLink = `${DOMAIN}/change-register-number/${userId}/${email}`;
+    // Generate a JWT token with a 10-minute expiration
+    const token = generateToken(user._id, email);
+
+    const verificationLink = `${DOMAIN}/change-register-number/${token}`;
     await sendChangeRegistrationEmail(user?.additionalDetails[0]?.email, user?.basicDetails[0]?.name || "user", verificationLink);
 
     return res.status(200).json({ message: "Verification link sent successfully" });
@@ -65,8 +70,8 @@ exports.generateLinkForChangingRegisteredNumber = async (req, res) => {
 
 exports.changeRegisteredNumber = async (req, res) => {
   try {
-    const { number, userId } = req.body;
-
+    const { number } = req.body;
+    const userId = req.user._id;
     // Find the user by userId
     const user = await User.findById(userId);
     if (!user) {
@@ -93,8 +98,8 @@ exports.changeRegisteredNumber = async (req, res) => {
 
 exports.subscribeEveryFifteenDays = async (req, res) => {
     try {
-        const { userId, isValue} = req.body;
-    
+        const { isValue} = req.body;
+        const userId = req.user._id;
         // Find the user by userId
         const user = await User.findById(userId);
         if (!user) {
@@ -375,8 +380,8 @@ exports.sendLatestUserDetails = async () => {
 
 exports.deleteProfile = async (req, res) => {
   try {
-    const { userId, deleteReason, isSuccessFulMarraige } = req.body;
-
+    const { deleteReason, isSuccessFulMarraige } = req.body;
+    const userId = req.user._id;
     // Find the user by userId
     const user = await User.findById(userId);
     if (!user) {
@@ -419,7 +424,7 @@ const addToSuccessfulMarriages = async (userId) => {
 
 exports.reApprovalRequest = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
 
     // Find the user by userId
     const user = await User.findById(userId);
@@ -469,7 +474,8 @@ exports.reApprovalRequest = async (req, res) => {
 
 exports.updateContactInfo = async (req, res) => {
   try {
-    const { userId, email, phone } = req.body;
+    const { email, phone } = req.body;
+    const userId = req.user._id;
 
     // Find the user by userId
     const countryCode = phone?.split("-")[0] || "";

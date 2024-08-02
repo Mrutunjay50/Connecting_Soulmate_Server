@@ -29,7 +29,7 @@ const isAuth = async (req, res, next) => {
       // Check if the user associated with the token exists
       const user = await User.findById(decoded.id);
       if (!user) {
-        return res.status(401).json({ message: "User not found." });
+        return res.status(401).json({ message: "Unauthorized User." });
       }
 
       // Attach the authenticated user to the request object
@@ -69,7 +69,7 @@ const isAdmin = async (req, res, next) => {
         // Check if the user associated with the token exists
         const user = await User.findById(decoded.id);
         if (!user) {
-          return res.status(401).json({ message: "User not found." });
+          return res.status(401).json({ message: "Unauthorized User" });
         }
         console.log(user.lastLogin);
         // Check if the user is an admin

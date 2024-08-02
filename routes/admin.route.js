@@ -20,6 +20,7 @@ const { getReportedIssues } = require("../controllers/reportController");
 // const { generatePDF } = require("../helper/generatePDF");
 
 module.exports = (app) => {
+  //other routes
   app.put("/approve-or-decline/:userId", isAdmin, updateRegistrationPhase);
   app.put("/update-user-category/:userId", isAdmin, updateUserCategory);
   // app.put("/review-user-data/:userId", isAdmin, reviewRequest);

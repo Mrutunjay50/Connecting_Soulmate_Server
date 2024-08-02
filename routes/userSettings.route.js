@@ -8,14 +8,15 @@ const {
   notificationStatusUserType,
   notificationStatusAdminType
 } = require("../controllers/userSettingsController");
+const { isAuth } = require("../middleware/is_auth");
 
 module.exports = (app) => {
-  app.post("/generate-link-for-number", generateLinkForChangingRegisteredNumber);
-  app.put("/change-registered-number", changeRegisteredNumber);
-  app.put("/change-email-subscription", subscribeEveryFifteenDays);
-  app.put("/notification-status", notificationStatusUserType);
-  app.put("/notification-status-admin", notificationStatusAdminType);
-  app.put("/delete-user", deleteProfile);
-  app.put("/user-reapproval-request", reApprovalRequest);
-  app.put("/update-contact-info", updateContactInfo);
+  app.post("/generate-link-for-number", isAuth, generateLinkForChangingRegisteredNumber);
+  app.put("/change-registered-number", isAuth, changeRegisteredNumber);
+  app.put("/change-email-subscription", isAuth, subscribeEveryFifteenDays);
+  app.put("/notification-status", isAuth, notificationStatusUserType);
+  app.put("/notification-status-admin", isAuth, notificationStatusAdminType);
+  app.put("/delete-user", isAuth, deleteProfile);
+  app.put("/user-reapproval-request", isAuth, reApprovalRequest);
+  app.put("/update-contact-info", isAuth, updateContactInfo);
 };

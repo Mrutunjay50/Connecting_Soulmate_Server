@@ -3,12 +3,7 @@ const { getFilteredProfiles } = require("../helper/RegistrationHelper/getFiltere
 
 exports.searchById = async (req, res) => {
   try {
-    const { userId } = req.params;
     const { category, gender, userIds } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
 
     if (gender !== "M" && gender !== "F") {
       return res.status(400).json({ error: "Invalid gender" });

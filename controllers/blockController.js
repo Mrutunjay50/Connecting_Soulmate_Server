@@ -9,7 +9,8 @@ const { sendAndCreateNotification } = require('./notificationController');
 
 exports.blockUser = async (req, res) => {
   try {
-    const { blockBy, blockUserId } = req.body;
+    const { blockUserId } = req.body;
+    const blockBy = req.user._id;
 
     if (!blockBy || !blockUserId || blockBy === "" || blockUserId === "") {
       return res.status(400).json({ error: "Both blockBy and blockUserId are needed" });
@@ -49,8 +50,8 @@ exports.blockUser = async (req, res) => {
 
 exports.unblockUser = async (req, res) => {
   try {
-    const { blockedBy, blockedUserId } = req.body;
-
+    const { blockedUserId } = req.body;
+    const blockedBy = req.user._id;
     // Find and delete the blocked user entry
     const blockedUser = await BlockedUser.findOneAndDelete({ blockedBy, blockedUser: blockedUserId });
 
@@ -77,7 +78,7 @@ exports.unblockUser = async (req, res) => {
 
 exports.getBlockedUsers = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     const { page = 1, limit = 50 } = req.query; // Default to page 1 and limit 50
 
     // Convert page and limit to numbers

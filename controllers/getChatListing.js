@@ -45,8 +45,9 @@ const { checkAcceptedInterestRequest } = require('../middleware/checkAcceptedInt
 
 exports.getPaginatedMessages = async (req, res) => {
   try {
-    const { chatInitiatedBy, chatInitiatedTo, page, limit } = req.query;
-
+    const { chatInitiatedTo, page, limit } = req.query;
+    const chatInitiatedBy = req.user._id;
+    
     if (!chatInitiatedBy || !chatInitiatedTo) {
       return res.status(400).json({ error: 'Both chatInitiatedBy and chatInitiatedTo are required' });
     }
