@@ -36,10 +36,11 @@ const isAuth = async (req, res, next) => {
       req.user = user;
 
       next();
+      console.log("user authorized");
     });
   } catch (error) {
     console.error("Authentication error:", error);
-    res.status(500).json({ message: "Internal server error." });
+    res.status(401).json({ message: "Not authenticated." });
   }
 };
 
@@ -82,7 +83,7 @@ const isAdmin = async (req, res, next) => {
       });
     } catch (error) {
       console.error("Admin check error:", error);
-      res.status(500).json({ message: "Internal server error." });
+      res.status(401).json({ message: "Not authenticated." });
     }
   };
 
