@@ -254,7 +254,7 @@ exports.deleteImagesInUser = async (req, res) => {
     }
     await user.save();
     await deleteFromS3(imageKey);
-    res.status(200).json({ message: "Image deleted successfully" }); // Moved response outside try block
+    res.status(200).json({ message: "Image deleted successfully", selfDetails : user?.selfDetails }); // Moved response outside try block
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error", err });
@@ -357,10 +357,10 @@ exports.updateUserPhotos = async (req, res) => {
     let userId;
     if (req.user.accessType !== "0") {
       userId = req.user._id;
-    }else {
+    } else {
       userId = req.params.userId;
     }
-    const { userPhotosKeys, profilePictureIndex, profilePictureKey } = req.body;
+    const { profilePictureIndex } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -374,66 +374,49 @@ exports.updateUserPhotos = async (req, res) => {
     // Update self details
     let selfDetails = user.selfDetails[0];
 
-    if (profilePictureKey) {
-      selfDetails.profilePicture = profilePictureKey;
-      selfDetails.profilePictureUrl = getPublicUrlFromS3(profilePictureKey);
-    }
-
     // Remove photos not present in userPhotosKeys from both userPhotos array and S3
     if (selfDetails.userPhotos && selfDetails.userPhotos.length > 0) {
-      const photosToRemove = selfDetails.userPhotos.filter(
-        (photo) => !userPhotosKeys.includes(photo)
-      );
+      if (userPhotos && userPhotos.length > 0) {
+        // Upload new photos to S3 and add their file names and URLs to userPhotos and userPhotosUrl arrays
+        try {
+          const uploadedPhotos = await Promise.all(
+            userPhotos.map(async (photo) => {
+              const { buffer, originalname, mimetype } = photo;
+              const resizedImageBuffer = await resizeImage(buffer);
+              const fileName = generateFileName(originalname);
+              await uploadToS3(resizedImageBuffer, fileName, mimetype);
+              const publicUrl = getPublicUrlFromS3(fileName);
+              return { fileName, publicUrl };
+            })
+          );
 
-      for (const photo of photosToRemove) {
-        await deleteFromS3(photo);
-        selfDetails.userPhotos = selfDetails.userPhotos.filter((p) => p !== photo);
-        selfDetails.userPhotosUrl = selfDetails.userPhotosUrl.filter((url) => !url.includes(photo));
-      }
-    }
+          // If profilePictureIndex is present and matches any uploaded photo, add it to selfDetails.profilePicture
+          // if (profilePictureIndex !== undefined && uploadedPhotos.length > 0) {
+          //   const { fileName, publicUrl } = uploadedPhotos[profilePictureIndex];
+          //   selfDetails.profilePicture = fileName;
+          //   selfDetails.profilePictureUrl = publicUrl;
+          // }
 
-    if (userPhotos && userPhotos.length > 0) {
-      // Remove excess photos if total count exceeds 5
-      if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
-        const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
-        selfDetails.userPhotos.splice(0, excessCount);
-        selfDetails.userPhotosUrl.splice(0, excessCount);
-      }
-
-      // Upload new photos to S3 and add their file names and URLs to userPhotos and userPhotosUrl arrays
-      try {
-        const uploadedPhotos = await Promise.all(
-          userPhotos.map(async (photo) => {
-            const { buffer, originalname, mimetype } = photo;
-            const resizedImageBuffer = await resizeImage(buffer);
-            const fileName = generateFileName(originalname);
-            await uploadToS3(resizedImageBuffer, fileName, mimetype);
-            const publicUrl = getPublicUrlFromS3(fileName);
-            return { fileName, publicUrl };
-          })
-        );
-
-        // If profilePictureIndex is present and matches any uploaded photo, add it to selfDetails.profilePicture
-        if (profilePictureIndex !== undefined && uploadedPhotos.length > 0) {
-          const { fileName, publicUrl } = uploadedPhotos[profilePictureIndex];
-          selfDetails.profilePicture = fileName;
-          selfDetails.profilePictureUrl = publicUrl;
+          // Add uploaded photos and URLs to userPhotos and userPhotosUrl arrays
+          selfDetails.userPhotos.push(...uploadedPhotos.map((photo) => photo.fileName));
+          selfDetails.userPhotosUrl.push(...uploadedPhotos.map((photo) => photo.publicUrl));
+        } catch (error) {
+          console.error("Error uploading images to S3:", error);
+          return res.status(500).json({ error: "Error uploading images to S3" });
         }
-
-        // Add uploaded photos and URLs to userPhotos and userPhotosUrl arrays
-        selfDetails.userPhotos.push(...uploadedPhotos.map(photo => photo.fileName));
-        selfDetails.userPhotosUrl.push(...uploadedPhotos.map(photo => photo.publicUrl));
-      } catch (error) {
-        console.error("Error uploading images to S3:", error);
-        return res.status(500).json({ error: "Error uploading images to S3" });
       }
+      // Update the profile picture based on profilePictureIndex
+      if ( profilePictureIndex !== undefined && profilePictureIndex < selfDetails.userPhotos.length) {
+        const newProfilePictureKey = selfDetails.userPhotos[profilePictureIndex];
+        selfDetails.profilePicture = newProfilePictureKey;
+        selfDetails.profilePictureUrl = getPublicUrlFromS3(newProfilePictureKey);
+      }
+      // Save the updated user object
+      await user.save();
+
+      // Send success response
+      res.status(200).json({ message: "User image updated successfully" });
     }
-
-    // Save the updated user object
-    await user.save();
-
-    // Send success response
-    res.status(200).json({ message: "User image updated successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
