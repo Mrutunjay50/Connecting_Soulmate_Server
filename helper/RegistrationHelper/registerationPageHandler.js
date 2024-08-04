@@ -1,7 +1,7 @@
 const User = require("../../models/Users");
 const ExchangeRate = require("../../models/exchangeRate");
 const moment = require("moment");
-const { generateFileName, uploadToS3, resizeImage } = require("../../utils/s3Utils");
+const { generateFileName, uploadToS3, resizeImage, deleteFromS3 } = require("../../utils/s3Utils");
 
 function generateUniqueNumber() {
   const randomNumber = Math.floor(Math.random() * 100);
@@ -118,9 +118,9 @@ exports.handlePage4 = async (req, user) => {
 exports.handlePage5 = async (req, user, type) => {
   try {
     const userPhotos = req.files;
-    const { aboutYourself, interests, fun, fitness, other, profilePicture, profileImage } = JSON.parse(req.body.selfDetails);
+    const { aboutYourself, interests, fun, fitness, other, profilePictureIndex } = JSON.parse(req.body.selfDetails);
   
-    console.log(aboutYourself, interests, fun, fitness, other, profilePicture, profileImage);
+    console.log(aboutYourself, interests, fun, fitness, other, profilePictureIndex);
 
     if (!user.selfDetails || !user.selfDetails[0]) {
       user.selfDetails = [{}];
@@ -136,10 +136,6 @@ exports.handlePage5 = async (req, user, type) => {
       selfDetails.fitness = fitness;
       selfDetails.other = other;
     } else {
-      // Update all fields, including profilePicture and userPhotos
-      if (typeof profileImage === 'string') {
-        selfDetails.profilePicture = profileImage;
-      }
       selfDetails.aboutYourself = aboutYourself;
       selfDetails.interests = interests;
       selfDetails.fun = fun;
@@ -147,11 +143,8 @@ exports.handlePage5 = async (req, user, type) => {
       selfDetails.other = other;
   
       if (userPhotos && userPhotos.length > 0) {
-        if (selfDetails.userPhotos && selfDetails.userPhotos.length + userPhotos.length > 5) {
-          const excessCount = selfDetails.userPhotos.length + userPhotos.length - 5;
-          selfDetails.userPhotos.splice(0, excessCount);
-        }
-  
+        // Array to store the names of successfully uploaded files
+        const uploadedFileNames = [];
         try {
           const uploadedPhotos = await Promise.all(
             userPhotos.map(async (photo) => {
@@ -159,18 +152,32 @@ exports.handlePage5 = async (req, user, type) => {
               const resizedImageBuffer = await resizeImage(buffer);
               const fileName = generateFileName(originalname);
               await uploadToS3(resizedImageBuffer, fileName, mimetype);
-              if (originalname === profilePicture) {
-                selfDetails.profilePicture = String(fileName); 
-              } 
+              uploadedFileNames.push(fileName);
               return fileName;
             })
           );
           selfDetails.userPhotos.push(...uploadedPhotos);
         } catch (error) {
           console.error("Error uploading images to S3:", error);
+          // Delete all previously uploaded files if an error occurs
+          try {
+            // Delete all files from S3 that were successfully uploaded before the error
+            await Promise.all(
+              uploadedFileNames.map(async (fileName) => {
+                await deleteFromS3(fileName); // Ensure you have a deleteFromS3 function
+              })
+            );
+          } catch (deleteError) {
+            console.error("Error deleting images from S3:", deleteError);
+          }
         }
       }
+      // Set the profilePicture based on the profilePictureIndex
+      if (profilePictureIndex !== undefined && profilePictureIndex < selfDetails?.userPhotos?.length) {
+        selfDetails.profilePicture = selfDetails?.userPhotos[profilePictureIndex];
+      }
     }
+    
   } catch (err) {
     console.error("Error in handlePage5:", err);
   }

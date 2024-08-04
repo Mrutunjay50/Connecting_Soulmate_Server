@@ -2,6 +2,7 @@ const User = require("../models/Users");
 const io = require("../socket");
 const dotenv = require("dotenv");
 const { sendEmail } = require("../utils/emailUtils");
+const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
