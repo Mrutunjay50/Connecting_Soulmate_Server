@@ -10,6 +10,7 @@ const {
   downloadUserAsCSV,
   getUserImageInBase64ByIdForAdmin,
   banUser,
+  discardUser,
 } = require("../controllers/admin");
 // getUserPDFForAdmin,
 // reviewRequest,
@@ -27,6 +28,7 @@ module.exports = (app) => {
   app.put("/admin-notifications", isAdmin, getAdminNotificationsForUser);
   app.put("/delete-user/:userId", isAdmin, softDeleteUser);
   app.post("/ban-user", isAdmin, banUser);
+  app.post("/discard-user", isAdmin, discardUser);
   app.get("/admin-notification-data", isAdmin, getAdminNotificationsForUser);
   app.get("/admin-user-notification-data", isAdmin, getAllUsersNotificationsForAdmin);
   app.get("/get-user-view-data-admin/:userId", isAdmin, getUserByIdForAdmin);

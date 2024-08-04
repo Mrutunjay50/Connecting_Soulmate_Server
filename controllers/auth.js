@@ -47,7 +47,7 @@ const signinController = async (req, res) => {
 
       if (daysDifference > 15) {
         // Delete user data
-        await User.deleteOne({ _id: existingUser._id });
+        await User.findByIdAndDelete(existingUser?._id);
 
         return res.status(200).json({ message: "Your previous data has been deleted. You can now re-signup." });
       }

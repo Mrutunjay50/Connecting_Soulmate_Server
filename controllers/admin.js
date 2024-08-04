@@ -181,6 +181,25 @@ exports.softDeleteUser = async (req, res) => {
   }
 };
 
+exports.discardUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    await User.findByIdAndDelete(userId);
+    res.status(200).json({
+      message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
+      user,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 exports.banUser = async (req, res) => {
   try {
     const { userId, banReason } = req.body;
