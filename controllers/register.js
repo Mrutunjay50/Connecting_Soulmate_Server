@@ -374,8 +374,6 @@ exports.updateUserPhotos = async (req, res) => {
     // Update self details
     let selfDetails = user.selfDetails[0];
 
-    // Remove photos not present in userPhotosKeys from both userPhotos array and S3
-    if (selfDetails.userPhotos && selfDetails.userPhotos.length > 0) {
       if (userPhotos && userPhotos.length > 0) {
         // Upload new photos to S3 and add their file names and URLs to userPhotos and userPhotosUrl arrays
         try {
@@ -401,7 +399,7 @@ exports.updateUserPhotos = async (req, res) => {
           selfDetails.userPhotos.push(...uploadedPhotos.map((photo) => photo.fileName));
           selfDetails.userPhotosUrl.push(...uploadedPhotos.map((photo) => photo.publicUrl));
         } catch (error) {
-          console.error("Error uploading images to S3:", error);
+          console.log("Error uploading images to S3:", error);
           return res.status(500).json({ error: "Error uploading images to S3" });
         }
       }
@@ -416,7 +414,6 @@ exports.updateUserPhotos = async (req, res) => {
 
       // Send success response
       res.status(200).json({ message: "User image updated successfully" });
-    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
