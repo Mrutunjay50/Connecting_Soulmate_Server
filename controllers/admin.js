@@ -15,6 +15,8 @@ const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const BannedUsers = require("../models/bannedUsers");
 const io = require("../socket");
 
+const { events } = require("../utils/eventsConstants");
+
 const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
 
@@ -163,7 +165,7 @@ exports.softDeleteUser = async (req, res) => {
     await deleteUserRelatedData(user?._id);
     const email = user?.additionalDetails?.[0]?.email;
     const name = user?.basicDetails?.[0]?.name || "user";
-    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${user._id?.toString()}`, { "message": "number changed login again" });
+    io.getIO().emit(`${events.DELETETOKEN}/${user._id?.toString()}`, { "message": "number changed login again" });
     if (email && email.trim() !== "") {
       await sendDeleteEmailFromAdmin(email, name);
     }
@@ -240,7 +242,7 @@ exports.banUser = async (req, res) => {
     // Delete the user completely
     await User.findByIdAndDelete(userId);
     await deleteUserRelatedData(userId);
-    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${userId}`, { "message": "number changed login again" });
+    io.getIO().emit(`${events.DELETETOKEN}/${userId}`, { "message": "number changed login again" });
 
     if (email && email.trim() !== "") {
       await sendBannedEmailFromAdmin(email, name, banReason);

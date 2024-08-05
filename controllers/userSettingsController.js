@@ -14,6 +14,7 @@ const { City, State, Proffesion } = require("../models/masterSchemas");
 const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const AdminNotifications = require("../models/adminNotification");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
+const { events } = require("../utils/eventsConstants");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret-token-csm-change-registration-number-key";
 
@@ -89,7 +90,7 @@ exports.changeRegisteredNumber = async (req, res) => {
 
     // Save the updated user
     await user.save();
-    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${user._id}`, { "message": "number changed login again" });
+    io.getIO().emit(`${events.DELETETOKEN}/${user._id}`, { "message": "number changed login again" });
     res.status(200).json({ message: "Number Changed successfully" });
   } catch (error) {
     console.error("Error changing registered number:", error);
@@ -464,7 +465,7 @@ exports.reApprovalRequest = async (req, res) => {
     const adminIds = admins.map(admin => admin._id);
     // Emit the notification to all admins
     adminIds.forEach(adminId => {
-      io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
+      io.getIO().emit(`${events.ADMINNOTIFICATION}/${adminId}`, formattedNotification);
     });
 
   } catch (error) {

@@ -25,6 +25,7 @@ const {
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const AdminNotifications = require("../models/adminNotification");
 
+const { events } = require("../utils/eventsConstants");
 
 exports.registerUser = async (req, res) => {
   try {
@@ -104,7 +105,7 @@ exports.registerUser = async (req, res) => {
       const adminIds = admins.map(admin => admin._id);
       // Emit the notification to all admins
       adminIds.forEach(adminId => {
-        io.getIO().emit(`adminNotification/${adminId}`, formattedNotification);
+        io.getIO().emit(`${events.ADMINNOTIFICATION}/${adminId}`, formattedNotification);
       });
 
       // Send approval emails to each user's email address
