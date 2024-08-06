@@ -79,6 +79,7 @@ Install node version manager (nvm) by typing the following at the command line.
 ```bash
     #to become a root user
     sudo su -
+    # don't need to be a root user, can continue without this
 ```
 ```bash
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
