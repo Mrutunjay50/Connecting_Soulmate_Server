@@ -60,6 +60,9 @@ Deployment Instructions for EC2 Instance Setup
 After successfully creating an EC2 instance, navigate to the AWS Management Console.
 Click on the Instances section and find your newly created instance.
 
+(while creating make sure to select a appropriate instance type t3 micro or t3a medium and so on.)
+Assign a Elastic IP to the instance so that even if the instance stops or restarts the IP will be same.
+
 #### Instance Summary:
 Click on the `Instance ID` to access the instance summary.
 ##### Connect to Instance:
@@ -78,8 +81,8 @@ Follow the commands below in `CloudShell` for a successful deployment:
 Install node version manager (nvm) by typing the following at the command line.
 ```bash
     #to become a root user
+    #don't need to be a root user, can continue without this
     sudo su -
-    # don't need to be a root user, can continue without this
 ```
 ```bash
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
