@@ -281,11 +281,11 @@ To run this project, you will need to add the following environment variables to
 
 ##### Brevo Keys
 `BREVO_API_KEY`
-`SENDER_IDENTITY` #connecting-soulmate
-`DOMAIN_EMAIL` #domain email from which the email will be sent
-`ADMIN_EMAIL` #email of admin
-`LOGO_IMAGE_URL` #logo url in emails
-`FRONTEND_URL` #domain url for registration number url
+`SENDER_IDENTITY` # connecting-soulmate
+`DOMAIN_EMAIL` # domain email from which the email will be sent
+`ADMIN_EMAIL` # email of admin
+`LOGO_IMAGE_URL` # logo url in emails
+`FRONTEND_URL` # domain url for registration number url
 
 #### S3 CREDENTIALS
 `SECRET_ACCESS_KEY`
