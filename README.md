@@ -121,7 +121,7 @@ Now Clone Your Server Repository where you have your server code
 
 now change the directory to your cloned folder or directory and install the packages in your `package.json` file: 
 ```bash
-  cd Brand_Monkey_Server
+  cd Connecting_Soulmate_Server
 ```
 ```bash
   npm install
@@ -169,7 +169,7 @@ sudo nano /etc/nginx/sites-available/default
     server_name yourdomain.com www.yourdomain.com;
 
     location / {
-        proxy_pass http://localhost:8800; #whatever port your app runs on
+        proxy_pass http://localhost:5000; #whatever port your app runs on
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -277,23 +277,31 @@ To run this project, you will need to add the following environment variables to
 
 ##### For jwt
 `SECRET_KEY`
+`JWT_SECRET`
 
-##### For SendGrid Email
-`SENDGRID_API_KEY`
+##### Brevo Keys
+`BREVO_API_KEY`
+`SENDER_IDENTITY` #connecting-soulmate
+`DOMAIN_EMAIL` #domain email from which the email will be sent
+`ADMIN_EMAIL` #email of admin
+`LOGO_IMAGE_URL` #logo url in emails
+`FRONTEND_URL` #domain url for registration number url
 
 #### S3 CREDENTIALS
 `SECRET_ACCESS_KEY`
-
 `ACCESS_KEY`
-
 `BUCKET_NAME`
-
 `BUCKET_REGION`
+
+#### OTPless CREDENTIALS
+`CLIENT_SECRET`
+`CLIENT_ID`
+`APP_ID`
 
 
 ## Tech Stack
 
-**Client:** React JS, Context API, TailwindCSS, interceptors, axios, mui
+**Client:** React JS, Context API, TailwindCSS, interceptors, axios, mui, OTPless
 
 **Server:** Node, Express, Bcrypt, jsonwebtoken, MongoDB, Mongoose
 
