@@ -44,7 +44,7 @@ exports.blockUser = async (req, res) => {
     await sendAndCreateNotification(blockBy, blockUserId, 'blockedusers');
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
-    io.getIO().emit(`${events.ONBLOCK}`, {userBlocked : true});
+    io.getIO().emit(`${events.ONBLOCK}`, {...blockedUser});
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
