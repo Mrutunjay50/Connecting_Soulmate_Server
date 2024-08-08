@@ -6,6 +6,8 @@ const Notifications = require('../models/notifications');
 const ShortList = require('../models/shortlistUsers');
 const { getPublicUrlFromS3 } = require('../utils/s3Utils');
 const { sendAndCreateNotification } = require('./notificationController');
+const io = require("../socket");
+const { events } = require("../utils/eventsConstants");
 
 exports.blockUser = async (req, res) => {
   try {
@@ -42,6 +44,7 @@ exports.blockUser = async (req, res) => {
     await sendAndCreateNotification(blockBy, blockUserId, 'blockedusers');
 
     res.status(200).json({ message: "User blocked successfully", blockedUser });
+    io.getIO().emit(`${events.ONBLOCK}`, {userBlocked : true});
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error", err });
