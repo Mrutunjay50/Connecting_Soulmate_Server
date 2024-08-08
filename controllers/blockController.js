@@ -122,10 +122,10 @@ exports.getBlockedUsers = async (req, res) => {
     ]);
 
     const promises = user.map(async (user) => {
-      if (user.shortlistedUser && user.shortlistedUser.selfDetails && user.shortlistedUser.selfDetails[0]) {
-        const profileUrl = getPublicUrlFromS3(user.shortlistedUser.selfDetails[0]?.profilePicture || "");
-        if (user.shortlistedUser.selfDetails.length > 0) {
-          user.shortlistedUser.selfDetails[0].profilePictureUrl = profileUrl || "";
+      if (user&& user.selfDetails && user.selfDetails[0]) {
+        const profileUrl = getPublicUrlFromS3(user.selfDetails[0]?.profilePicture || "");
+        if (user.selfDetails.length > 0) {
+          user.selfDetails[0].profilePictureUrl = profileUrl || "";
         }
       }
 
