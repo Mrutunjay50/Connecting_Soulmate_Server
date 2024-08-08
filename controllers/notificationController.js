@@ -6,7 +6,7 @@ const Report = require("../models/reports");
 
 exports.getNotificationsForUser = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user._id;
     const { page = 1, limit = 50 } = req.query;
     
     const pageNumber = parseInt(page, 10);

@@ -11,8 +11,8 @@ const DEFAULT_PAGE_LIMIT = 10;
 
 exports.getFilteredProfiles = async (req, res, queryParams, findOne, PAGE_LIMIT = DEFAULT_PAGE_LIMIT) => {
   try {
-      const { userId } = req.params;
-      const { gender, page = 1 } = req.query;
+      const {_id : userId, gender} = req.user;
+      const { page = 1 } = req.query;
       const queryGender = gender === "F" ? "M" : "F";
       const pageNumber = parseInt(page);
       const pageSize = parseInt(PAGE_LIMIT);

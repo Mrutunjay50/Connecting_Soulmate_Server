@@ -15,6 +15,8 @@ const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const BannedUsers = require("../models/bannedUsers");
 const io = require("../socket");
 
+const { events } = require("../utils/eventsConstants");
+
 const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
 
@@ -163,7 +165,7 @@ exports.softDeleteUser = async (req, res) => {
     await deleteUserRelatedData(user?._id);
     const email = user?.additionalDetails?.[0]?.email;
     const name = user?.basicDetails?.[0]?.name || "user";
-    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${user._id?.toString()}`, { "message": "number changed login again" });
+    io.getIO().emit(`${events.DELETETOKEN}/${user._id?.toString()}`, { "message": "number changed login again" });
     if (email && email.trim() !== "") {
       await sendDeleteEmailFromAdmin(email, name);
     }
@@ -171,6 +173,25 @@ exports.softDeleteUser = async (req, res) => {
     if (isSuccessFulMarraige) {
       await addToSuccessfulMarriages(userId);
     }
+    res.status(200).json({
+      message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
+      user,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.discardUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    await User.findByIdAndDelete(userId);
     res.status(200).json({
       message: `user ${user?.basicDetails[0]?.name} deleted successfully`,
       user,
@@ -221,7 +242,7 @@ exports.banUser = async (req, res) => {
     // Delete the user completely
     await User.findByIdAndDelete(userId);
     await deleteUserRelatedData(userId);
-    io.getIO().emit(`DELETE_TOKEN_FOR_USER/${userId}`, { "message": "number changed login again" });
+    io.getIO().emit(`${events.DELETETOKEN}/${userId}`, { "message": "number changed login again" });
 
     if (email && email.trim() !== "") {
       await sendBannedEmailFromAdmin(email, name, banReason);

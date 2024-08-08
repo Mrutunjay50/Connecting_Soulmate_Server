@@ -1,5 +1,4 @@
 const { getUserDashboard } = require("../controllers/dashboardController.js");
-const { getUserById } = require("../controllers/matchingProfile.js");
 const { getNotificationsForUser } = require("../controllers/notificationController.js");
 const {
   registerUser,
@@ -10,22 +9,17 @@ const {
   getPageData,
   updateUserPhotos,
 } = require("../controllers/register.js");
-const { reportUser } = require("../controllers/reportController.js");
-const searchController = require("../controllers/search.js");
+const { isAuth } = require("../middleware/is_auth.js");
 const { imageMulter, handleMulterError, logImageSizes } = require("../multer/multerImg.js");
 
 module.exports = (app) => {
-  app.post("/user-data/:userId", logImageSizes, imageMulter, handleMulterError, registerUser);
-  app.post("/user-data-images/:userId", logImageSizes, imageMulter, handleMulterError, addImagesInUser);
-  app.post("/add-profession", createProfession);
-  app.post("/text-detail-change/:userId", changeUserDetailsText);
-  app.put("/user-image-delete/:userId", deleteImagesInUser);
-  app.put("/user-image-upload/:userId",logImageSizes, imageMulter, handleMulterError, updateUserPhotos);
-  app.get("/user-data/:userId", getPageData);
-  app.get("/get-user-data/:userId", getUserById);
-  app.get("/user-dashboard-data/:userId", getUserDashboard);
-  app.get("/user-notification-data/:userId", getNotificationsForUser);
-  app.post("/search-user/:userId", searchController.searchById);
-  app.post("/search-users/:userId", searchController.advanceSearch);
-  app.post("/report-users", reportUser);
+  app.post("/user-data/:userId", isAuth, logImageSizes, imageMulter, handleMulterError, registerUser);
+  app.post("/user-data-images/:userId", isAuth, logImageSizes, imageMulter, handleMulterError, addImagesInUser);
+  app.post("/add-profession", isAuth, createProfession);
+  app.post("/text-detail-change/:userId", isAuth, changeUserDetailsText);
+  app.put("/user-image-delete/:userId", isAuth, deleteImagesInUser);
+  app.put("/user-image-upload/:userId", isAuth, logImageSizes, imageMulter, handleMulterError, updateUserPhotos);
+  app.get("/user-data/:userId", isAuth, getPageData);
+  app.get("/user-dashboard-data/:userId", isAuth, getUserDashboard);
+  app.get("/user-notification-data/:userId", isAuth, getNotificationsForUser);
 };

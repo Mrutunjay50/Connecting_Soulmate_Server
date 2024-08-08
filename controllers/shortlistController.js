@@ -6,7 +6,8 @@ const { ListData } = require("../helper/cardListedData");
 
 exports.addToShortlist = async (req, res) => {
     try {
-      const { user, shortlistedUserId } = req.body;
+      const { shortlistedUserId } = req.body;
+      const user = req.user._id;
   
       // Check if a shortlist entry already exists for the user and shortlisted user
       const existingShortlist = await ShortList.findOne({
@@ -82,7 +83,7 @@ exports.addToShortlist = async (req, res) => {
 
   exports.getShortlistedUser = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user._id;
         const page = parseInt(req.query.page) || 1;
         const PAGE_LIMIT = parseInt(req.query.limit) || 50;
         const pageNumber = page;
