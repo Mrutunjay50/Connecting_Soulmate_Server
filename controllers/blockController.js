@@ -23,7 +23,7 @@ exports.blockUser = async (req, res) => {
     if (existingBlockedUser) {
       return res.status(400).json({ error: "User already blocked" });
     }
-
+    const excludedNotificationTypes = ["reported", "blockedusers", "chatinitiated"];
     // Delete relevant requests and shortlist entries
     await Promise.all([
       ProfileRequests.deleteMany({ profileRequestBy: blockBy, profileRequestTo: blockUserId }),
@@ -34,8 +34,8 @@ exports.blockUser = async (req, res) => {
       ShortList.deleteMany({ user: blockUserId, shortlistedUser: blockBy }),
       MessageModel.deleteMany({ receiver: blockBy, sender: blockUserId}),
       MessageModel.deleteMany({ receiver: blockUserId, sender: blockBy}),
-      Notifications.deleteMany({ notificationTo: blockBy, notificationBy: blockUserId}),
-      Notifications.deleteMany({ notificationTo: blockUserId, notificationBy: blockBy})
+      Notifications.deleteMany({ notificationTo: blockBy, notificationBy: blockUserId, notificationType: { $nin: excludedNotificationTypes }}),
+      Notifications.deleteMany({ notificationTo: blockUserId, notificationBy: blockBy, notificationType: { $nin: excludedNotificationTypes }})
     ]);
 
     // Create a new blocked user entry
