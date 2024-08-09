@@ -15,6 +15,7 @@ const { deleteUserRelatedData } = require("../helper/deleteUserData");
 const AdminNotifications = require("../models/adminNotification");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const { events } = require("../utils/eventsConstants");
+const BannedUsers = require("../models/bannedUsers");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret-token-csm-change-registration-number-key";
 
@@ -84,6 +85,10 @@ exports.changeRegisteredNumber = async (req, res) => {
     const alreadyUserWithNumber = await User.find({"createdBy.phone" : number, _id: { $ne: userId } });
     if (alreadyUserWithNumber.length > 0) {
       return res.status(403).json({ error: "User with this number already exists try another number" });
+    }
+    const bannedUser = await BannedUsers.findOne({ contact: number });
+    if (bannedUser) {
+      return res.status(403).json({ message: "The number you entered is banned" });
     }
     // Set isDeleted to true and deleteReason
     user.createdBy[0].phone = number;
