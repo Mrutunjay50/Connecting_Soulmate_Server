@@ -251,7 +251,7 @@ exports.deleteImagesInUser = async (req, res) => {
     }
     if(user.selfDetails[0]?.profilePicture === imageKey){
       user.selfDetails[0].profilePicture = user.selfDetails[0]?.userPhotos[0] || "";
-      user.selfDetails[0].profilePictureUrl = user.selfDetails[0]?.userPhotosUrl[0] || "";
+      // user.selfDetails[0].profilePictureUrl = user.selfDetails[0]?.userPhotosUrl[0] || "";
     }
     await user.save();
     await deleteFromS3(imageKey);
@@ -334,7 +334,7 @@ exports.addImagesInUser = async (req, res) => {
         );
 
         selfDetails.userPhotos = (selfDetails.userPhotos || []).concat(uploadedPhotos.map(photo => photo.fileName));
-        selfDetails.userPhotosUrl = (selfDetails.userPhotosUrl || []).concat(uploadedPhotos.map(photo => photo.publicUrl));
+        // selfDetails.userPhotosUrl = (selfDetails.userPhotosUrl || []).concat(uploadedPhotos.map(photo => photo.publicUrl));
       } catch (error) {
         console.error("Error uploading images to S3:", error);
         return res.status(500).json({ error: "Error uploading images to S3" });
@@ -398,7 +398,7 @@ exports.updateUserPhotos = async (req, res) => {
 
           // Add uploaded photos and URLs to userPhotos and userPhotosUrl arrays
           selfDetails.userPhotos.push(...uploadedPhotos.map((photo) => photo.fileName));
-          selfDetails.userPhotosUrl.push(...uploadedPhotos.map((photo) => photo.publicUrl));
+          // selfDetails.userPhotosUrl.push(...uploadedPhotos.map((photo) => photo.publicUrl));
         } catch (error) {
           console.log("Error uploading images to S3:", error);
           return res.status(500).json({ error: "Error uploading images to S3" });
@@ -408,7 +408,7 @@ exports.updateUserPhotos = async (req, res) => {
       if ( profilePictureIndex !== undefined && profilePictureIndex < selfDetails.userPhotos.length) {
         const newProfilePictureKey = selfDetails.userPhotos[profilePictureIndex];
         selfDetails.profilePicture = newProfilePictureKey;
-        selfDetails.profilePictureUrl = getPublicUrlFromS3(newProfilePictureKey);
+        // selfDetails.profilePictureUrl = getPublicUrlFromS3(newProfilePictureKey);
       }
       // Save the updated user object
       await user.save();

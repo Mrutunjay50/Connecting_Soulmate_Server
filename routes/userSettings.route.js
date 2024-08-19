@@ -6,7 +6,8 @@ const {
   updateContactInfo,
   reApprovalRequest,
   notificationStatusUserType,
-  notificationStatusAdminType
+  notificationStatusAdminType,
+  getUserImagesInBase64
 } = require("../controllers/userSettingsController");
 const { isAuth } = require("../middleware/is_auth");
 
@@ -19,4 +20,5 @@ module.exports = (app) => {
   app.put("/delete-user", isAuth, deleteProfile);
   app.put("/user-reapproval-request", isAuth, reApprovalRequest);
   app.put("/update-contact-info", isAuth, updateContactInfo);
+  app.post("/change-image-to-base-url", getUserImagesInBase64);
 };

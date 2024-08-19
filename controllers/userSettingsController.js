@@ -16,6 +16,7 @@ const AdminNotifications = require("../models/adminNotification");
 const { populateAdminNotification } = require("../helper/NotificationsHelper/populateNotification");
 const { events } = require("../utils/eventsConstants");
 const BannedUsers = require("../models/bannedUsers");
+const axios = require("axios");
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
 const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret-token-csm-change-registration-number-key";
 
@@ -509,5 +510,44 @@ exports.updateContactInfo = async (req, res) => {
   } catch (error) {
     console.error("Error updating contact info:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getUserImagesInBase64 = async (req, res, next) => {
+  try {
+    const userPhotosArray = req.body.imgUrls;
+
+    if (!userPhotosArray || !Array.isArray(userPhotosArray) || userPhotosArray.length === 0) {
+      return res.status(400).json({ error: "No image URLs provided." });
+    }
+
+    // Create a map of URLs to their base64-encoded image data
+    const imagesBase64Map = {};
+
+    // Loop through each URL in the array
+    for (const imageUrl of userPhotosArray) {
+      try {
+        // Fetch the image data from the public URL using Axios
+        const imageResponse = await axios.get(imageUrl, {
+          responseType: 'arraybuffer'
+        });
+
+        // Convert the image data to base64
+        const imageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
+
+        // Map the original URL to its base64 representation
+        imagesBase64Map[imageUrl] = imageBase64;
+      } catch (err) {
+        console.error(`Error processing image URL ${imageUrl}:`, err);
+        // Optionally, you can handle specific image errors here (e.g., add a placeholder or skip)
+        imagesBase64Map[imageUrl] = null; // Indicate that the image failed to process
+      }
+    }
+
+    // Send the base64 data map as a JSON response
+    return res.status(200).json({ images: imagesBase64Map });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
