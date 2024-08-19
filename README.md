@@ -309,7 +309,19 @@ To run this project, you will need to add the following environment variables to
 `CLIENT_ID`
 `APP_ID`
 ```
-
+## Few Minute Details For Migrating Objects From One S3 To S3
+```bash
+# Copy Objects from Source Bucket to Destination Bucket
+aws s3 sync s3://one-container s3://second-container
+```
+```bash
+# Verify the Copy Operation
+aws s3 ls s3://second-container --recursive
+```
+```bash
+# Delete Objects from Source Bucket (Optional)
+aws s3 rm s3://one-container --recursive
+```
 ## Tech Stack
 
 **Client:** React JS, Context API, TailwindCSS, interceptors, axios, mui, OTPless
