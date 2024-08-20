@@ -551,3 +551,39 @@ exports.getUserImagesInBase64 = async (req, res, next) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getUserImageAsFile = async (req, res, next) => {
+  try {
+    const imageUrl = req.body.url;
+    console.log(imageUrl);
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "No image URL provided." });
+    }
+
+    try {
+      // Fetch the image data from the public URL using Axios
+      const imageResponse = await axios.get(imageUrl, {
+        responseType: 'arraybuffer',
+      });
+
+      // Convert the response data (ArrayBuffer) to Buffer
+      const imageBuffer = Buffer.from(imageResponse.data, 'binary');
+
+      // Optional: Save the buffer as a file on the server (for testing or other purposes)
+      // const filename = path.basename(imageUrl);
+      // const filePath = path.join(__dirname, filename);
+      // fs.writeFileSync(filePath, imageBuffer);
+
+      // Send the file data as a response
+      res.set('Content-Type', imageResponse.headers['content-type']);
+      res.send(imageBuffer);
+    } catch (err) {
+      console.log(`Error processing image URL ${imageUrl}:`, err);
+      return res.status(500).json({ error: "Failed to fetch and send the image." });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
