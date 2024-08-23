@@ -36,7 +36,7 @@ const resizeImage = async (buffer, resizeFactor = 0.10) => {
       .extract({ left: 0, top: 0, width: originalMetadata.width, height: cropHeight }) // Crop from the top
       .resize({ width: newWidth, height: newHeight, fit: 'cover' })
       .toFormat('jpeg') // Convert to JPEG to handle file size reduction
-      .jpeg({ quality: 75 }) // Adjust quality to reduce file size
+      .jpeg({ quality: 30 }) // Adjust quality to reduce file size
       .toBuffer();
 
     // Get metadata of the resized image
