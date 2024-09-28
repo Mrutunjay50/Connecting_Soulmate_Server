@@ -26,3 +26,13 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
       console.error("Error sending notification to admins:", error);
     }
 };
+
+
+exports.sendNotificationOnNewMessage = async (data) => {
+    try {
+        console.log(events.ONMESSAGENOTIFICATION);
+        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.reciever}`, formattedNotification);
+    } catch (error) {
+        console.error("Error sending notification to admins:", error);
+    }
+};

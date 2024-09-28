@@ -3,7 +3,7 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotifications");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
 

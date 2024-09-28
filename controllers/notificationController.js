@@ -1,5 +1,5 @@
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotifications");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
 const Report = require("../models/reports");
