@@ -23,16 +23,33 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
         io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestTo}`, formattedNotification);
       }, 2000); // 2000 ms = 2 seconds
     } catch (error) {
-      console.error("Error sending notification to admins:", error);
+      console.error("Error sending notification to users for chatInitiation:", error);
     }
 };
 
 
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
+        // Fetch sender data from the database
+        const sender = await User.findById(data.sender); // Assuming `data.sender` is the sender's ID
+        
+        if (!sender) {
+            throw new Error('Sender not found');
+        }
+        // Format the notification data
+        const formattedNotificationData = {
+            message: data.message, // The message content
+            sender: {
+                id: sender._id, // Sender ID
+                basicDetails : sender.basicDetails || [], // Sender name
+                avatarDetails: sender.selfDetails || [], // Sender profile picture
+            },
+            reciever: data.reciever, // The recipient's ID
+            timestamp: sender.createdAt, // Add a timestamp if needed
+        };
         console.log(events.ONMESSAGENOTIFICATION);
-        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.reciever}`, formattedNotification);
+        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.reciever}`, formattedNotificationData);
     } catch (error) {
-        console.error("Error sending notification to admins:", error);
+        console.error("Error sending notification to the reciever:", error);
     }
 };
