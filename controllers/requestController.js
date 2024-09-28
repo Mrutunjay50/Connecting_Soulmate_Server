@@ -92,11 +92,11 @@ exports.sendProfileRequest = async (req, res) => {
 
       io.getIO().emit(`${events.NOTIFICATION}/${profileRequestTo}`, formattedNotification);
       io.getIO().emit(`${events.NOTIFICATION}/${profileRequestBy}`, formattedNotification);
+      // io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
       // Find all admin users
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-      io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotificationAdmin);
     }
@@ -158,10 +158,15 @@ exports.acceptProfileRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestTo}`, formattedNotification);
+    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
+    // Set up a 5-second delay to trigger the INITIATE_CHAT_WITH_USER event
+    setTimeout(() => {
+      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.profileRequestBy}`, formattedNotification);
+      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.profileRequestTo}`, formattedNotification);
+    }, 2000); // 2000 ms = 2 seconds
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-    io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
     console.timeEnd('acceptProfileRequest');
@@ -198,10 +203,6 @@ exports.declineProfileRequest = async (req, res) => {
       res
     );
 
-    // Emit notification event
-    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
-    // Send formatted notification to admin and users with accessType 0 or 1
-    // sendNotificationToAdmins(formattedNotification);
     console.timeEnd('declineProfileRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
@@ -473,10 +474,10 @@ exports.sendInterestRequest = async (req, res) => {
       const formattedNotification = await populateNotification(notification);
       io.getIO().emit(`${events.NOTIFICATION}/${interestRequestTo}`, formattedNotification);
       io.getIO().emit(`${events.NOTIFICATION}/${interestRequestBy}`, formattedNotification);
+      // io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
       notificationStatus(interestRequestTo);
       notificationStatus(interestRequestBy);
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-      io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotificationAdmin);
     }
@@ -538,10 +539,15 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestTo}`, formattedNotification);
+    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
+    // Set up a 5-second delay to trigger the INITIATE_CHAT_WITH_USER event
+    setTimeout(() => {
+      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.interestRequestBy}`, formattedNotification);
+      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.interestRequestTo}`, formattedNotification);
+    }, 2000); // 2000 ms = 2 seconds
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-    io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
     console.timeEnd('acceptInterestRequest');
@@ -579,8 +585,6 @@ exports.declineInterestRequest = async (req, res) => {
       res
     );
 
-    // Emit notification event
-    // io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     console.timeEnd('declineInterestRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
