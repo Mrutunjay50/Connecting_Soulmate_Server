@@ -13,3 +13,16 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
       console.error("Error sending notification to admins:", error);
     }
 };
+
+exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
+    try {
+      // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
+      setTimeout(() => {
+        console.log(events.INITIATECHATWITHUSER);
+        io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestBy}`, formattedNotification);
+        io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestTo}`, formattedNotification);
+      }, 2000); // 2000 ms = 2 seconds
+    } catch (error) {
+      console.error("Error sending notification to admins:", error);
+    }
+};

@@ -3,7 +3,7 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
 
@@ -92,11 +92,11 @@ exports.sendProfileRequest = async (req, res) => {
 
       io.getIO().emit(`${events.NOTIFICATION}/${profileRequestTo}`, formattedNotification);
       io.getIO().emit(`${events.NOTIFICATION}/${profileRequestBy}`, formattedNotification);
+      // io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
       // Find all admin users
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-      io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotificationAdmin);
     }
@@ -158,12 +158,13 @@ exports.acceptProfileRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestTo}`, formattedNotification);
+    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-    io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
+    sendNotificationForChatInitiation(formattedNotification, request.profileRequestBy, request.profileRequestTo);
     console.timeEnd('acceptProfileRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
@@ -198,10 +199,6 @@ exports.declineProfileRequest = async (req, res) => {
       res
     );
 
-    // Emit notification event
-    // io.getIO().emit(`profileRequestAcDec/${request.profileRequestBy}`, {"message": "request declined"});
-    // Send formatted notification to admin and users with accessType 0 or 1
-    // sendNotificationToAdmins(formattedNotification);
     console.timeEnd('declineProfileRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
@@ -337,6 +334,7 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -372,7 +370,6 @@ exports.getProfileRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 exports.getProfileRequestsReceived = async (req, res) => {
   try {
@@ -473,10 +470,10 @@ exports.sendInterestRequest = async (req, res) => {
       const formattedNotification = await populateNotification(notification);
       io.getIO().emit(`${events.NOTIFICATION}/${interestRequestTo}`, formattedNotification);
       io.getIO().emit(`${events.NOTIFICATION}/${interestRequestBy}`, formattedNotification);
+      // io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
       notificationStatus(interestRequestTo);
       notificationStatus(interestRequestBy);
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-      io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
       // Send formatted notification to admin and users with accessType 0 or 1
       sendNotificationToAdmins(formattedNotificationAdmin);
     }
@@ -538,12 +535,13 @@ exports.acceptInterestRequest = async (req, res) => {
     // Emit notification event
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestTo}`, formattedNotification);
+    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
-    io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
+    sendNotificationForChatInitiation(formattedNotification, request.interestRequestBy, request.interestRequestTo);
     console.timeEnd('acceptInterestRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
@@ -579,8 +577,6 @@ exports.declineInterestRequest = async (req, res) => {
       res
     );
 
-    // Emit notification event
-    // io.getIO().emit(`interestRequestAcDec/${request.interestRequestBy}`, {"message": "request declined"});
     console.timeEnd('declineInterestRequest');
     return res.status(200).json({responseMsg, msg : "message declined"})
   } catch (error) {
@@ -776,8 +772,6 @@ exports.getInterestRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 
 exports.getInterestRequestsReceived = async (req, res) => {
   try {
