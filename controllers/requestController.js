@@ -3,7 +3,7 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
 
@@ -159,16 +159,12 @@ exports.acceptProfileRequest = async (req, res) => {
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestTo}`, formattedNotification);
     // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
-    // Set up a 5-second delay to trigger the INITIATE_CHAT_WITH_USER event
-    setTimeout(() => {
-      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.profileRequestBy}`, formattedNotification);
-      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.profileRequestTo}`, formattedNotification);
-    }, 2000); // 2000 ms = 2 seconds
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
+    sendNotificationForChatInitiation(formattedNotification, request.profileRequestBy, request.profileRequestTo);
     console.timeEnd('acceptProfileRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
@@ -338,6 +334,7 @@ exports.getProfileRequestsDeclined = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 exports.getProfileRequestsSent = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -373,7 +370,6 @@ exports.getProfileRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 exports.getProfileRequestsReceived = async (req, res) => {
   try {
@@ -540,16 +536,12 @@ exports.acceptInterestRequest = async (req, res) => {
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestBy}`, formattedNotification);
     io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestTo}`, formattedNotification);
     // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
-    // Set up a 5-second delay to trigger the INITIATE_CHAT_WITH_USER event
-    setTimeout(() => {
-      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.interestRequestBy}`, formattedNotification);
-      io.getIO().emit(`${events.INITIATECHATWITHUSER}/${request.interestRequestTo}`, formattedNotification);
-    }, 2000); // 2000 ms = 2 seconds
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
+    sendNotificationForChatInitiation(formattedNotification, request.interestRequestBy, request.interestRequestTo);
     console.timeEnd('acceptInterestRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
@@ -780,8 +772,6 @@ exports.getInterestRequestsSent = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 
 exports.getInterestRequestsReceived = async (req, res) => {
   try {
