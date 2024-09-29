@@ -107,6 +107,8 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 include_player_ids: [...browserIds],
             };
 
+            console.log('subscribed user Id', browserIds);
+
             // Send notification
             await sendPushNotification(notificationData);
         }
