@@ -71,9 +71,10 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
         const userBy = users.find(user => String(user._id) === String(requestBy));
         const userTo = users.find(user => String(user._id) === String(requestTo));
 
+        console.log(userTo);
         // Ensure we have the basic details and name from both users
-        const userByName = userBy?.basicDetails?.name || 'Another user';
-        const userToName = userTo?.basicDetails?.name || 'Another user';
+        const userByName = userBy?.basicDetails[0]?.name || 'Another user';
+        const userToName = userTo?.basicDetails[0]?.name || 'Another user';
 
         // Extract all browserIds (as arrays) from users
         const browserIdsBy = userBy?.browserIds || [];
