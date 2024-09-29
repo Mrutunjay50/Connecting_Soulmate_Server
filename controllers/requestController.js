@@ -3,7 +3,7 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotifications");
+const { sendNotificationToAdmins, sendNotificationForChatInitiation, sendNotificationForRequests } = require("../helper/NotificationsHelper/sendNotifications");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
 
@@ -90,9 +90,7 @@ exports.sendProfileRequest = async (req, res) => {
       );
       const formattedNotification = await populateNotification(notification);
 
-      io.getIO().emit(`${events.NOTIFICATION}/${profileRequestTo}`, formattedNotification);
-      io.getIO().emit(`${events.NOTIFICATION}/${profileRequestBy}`, formattedNotification);
-      // io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
+      sendNotificationForRequests(formattedNotification, profileRequestBy, profileRequestTo);
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
       // Find all admin users
@@ -156,9 +154,7 @@ exports.acceptProfileRequest = async (req, res) => {
 
     const formattedNotification = await populateNotification(notification);
     // Emit notification event
-    io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestBy}`, formattedNotification);
-    io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestTo}`, formattedNotification);
-    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
+    sendNotificationForRequests(formattedNotification, request.profileRequestBy, request.profileRequestTo);
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);

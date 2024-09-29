@@ -40,7 +40,7 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: { en: 'You have a new notification' },
-            include_aliases: { "external_id": browserIds },
+            include_player_ids: [...browserIds],
         };
 
         // Send notification
@@ -73,7 +73,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
                 contents: { en: 'You can now initiate a chat with a user' },
-                include_aliases: { "external_id": browserIds },
+                include_player_ids: [...browserIds],
             };
 
             // Send notification
@@ -81,6 +81,37 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
         }
     } catch (error) {
         console.error("Error sending notification for chat initiation:", error);
+    }
+};
+
+exports.sendNotificationForRequests = async (formattedNotification, requestBy, requestTo) => {
+    try {
+        // Emit notification event
+        io.getIO().emit(`${events.NOTIFICATION}/${requestBy}`, formattedNotification);
+        io.getIO().emit(`${events.NOTIFICATION}/${requestTo}`, formattedNotification);
+
+        // Fetch browserIds for both requestBy and requestTo users
+        let users = await User.find({ _id: { $in: [requestBy] } }).select('_id browserIds');
+        
+        // Extract all browserIds (as arrays) from users
+        const browserIds = users
+            .map(user => user.browserIds)
+            .flat()
+            .filter(id => id); // Ensure non-null browserIds
+
+        if (browserIds?.length > 0) {
+            // OneSignal notification payload
+            const notificationData = {
+                app_id: process.env.ONESIGNAL_APP_ID,
+                contents: { en: 'You have a new Notification' },
+                include_player_ids: [...browserIds],
+            };
+
+            // Send notification
+            await sendPushNotification(notificationData);
+        }
+    } catch (error) {
+        console.error("Error sending notification for sent Requests:", error);
     }
 };
 
@@ -119,7 +150,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: { en: messageContent },
-            include_aliases: { "external_id": browserIds },
+            include_player_ids: [...browserIds],
         };
 
         // Send notification
