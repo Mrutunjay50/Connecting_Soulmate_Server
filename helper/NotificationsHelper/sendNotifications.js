@@ -76,13 +76,16 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
             // OneSignal notification payload
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
+                headings: { en: 'Chat' },
                 contents: { en: 'You can now initiate a chat with a user' },
                 include_player_ids: [...browserIds],
                 url: chatUrl,
             };
 
             // Send notification
-            await sendPushNotification(notificationData);
+            setTimeout(async () => {
+                await sendPushNotification(notificationData);
+            }, 2000);
         }
     } catch (error) {
         console.error("Error sending notification for chat initiation:", error);
@@ -102,24 +105,24 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         // Set the redirect URL based on the notification type
         switch (type) {
             case 'interestRequestSent':
-                redirectUrl = `${FRONTEND_URL}/interests/sent`;
+                redirectUrl = `${FRONTEND_URL}/interests/recieved`;
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a interest request."
                 break;
             case 'profileRequestSent':
-                redirectUrl = `${FRONTEND_URL}/profiles/sent`;
+                redirectUrl = `${FRONTEND_URL}/profiles/recieved`;
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a profile request."
                 break;
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/interests/accepted`;
-                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You interest request to ${users[0].basicDetails.name} was accepted.`
+                users = await User.findOne({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You interest request to ${users.basicDetails[0].name} was accepted.`
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/profiles/accepted`;
-                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You profile request to ${users[0].basicDetails.name} was accepted.`
+                users = await User.findOne({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You profile request to ${users.basicDetails[0].name} was accepted.`
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
@@ -138,6 +141,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
             // OneSignal notification payload
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
+                headings: { en: 'Inbox' },
                 contents: { en: content },
                 include_player_ids: [...browserIds],
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
@@ -186,6 +190,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
+            headings: { en: 'New Message' },
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
             url: chatUrl,
