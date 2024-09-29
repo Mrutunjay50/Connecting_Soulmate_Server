@@ -595,17 +595,21 @@ exports.updateBrowserId = async (req, res) => {
     const userId = req.user._id;
     const { browserId } = req.body;
 
-    // Find the user and add the new browserId to the array, if not already present
     // Find the user and add the new browserId to the array, or create one if the user doesn't exist
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: userId },
-      { $addToSet: { browserIds: browserId } }, // $addToSet ensures no duplicates
-      { new: true, upsert: true } // `new` returns updated document, `upsert` creates new if none exists
-    );
+    const user = await User.findById(userId);
 
-    if (!updatedUser) {
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    // Step 3: If the user exists, check and update browserIds
+    if (!user.browserIds) {
+      // If browserIds field is not present, initialize it
+      user.browserIds = [browserId];
+    } else if (!user.browserIds.includes(browserId)) {
+      // If browserIds field exists, add the browserId if not already present
+      user.browserIds.push(browserId);
+    }
+    await user.save(); // Save the user with the updated browserIds
 
     return res.status(200).json({ message: 'Browser ID updated successfully', updatedUser });
   } catch (error) {
