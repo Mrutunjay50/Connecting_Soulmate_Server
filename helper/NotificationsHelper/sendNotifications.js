@@ -105,22 +105,22 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         // Set the redirect URL based on the notification type
         switch (type) {
             case 'interestRequestSent':
-                redirectUrl = `${FRONTEND_URL}/interests/recieved`;
+                redirectUrl = `${FRONTEND_URL}/inbox/interests/recieved`;
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a interest request."
                 break;
             case 'profileRequestSent':
-                redirectUrl = `${FRONTEND_URL}/profiles/recieved`;
+                redirectUrl = `${FRONTEND_URL}/inbox/profiles/recieved`;
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a profile request."
                 break;
             case 'interestRequestAccepted':
-                redirectUrl = `${FRONTEND_URL}/interests/accepted`;
+                redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 content = `You interest request to ${users[0].basicDetails[0].name} was accepted.`
                 break;
             case 'profileRequestAccepted':
-                redirectUrl = `${FRONTEND_URL}/profiles/accepted`;
+                redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 content = `You profile request to ${users[0].basicDetails[0].name} was accepted.`
                 break;
