@@ -56,41 +56,64 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
 // Function to send chat initiation notifications
 exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat`
+        const chatUrl = `${FRONTEND_URL}/chat`;
+        
         // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
         setTimeout(() => {
             io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestBy}`, formattedNotification);
             io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestTo}`, formattedNotification);
         }, 2000); // 2000 ms = 2 seconds
 
-        // Fetch browserIds for both requestBy and requestTo users
-        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds');
-        
-        // Extract all browserIds (as arrays) from users
-        const browserIds = users
-            .map(user => user.browserIds)
-            .flat()
-            .filter(id => id); // Ensure non-null browserIds
+        // Fetch browserIds and basicDetails for both requestBy and requestTo users
+        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds basicDetails');
 
-        if (browserIds?.length > 0) {
-            // OneSignal notification payload
-            const notificationData = {
+        // Separate out the requestBy and requestTo users
+        const userBy = users.find(user => String(user._id) === String(requestBy));
+        const userTo = users.find(user => String(user._id) === String(requestTo));
+
+        // Ensure we have the basic details and name from both users
+        const userByName = userBy?.basicDetails?.name || 'Another user';
+        const userToName = userTo?.basicDetails?.name || 'Another user';
+
+        // Extract all browserIds (as arrays) from users
+        const browserIdsBy = userBy?.browserIds || [];
+        const browserIdsTo = userTo?.browserIds || [];
+
+        // Send OneSignal notification to requestTo user (mentioning requestBy's name)
+        if (browserIdsTo.length > 0) {
+            const notificationDataTo = {
                 app_id: process.env.ONESIGNAL_APP_ID,
                 headings: { en: 'Chat' },
-                contents: { en: 'You can now initiate a chat with a user' },
-                include_player_ids: [...browserIds],
+                contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
+                include_player_ids: [...browserIdsTo],
                 url: chatUrl,
             };
-
-            // Send notification
+            
             setTimeout(async () => {
-                await sendPushNotification(notificationData);
+                await sendPushNotification(notificationDataTo);
             }, 2000);
         }
+
+        // Send OneSignal notification to requestBy user (mentioning requestTo's name)
+        if (browserIdsBy.length > 0) {
+            const notificationDataBy = {
+                app_id: process.env.ONESIGNAL_APP_ID,
+                headings: { en: 'Chat' },
+                contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
+                include_player_ids: [...browserIdsBy],
+                url: chatUrl,
+            };
+            
+            setTimeout(async () => {
+                await sendPushNotification(notificationDataBy);
+            }, 2000);
+        }
+
     } catch (error) {
         console.error("Error sending notification for chat initiation:", error);
     }
 };
+
 
 exports.sendNotificationForRequests = async (formattedNotification, requestBy, requestTo, type) => {
     try {
@@ -102,6 +125,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         let users;
         let redirectUrl;
         let content;
+        let otherUser;
         // Set the redirect URL based on the notification type
         switch (type) {
             case 'interestRequestSent':
@@ -117,12 +141,14 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You interest request to ${users[0].basicDetails[0].name} was accepted.`
+                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You profile request to ${users[0].basicDetails[0].name} was accepted.`
+                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
