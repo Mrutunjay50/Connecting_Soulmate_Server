@@ -8,7 +8,8 @@ const {
   notificationStatusUserType,
   notificationStatusAdminType,
   getUserImagesInBase64,
-  getUserImageAsFile
+  getUserImageAsFile,
+  updateBrowserId
 } = require("../controllers/userSettingsController");
 const { isAuth } = require("../middleware/is_auth");
 
@@ -23,4 +24,5 @@ module.exports = (app) => {
   app.put("/update-contact-info", isAuth, updateContactInfo);
   app.post("/change-image-to-base-url", getUserImagesInBase64);
   app.post("/change-image-to-file", getUserImageAsFile);
+  app.put('/update-subscription-browser-id', isAuth, updateBrowserId);
 };

@@ -3,7 +3,7 @@ const { getPublicUrlFromS3 } = require("../utils/s3Utils");
 const io = require("../socket");
 const Notifications = require("../models/notifications");
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins, sendNotificationForChatInitiation } = require("../helper/NotificationsHelper/sendNotifications");
+const { sendNotificationToAdmins, sendNotificationForChatInitiation, sendNotificationForRequests } = require("../helper/NotificationsHelper/sendNotifications");
 const { sendRequest, updateRequestStatus, getRequests, getPendingRequests } = require("../helper/RequestHelpers/requestHelperMethods");
 const User = require("../models/Users");
 
@@ -90,9 +90,7 @@ exports.sendProfileRequest = async (req, res) => {
       );
       const formattedNotification = await populateNotification(notification);
 
-      io.getIO().emit(`${events.NOTIFICATION}/${profileRequestTo}`, formattedNotification);
-      io.getIO().emit(`${events.NOTIFICATION}/${profileRequestBy}`, formattedNotification);
-      // io.getIO().emit(`${events.REQUESTSENT}/${profileRequestTo}`, { "message": "request sent" });
+      sendNotificationForRequests(formattedNotification, profileRequestBy, profileRequestTo, "profileRequestSent");
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
       // Find all admin users
@@ -156,15 +154,12 @@ exports.acceptProfileRequest = async (req, res) => {
 
     const formattedNotification = await populateNotification(notification);
     // Emit notification event
-    io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestBy}`, formattedNotification);
-    io.getIO().emit(`${events.NOTIFICATION}/${request.profileRequestTo}`, formattedNotification);
-    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.profileRequestBy}`, {"message": "request accepted"});
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
-    sendNotificationForChatInitiation(formattedNotification, request.profileRequestBy, request.profileRequestTo);
+    sendNotificationForRequests(formattedNotification, request.profileRequestBy, request.profileRequestTo, "profileRequestAccepted");
     console.timeEnd('acceptProfileRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {
@@ -468,13 +463,12 @@ exports.sendInterestRequest = async (req, res) => {
         }
       );
       const formattedNotification = await populateNotification(notification);
-      io.getIO().emit(`${events.NOTIFICATION}/${interestRequestTo}`, formattedNotification);
-      io.getIO().emit(`${events.NOTIFICATION}/${interestRequestBy}`, formattedNotification);
-      // io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
+      // Emit notification event
       notificationStatus(interestRequestTo);
       notificationStatus(interestRequestBy);
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
       // Send formatted notification to admin and users with accessType 0 or 1
+      sendNotificationForRequests(formattedNotification, interestRequestBy, interestRequestTo, "interestRequestSent");
       sendNotificationToAdmins(formattedNotificationAdmin);
     }
     console.timeEnd('sendInterestRequest');
@@ -533,14 +527,12 @@ exports.acceptInterestRequest = async (req, res) => {
     const formattedNotification = await populateNotification(notification);
 
     // Emit notification event
-    io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestBy}`, formattedNotification);
-    io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestTo}`, formattedNotification);
-    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
+    sendNotificationForRequests(formattedNotification, request.interestRequestBy, request.interestRequestTo, "interestRequestAccepted");
     sendNotificationForChatInitiation(formattedNotification, request.interestRequestBy, request.interestRequestTo);
     console.timeEnd('acceptInterestRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
