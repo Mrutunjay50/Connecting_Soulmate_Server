@@ -6,6 +6,8 @@ const { events } = require("../../utils/eventsConstants");
 
 dotenv.config();
 
+const FRONTEND_URL = process.env.FRONTEND_URL
+
 // Function to send notifications via OneSignal API
 const sendPushNotification = async (data) => {
     try {
@@ -41,6 +43,7 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: { en: 'You have a new notification' },
             include_player_ids: [...browserIds],
+            url: `${FRONTEND_URL}/`,
         };
 
         // Send notification
@@ -53,6 +56,7 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
 // Function to send chat initiation notifications
 exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
     try {
+        const chatUrl = `${FRONTEND_URL}/chat`
         // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
         setTimeout(() => {
             io.getIO().emit(`${events.INITIATECHATWITHUSER}/${requestBy}`, formattedNotification);
@@ -74,6 +78,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 app_id: process.env.ONESIGNAL_APP_ID,
                 contents: { en: 'You can now initiate a chat with a user' },
                 include_player_ids: [...browserIds],
+                url: chatUrl,
             };
 
             // Send notification
@@ -84,14 +89,44 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
     }
 };
 
-exports.sendNotificationForRequests = async (formattedNotification, requestBy, requestTo) => {
+exports.sendNotificationForRequests = async (formattedNotification, requestBy, requestTo, type) => {
     try {
         // Emit notification event
         io.getIO().emit(`${events.NOTIFICATION}/${requestBy}`, formattedNotification);
         io.getIO().emit(`${events.NOTIFICATION}/${requestTo}`, formattedNotification);
 
         // Fetch browserIds for both requestBy and requestTo users
-        let users = await User.find({ _id: { $in: [requestBy] } }).select('_id browserIds');
+        let users;
+        let redirectUrl;
+        let content;
+        // Set the redirect URL based on the notification type
+        switch (type) {
+            case 'interestRequestSent':
+                redirectUrl = `${FRONTEND_URL}/interests/sent`;
+                users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
+                content = "You recieved a interest request."
+                break;
+            case 'profileRequestSent':
+                redirectUrl = `${FRONTEND_URL}/profiles/sent`;
+                users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
+                content = "You recieved a profile request."
+                break;
+            case 'interestRequestAccepted':
+                redirectUrl = `${FRONTEND_URL}/interests/accepted`;
+                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You interest request to ${users[0].basicDetails.name} was accepted.`
+                break;
+            case 'profileRequestAccepted':
+                redirectUrl = `${FRONTEND_URL}/profiles/accepted`;
+                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You profile request to ${users[0].basicDetails.name} was accepted.`
+                break;
+            default:
+                redirectUrl = `${FRONTEND_URL}/`;
+                users = await User.find({ _id: { $in: [requestBy] } }).select('_id browserIds');
+                content = "You have a new notification."
+                break;
+        }
         
         // Extract all browserIds (as arrays) from users
         const browserIds = users
@@ -103,11 +138,10 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
             // OneSignal notification payload
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
-                contents: { en: 'You have a new Notification' },
+                contents: { en: content },
                 include_player_ids: [...browserIds],
+                url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
-
-            console.log('subscribed user Id', browserIds);
 
             // Send notification
             await sendPushNotification(notificationData);
@@ -119,6 +153,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
+        const chatUrl = `${FRONTEND_URL}/chat`
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
         const receiver = await User.findById(data.reciever).select('_id browserIds');
@@ -153,6 +188,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
+            url: chatUrl,
         };
 
         // Send notification

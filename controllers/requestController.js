@@ -90,7 +90,7 @@ exports.sendProfileRequest = async (req, res) => {
       );
       const formattedNotification = await populateNotification(notification);
 
-      sendNotificationForRequests(formattedNotification, profileRequestBy, profileRequestTo);
+      sendNotificationForRequests(formattedNotification, profileRequestBy, profileRequestTo, "profileRequestSent");
       notificationStatus(profileRequestTo);
       notificationStatus(profileRequestBy);
       // Find all admin users
@@ -154,7 +154,7 @@ exports.acceptProfileRequest = async (req, res) => {
 
     const formattedNotification = await populateNotification(notification);
     // Emit notification event
-    sendNotificationForRequests(formattedNotification, request.profileRequestBy, request.profileRequestTo);
+    sendNotificationForRequests(formattedNotification, request.profileRequestBy, request.profileRequestTo, "profileRequestAccepted");
     notificationStatus(request.profileRequestTo);
     notificationStatus(request.profileRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
@@ -464,9 +464,8 @@ exports.sendInterestRequest = async (req, res) => {
         }
       );
       const formattedNotification = await populateNotification(notification);
-      io.getIO().emit(`${events.NOTIFICATION}/${interestRequestTo}`, formattedNotification);
-      io.getIO().emit(`${events.NOTIFICATION}/${interestRequestBy}`, formattedNotification);
-      // io.getIO().emit(`${events.REQUESTSENT}/${interestRequestTo}`, {"message": "request sent"});
+      // Emit notification event
+      sendNotificationForRequests(formattedNotification, interestRequestBy, interestRequestTo, "interestRequestSent");
       notificationStatus(interestRequestTo);
       notificationStatus(interestRequestBy);
       const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
@@ -529,9 +528,7 @@ exports.acceptInterestRequest = async (req, res) => {
     const formattedNotification = await populateNotification(notification);
 
     // Emit notification event
-    io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestBy}`, formattedNotification);
-    io.getIO().emit(`${events.NOTIFICATION}/${request.interestRequestTo}`, formattedNotification);
-    // io.getIO().emit(`${events.REQUESTACCEPTDECLINE}/${request.interestRequestBy}`, {"message": "request accepted"});
+    sendNotificationForRequests(formattedNotification, request.interestRequestBy, request.interestRequestTo, "interestRequestAccepted");
     notificationStatus(request.interestRequestTo);
     notificationStatus(request.interestRequestBy);
     const formattedNotificationAdmin = await populateNotificationOfUsersForAdmin(notification);
