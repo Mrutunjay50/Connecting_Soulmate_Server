@@ -24,5 +24,5 @@ module.exports = (app) => {
   app.put("/update-contact-info", isAuth, updateContactInfo);
   app.post("/change-image-to-base-url", getUserImagesInBase64);
   app.post("/change-image-to-file", getUserImageAsFile);
-  app.put('/update-subscription-browser-id', updateBrowserId);
+  app.put('/update-subscription-browser-id', isAuth, updateBrowserId);
 };
