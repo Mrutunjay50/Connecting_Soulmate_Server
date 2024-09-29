@@ -136,6 +136,7 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String, enum:["F", "M"] },
+    browserIds: { type: [String] },
     isDeleted: {
       type: Boolean,
       enum: [true, false],
