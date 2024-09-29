@@ -160,7 +160,6 @@ exports.acceptProfileRequest = async (req, res) => {
     // Send formatted notification to admin and users with accessType 0 or 1
     sendNotificationToAdmins(formattedNotificationAdmin);
     sendNotificationForRequests(formattedNotification, request.profileRequestBy, request.profileRequestTo, "profileRequestAccepted");
-    sendNotificationForChatInitiation(formattedNotification, request.profileRequestBy, request.profileRequestTo);
     console.timeEnd('acceptProfileRequest');
     return res.status(201).json({responseMsg, notification : "also created"})
   } catch (error) {

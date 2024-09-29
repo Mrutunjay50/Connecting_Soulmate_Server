@@ -116,13 +116,13 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 break;
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/interests/accepted`;
-                users = await User.findOne({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You interest request to ${users.basicDetails[0].name} was accepted.`
+                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You interest request to ${users[0].basicDetails[0].name} was accepted.`
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/profiles/accepted`;
-                users = await User.findOne({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                content = `You profile request to ${users.basicDetails[0].name} was accepted.`
+                users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
+                content = `You profile request to ${users[0].basicDetails[0].name} was accepted.`
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
@@ -132,8 +132,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         }
         
         // Extract all browserIds (as arrays) from users
-        const browserIds = users
-            .map(user => user.browserIds)
+        const browserIds = users?.map(user => user.browserIds)
             .flat()
             .filter(id => id); // Ensure non-null browserIds
 
