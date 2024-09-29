@@ -611,7 +611,7 @@ exports.updateBrowserId = async (req, res) => {
     }
     await user.save(); // Save the user with the updated browserIds
 
-    return res.status(200).json({ message: 'Browser ID updated successfully', updatedUser });
+    return res.status(200).json({ message: 'Browser ID updated successfully', user });
   } catch (error) {
     console.error('Error updating browserId:', error);
     return res.status(500).json({ message: 'Server error' });
