@@ -23,31 +23,76 @@ const sendPushNotification = async (data) => {
     }
 };
 
-exports.sendNotificationToAdmins = async (formattedNotification) => {
+exports.sendApprovedNotificationToUser = async (data) => {
     try {
-        // Fetch admin and special users, including their browserIds
-        const adminAndSpecialUsers = await User.find({ accessType: { $in: [0, 1] } }).select('_id browserIds');
-        
-        adminAndSpecialUsers.forEach(user => {
-            io.getIO().emit(`${events.NOTIFICATION}/${user._id}`, formattedNotification);
-        });
-
-        // Extract all browserIds (as arrays) from users
-        const browserIds = adminAndSpecialUsers
-            .map(user => user.browserIds) // Extract browserIds array
-            .flat() // Flatten the array of arrays
-            .filter(id => id); // Ensure non-null browserIds
 
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
-            contents: { en: 'You have a new notification' },
-            include_player_ids: [...browserIds],
-            url: `${FRONTEND_URL}/`,
+            contents: { en: 'Your profile has been approved by an admin!' },
+            include_player_ids: [...data],
+            url: `${FRONTEND_URL}/user-dashboard`,
         };
 
         // Send notification
         await sendPushNotification(notificationData);
+    } catch (error) {
+        console.error("Error sending approval notification to users:", error);
+    }
+};
+
+exports.sendNotificationToAdmins = async (formattedNotification, notificationType = "") => {
+    try {
+        if(notificationType === "approval"){
+            // Find all admin users
+            const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+            const adminIds = admins.map(admin => admin._id);
+            // Emit the notification to all admins
+            adminIds.forEach(adminId => {
+              io.getIO().emit(`${events.ADMINNOTIFICATION}/${adminId}`, formattedNotification);
+            });
+            // Extract all browserIds (as arrays) from users
+            const browserIds = admins?.map(user => user.browserIds) // Extract browserIds array
+            .flat() // Flatten the array of arrays
+            .filter(id => id); // Ensure non-null browserIds
+
+            // OneSignal notification payload
+            const notificationData = {
+                app_id: process.env.ONESIGNAL_APP_ID,
+                contents: { en: `${formattedNotification?.notificationBy?.basicDetails} requested for profile approval` },
+                include_player_ids: [...browserIds],
+                url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
+            };
+
+            // Send notification
+            await sendPushNotification(notificationData);
+        }else{
+            // Fetch admin and special users, including their browserIds
+            const adminAndSpecialUsers = await User.find({ accessType: { $in: [0, 1] } }).select('_id browserIds');
+            
+            adminAndSpecialUsers.forEach(user => {
+                io.getIO().emit(`${events.NOTIFICATION}/${user._id}`, formattedNotification);
+            });
+
+            // Extract all browserIds (as arrays) from users
+            const browserIds = adminAndSpecialUsers
+                .map(user => user.browserIds) // Extract browserIds array
+                .flat() // Flatten the array of arrays
+                .filter(id => id); // Ensure non-null browserIds
+
+            if(notificationType === "reported"){
+                // OneSignal notification payload
+                const notificationData = {
+                    app_id: process.env.ONESIGNAL_APP_ID,
+                    contents: { en: `${formattedNotification?.notificationBy?.name || "user"} reported ${formattedNotification?.notificationTo?.name || "user"}` },
+                    include_player_ids: [...browserIds],
+                    url: `${FRONTEND_URL}/admin/report-lists`,
+                };
+
+                // Send notification
+                await sendPushNotification(notificationData);
+            }
+        }
     } catch (error) {
         console.error("Error sending notification to admins:", error);
     }
@@ -184,6 +229,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
         const chatUrl = `${FRONTEND_URL}/chat`
+        console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
         const receiver = await User.findById(data.reciever).select('_id browserIds');
