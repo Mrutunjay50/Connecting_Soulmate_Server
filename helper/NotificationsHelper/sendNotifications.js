@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const User = require("../../models/Users");
 const io = require("../../socket");
 const { events } = require("../../utils/eventsConstants");
+const { getPublicUrlFromS3 } = require('../../utils/s3Utils');
 
 dotenv.config();
 const LOGO_URL = process.env.LOGO_IMAGE_URL;
@@ -141,8 +142,8 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
                 include_player_ids: [...browserIdsTo],
-                chrome_web_icon: userBy?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
-                safari_icon: userBy?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
@@ -159,8 +160,8 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
                 include_player_ids: [...browserIdsBy],
-                chrome_web_icon: userTo?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
-                safari_icon: userTo?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
@@ -250,7 +251,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
-        console.log(sender, "received", sender?.selfDetails[0]?.profilePictureUrl);
+        console.log(sender, "received", sender?.selfDetails[0]?.profilePicture);
         const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
@@ -284,8 +285,8 @@ exports.sendNotificationOnNewMessage = async (data) => {
             headings: { en: 'New Message' },
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
-            chrome_web_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
-            safari_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+            chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
+            safari_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
             chrome_web_badge: LOGO_URL,
             url: chatUrl,
         };
