@@ -248,7 +248,6 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
         const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`
-        console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
         const receiver = await User.findById(data.receiver).select('_id browserIds');
