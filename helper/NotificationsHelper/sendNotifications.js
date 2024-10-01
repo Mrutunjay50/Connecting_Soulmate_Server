@@ -5,7 +5,7 @@ const io = require("../../socket");
 const { events } = require("../../utils/eventsConstants");
 
 dotenv.config();
-
+const LOGO_URL = process.env.LOGO_IMAGE_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Function to send notifications via OneSignal API
@@ -31,6 +31,9 @@ exports.sendApprovedNotificationToUser = async (data) => {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: { en: 'Your profile has been approved by an admin!' },
             include_player_ids: [...data],
+            chrome_web_icon: LOGO_URL,
+            safari_icon: LOGO_URL,
+            chrome_web_badge: LOGO_URL,
             url: `${FRONTEND_URL}/user-dashboard`,
         };
 
@@ -61,6 +64,9 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 app_id: process.env.ONESIGNAL_APP_ID,
                 contents: { en: `${formattedNotification?.notificationBy?.basicDetails} requested for profile approval` },
                 include_player_ids: [...browserIds],
+                chrome_web_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
             };
 
@@ -86,6 +92,9 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     app_id: process.env.ONESIGNAL_APP_ID,
                     contents: { en: `${formattedNotification?.notificationBy?.name || "user"} reported ${formattedNotification?.notificationTo?.name || "user"}` },
                     include_player_ids: [...browserIds],
+                    chrome_web_icon: LOGO_URL,
+                    safari_icon: LOGO_URL,
+                    chrome_web_badge: LOGO_URL,
                     url: `${FRONTEND_URL}/admin/report-lists`,
                 };
 
@@ -110,7 +119,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
         }, 2000); // 2000 ms = 2 seconds
 
         // Fetch browserIds and basicDetails for both requestBy and requestTo users
-        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds basicDetails');
+        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds selfDetails basicDetails');
 
         // Separate out the requestBy and requestTo users
         const userBy = users.find(user => String(user._id) === String(requestBy));
@@ -132,6 +141,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
                 include_player_ids: [...browserIdsTo],
+                chrome_web_icon: userBy?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                safari_icon: userBy?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -147,6 +159,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
                 include_player_ids: [...browserIdsBy],
+                chrome_web_icon: userTo?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                safari_icon: userTo?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -215,6 +230,9 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 headings: { en: 'Inbox' },
                 contents: { en: content },
                 include_player_ids: [...browserIds],
+                // chrome_web_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                // safari_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
 
@@ -254,7 +272,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.receiver}`, formattedNotificationData);
 
         // Format the notification message
-        const messageContent = `${sender?.basicDetails[0]?.name || "user"} sent you a message: ${data.message}`;
+        const messageContent = `${(sender?.basicDetails[0]?.name || '').replace('undefined', '') || "user"} sent you a message: ${data.message}`;
         
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
@@ -265,6 +283,9 @@ exports.sendNotificationOnNewMessage = async (data) => {
             headings: { en: 'New Message' },
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
+            chrome_web_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+            safari_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+            chrome_web_badge: LOGO_URL,
             url: chatUrl,
         };
 
