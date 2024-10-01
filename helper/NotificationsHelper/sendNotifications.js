@@ -5,7 +5,7 @@ const io = require("../../socket");
 const { events } = require("../../utils/eventsConstants");
 
 dotenv.config();
-const LOGO_URL = process.env.LOGO_IMAGE_URL;
+const LOGO_URL = "https://i.ibb.co/KqT427C/Whats-App-Image-2024-06-15-at-20-46-29.png";
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Function to send notifications via OneSignal API
@@ -250,6 +250,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
+        console.log(sender, "received");
         const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
