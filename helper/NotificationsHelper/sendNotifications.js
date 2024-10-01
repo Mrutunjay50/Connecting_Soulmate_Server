@@ -251,7 +251,6 @@ exports.sendNotificationOnNewMessage = async (data) => {
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
-        console.log(sender, "received", sender?.selfDetails[0]?.profilePicture);
         const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
