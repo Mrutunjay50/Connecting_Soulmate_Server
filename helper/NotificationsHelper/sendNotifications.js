@@ -232,7 +232,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
-        const receiver = await User.findById(data.reciever).select('_id browserIds');
+        const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
             throw new Error('Sender not found');
@@ -246,12 +246,12 @@ exports.sendNotificationOnNewMessage = async (data) => {
                 basicDetails: sender.basicDetails || [], // Sender name
                 avatarDetails: sender.selfDetails || [], // Sender profile picture
             },
-            reciever: data.reciever, // The recipient's ID
+            receiver: data.receiver, // The recipient's ID
             timestamp: sender.createdAt, // Add a timestamp if needed
         };
 
         console.log(events.ONMESSAGENOTIFICATION);
-        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.reciever}`, formattedNotificationData);
+        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.receiver}`, formattedNotificationData);
 
         // Format the notification message
         const messageContent = `${sender.basicDetails.firstName} sent you a message: ${data.message}`;
