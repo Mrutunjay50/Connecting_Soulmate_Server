@@ -5,7 +5,7 @@ const io = require("../../socket");
 const { events } = require("../../utils/eventsConstants");
 
 dotenv.config();
-const LOGO_URL = "https://i.ibb.co/KqT427C/Whats-App-Image-2024-06-15-at-20-46-29.png";
+const LOGO_URL = process.env.LOGO_IMAGE_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Function to send notifications via OneSignal API
@@ -230,8 +230,8 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 headings: { en: 'Inbox' },
                 contents: { en: content },
                 include_player_ids: [...browserIds],
-                // chrome_web_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
-                // safari_icon: sender?.selfDetails[0]?.profilePictureUrl || LOGO_URL,
+                chrome_web_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
@@ -250,7 +250,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
-        console.log(sender, "received");
+        console.log(sender, "received", sender?.selfDetails[0]?.profilePictureUrl);
         const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
