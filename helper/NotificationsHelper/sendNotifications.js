@@ -6,7 +6,7 @@ const { events } = require("../../utils/eventsConstants");
 const { getPublicUrlFromS3 } = require('../../utils/s3Utils');
 
 dotenv.config();
-const LOGO_URL = process.env.LOGO_IMAGE_URL;
+const LOGO_URL = process.env.NOTIFICATION_BADGE_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Function to send notifications via OneSignal API
@@ -203,13 +203,13 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             default:
@@ -231,8 +231,8 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 headings: { en: 'Inbox' },
                 contents: { en: content },
                 include_player_ids: [...browserIds],
-                chrome_web_icon: LOGO_URL,
-                safari_icon: LOGO_URL,
+                chrome_web_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
@@ -287,7 +287,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             include_player_ids: [...browserIds],
             chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
             safari_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
-            chrome_web_badge: "https://firebasestorage.googleapis.com/v0/b/sovportal-45b8c.appspot.com/o/uploads%2FWhats-App-Image-2024-06-15-at-20-46-29__1_-removebg-preview.png?alt=media&token=493b43ed-9c1c-423f-9580-d0c963ffc0f1",
+            chrome_web_badge: LOGO_URL,
             url: chatUrl,
         };
 
