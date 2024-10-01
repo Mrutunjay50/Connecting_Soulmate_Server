@@ -287,7 +287,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             include_player_ids: [...browserIds],
             chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
             safari_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
-            chrome_web_badge: "https://imgur.com/9QFB20F",
+            chrome_web_badge: "https://i.ibb.co/vv89wH5/Whats-App-Image-2024-06-15-at-20-46-29-1.png",
             url: chatUrl,
         };
 
