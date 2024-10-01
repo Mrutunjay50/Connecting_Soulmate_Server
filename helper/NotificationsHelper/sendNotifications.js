@@ -254,7 +254,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.receiver}`, formattedNotificationData);
 
         // Format the notification message
-        const messageContent = `${sender.basicDetails.firstName} sent you a message: ${data.message}`;
+        const messageContent = `${sender.basicDetails.name} sent you a message: ${data.message}`;
         
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
