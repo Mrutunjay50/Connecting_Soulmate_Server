@@ -101,7 +101,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
 // Function to send chat initiation notifications
 exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat`;
+        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`;
         
         // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
         setTimeout(() => {
@@ -228,7 +228,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat`
+        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`
         console.log(data, "trigger newmessage push notification")
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
@@ -254,7 +254,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
         io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.receiver}`, formattedNotificationData);
 
         // Format the notification message
-        const messageContent = `${sender.basicDetails.name} sent you a message: ${data.message}`;
+        const messageContent = `${sender?.basicDetails[0]?.name || "user"} sent you a message: ${data.message}`;
         
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
