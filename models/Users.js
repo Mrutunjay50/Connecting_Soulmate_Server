@@ -17,7 +17,7 @@ const basicDetailsSchema = mongoose.Schema({
 const additionalDetailsSchema = mongoose.Schema({
   height: { type: Number, default: "", required: false },
   weight: { type: String, default: "", required: false },
-  email: { type: String, default: "", required: false },
+  email: { type: String, required: false, match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']},
   contact: { type: String, default: "", required: false },
   personalAppearance: { type: String, default: "", required: false },
   currentlyLivingInCountry: { type: Number, required: false, default : 0 },

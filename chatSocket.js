@@ -86,7 +86,7 @@ exports.chatSocket = async (socket) => {
       });
 
       const savedMessage = await newMessage.save();
-      await sendNotificationOnNewMessage(savedMessage);
+      await sendNotificationOnNewMessage(data);
       
       // socket.broadcast.emit(`NEW_MESSAGE`, savedMessage);
       socket.emit(`NEW_MESSAGE`, savedMessage);

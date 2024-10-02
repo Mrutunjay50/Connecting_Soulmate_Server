@@ -166,8 +166,8 @@ exports.notificationsSeen = async (req, res) => {
   
       // Find all admin users
       const formattedNotification = await populateNotificationOfUsersForAdmin(notification);
-      sendNotificationToAdmins(formattedNotification);
-      // // Emit the notification to all admins
+      sendNotificationToAdmins(formattedNotification, notificationType);
+      // Emit the notification to all admins
   
     } catch (error) {
       console.log('Error sending notification:', error);

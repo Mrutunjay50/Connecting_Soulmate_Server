@@ -3,9 +3,10 @@ const dotenv = require("dotenv");
 const User = require("../../models/Users");
 const io = require("../../socket");
 const { events } = require("../../utils/eventsConstants");
+const { getPublicUrlFromS3 } = require('../../utils/s3Utils');
 
 dotenv.config();
-
+const LOGO_URL = process.env.NOTIFICATION_BADGE_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Function to send notifications via OneSignal API
@@ -23,31 +24,85 @@ const sendPushNotification = async (data) => {
     }
 };
 
-exports.sendNotificationToAdmins = async (formattedNotification) => {
+exports.sendApprovedNotificationToUser = async (data) => {
     try {
-        // Fetch admin and special users, including their browserIds
-        const adminAndSpecialUsers = await User.find({ accessType: { $in: [0, 1] } }).select('_id browserIds');
-        
-        adminAndSpecialUsers.forEach(user => {
-            io.getIO().emit(`${events.NOTIFICATION}/${user._id}`, formattedNotification);
-        });
-
-        // Extract all browserIds (as arrays) from users
-        const browserIds = adminAndSpecialUsers
-            .map(user => user.browserIds) // Extract browserIds array
-            .flat() // Flatten the array of arrays
-            .filter(id => id); // Ensure non-null browserIds
 
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
-            contents: { en: 'You have a new notification' },
-            include_player_ids: [...browserIds],
-            url: `${FRONTEND_URL}/`,
+            contents: { en: 'Your profile has been approved by an admin!' },
+            include_player_ids: [...data],
+            chrome_web_icon: LOGO_URL,
+            safari_icon: LOGO_URL,
+            chrome_web_badge: LOGO_URL,
+            url: `${FRONTEND_URL}/user-dashboard`,
         };
 
         // Send notification
         await sendPushNotification(notificationData);
+    } catch (error) {
+        console.error("Error sending approval notification to users:", error);
+    }
+};
+
+exports.sendNotificationToAdmins = async (formattedNotification, notificationType = "") => {
+    try {
+        if(notificationType === "approval"){
+            // Find all admin users
+            const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
+            const adminIds = admins.map(admin => admin._id);
+            // Emit the notification to all admins
+            adminIds.forEach(adminId => {
+              io.getIO().emit(`${events.ADMINNOTIFICATION}/${adminId}`, formattedNotification);
+            });
+            // Extract all browserIds (as arrays) from users
+            const browserIds = admins?.map(user => user.browserIds) // Extract browserIds array
+            .flat() // Flatten the array of arrays
+            .filter(id => id); // Ensure non-null browserIds
+
+            // OneSignal notification payload
+            const notificationData = {
+                app_id: process.env.ONESIGNAL_APP_ID,
+                contents: { en: `${formattedNotification?.notificationBy?.basicDetails} requested for profile approval` },
+                include_player_ids: [...browserIds],
+                chrome_web_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
+                chrome_web_badge: LOGO_URL,
+                url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
+            };
+
+            // Send notification
+            await sendPushNotification(notificationData);
+        }else{
+            // Fetch admin and special users, including their browserIds
+            const adminAndSpecialUsers = await User.find({ accessType: { $in: [0, 1] } }).select('_id browserIds');
+            
+            adminAndSpecialUsers.forEach(user => {
+                io.getIO().emit(`${events.NOTIFICATION}/${user._id}`, formattedNotification);
+            });
+
+            // Extract all browserIds (as arrays) from users
+            const browserIds = adminAndSpecialUsers
+                .map(user => user.browserIds) // Extract browserIds array
+                .flat() // Flatten the array of arrays
+                .filter(id => id); // Ensure non-null browserIds
+
+            if(notificationType === "reported"){
+                // OneSignal notification payload
+                const notificationData = {
+                    app_id: process.env.ONESIGNAL_APP_ID,
+                    contents: { en: `${formattedNotification?.notificationBy?.name || "user"} reported ${formattedNotification?.notificationTo?.name || "user"}` },
+                    include_player_ids: [...browserIds],
+                    chrome_web_icon: LOGO_URL,
+                    safari_icon: LOGO_URL,
+                    chrome_web_badge: LOGO_URL,
+                    url: `${FRONTEND_URL}/admin/report-lists`,
+                };
+
+                // Send notification
+                await sendPushNotification(notificationData);
+            }
+        }
     } catch (error) {
         console.error("Error sending notification to admins:", error);
     }
@@ -56,7 +111,7 @@ exports.sendNotificationToAdmins = async (formattedNotification) => {
 // Function to send chat initiation notifications
 exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat`;
+        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`;
         
         // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
         setTimeout(() => {
@@ -65,7 +120,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
         }, 2000); // 2000 ms = 2 seconds
 
         // Fetch browserIds and basicDetails for both requestBy and requestTo users
-        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds basicDetails');
+        const users = await User.find({ _id: { $in: [requestBy, requestTo] } }).select('_id browserIds selfDetails basicDetails');
 
         // Separate out the requestBy and requestTo users
         const userBy = users.find(user => String(user._id) === String(requestBy));
@@ -87,6 +142,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
                 include_player_ids: [...browserIdsTo],
+                chrome_web_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -102,6 +160,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 headings: { en: 'Chat' },
                 contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
                 include_player_ids: [...browserIdsBy],
+                chrome_web_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -142,13 +203,13 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
-                otherUser = await User.findById(requestTo).select('_id basicDetails'); // Fetching single user
+                otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
                 break;
             default:
@@ -170,6 +231,9 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 headings: { en: 'Inbox' },
                 contents: { en: content },
                 include_player_ids: [...browserIds],
+                chrome_web_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                safari_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                chrome_web_badge: LOGO_URL,
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
 
@@ -183,10 +247,10 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat`
+        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
-        const receiver = await User.findById(data.reciever).select('_id browserIds');
+        const receiver = await User.findById(data.receiver).select('_id browserIds');
         
         if (!sender) {
             throw new Error('Sender not found');
@@ -200,15 +264,15 @@ exports.sendNotificationOnNewMessage = async (data) => {
                 basicDetails: sender.basicDetails || [], // Sender name
                 avatarDetails: sender.selfDetails || [], // Sender profile picture
             },
-            reciever: data.reciever, // The recipient's ID
+            receiver: data.receiver, // The recipient's ID
             timestamp: sender.createdAt, // Add a timestamp if needed
         };
 
         console.log(events.ONMESSAGENOTIFICATION);
-        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.reciever}`, formattedNotificationData);
+        io.getIO().emit(`${events.ONMESSAGENOTIFICATION}/${data.receiver}`, formattedNotificationData);
 
         // Format the notification message
-        const messageContent = `${sender.basicDetails.firstName} sent you a message: ${data.message}`;
+        const messageContent = `${(sender?.basicDetails[0]?.name || '').replace('undefined', '') || "user"} sent you a message: ${data.message}`;
         
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
@@ -219,6 +283,9 @@ exports.sendNotificationOnNewMessage = async (data) => {
             headings: { en: 'New Message' },
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
+            chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
+            safari_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
+            chrome_web_badge: LOGO_URL,
             url: chatUrl,
         };
 

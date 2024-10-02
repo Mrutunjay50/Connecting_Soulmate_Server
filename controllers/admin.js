@@ -16,6 +16,7 @@ const BannedUsers = require("../models/bannedUsers");
 const io = require("../socket");
 
 const { events } = require("../utils/eventsConstants");
+const { sendApprovedNotificationToUser } = require("../helper/NotificationsHelper/sendNotifications");
 
 const addToSuccessfulMarriages = async (userId) => {
   let record = await SuccessfulMarriage.findOne();
@@ -56,6 +57,7 @@ exports.updateRegistrationPhase = async (req, res) => {
         if(user?.additionalDetails[0].email){
           await sendSuccessfulRegisterationMessage(user.additionalDetails[0].email, user.basicDetails[0]?.name);
         }
+        await sendApprovedNotificationToUser(user?.browserIds || []);
       }else {
         return res.status(403).json({message: `Some data on respective registration pages might be missing`});
       }
