@@ -33,8 +33,9 @@ exports.sendApprovedNotificationToUser = async (data) => {
             contents: { en: 'Your profile has been approved by an admin!' },
             include_player_ids: [...data],
             chrome_web_icon: LOGO_URL,
-            safari_icon: LOGO_URL,
             chrome_web_badge: LOGO_URL,
+            firefox_icon: LOGO_URL,
+            safari_icon: LOGO_URL,
             url: `${FRONTEND_URL}/user-dashboard`,
         };
 
@@ -66,8 +67,9 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 contents: { en: `${formattedNotification?.notificationBy?.basicDetails} requested for profile approval` },
                 include_player_ids: [...browserIds],
                 chrome_web_icon: LOGO_URL,
-                safari_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
+                firefox_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
                 url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
             };
 
@@ -94,8 +96,9 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     contents: { en: `${formattedNotification?.notificationBy?.name || "user"} reported ${formattedNotification?.notificationTo?.name || "user"}` },
                     include_player_ids: [...browserIds],
                     chrome_web_icon: LOGO_URL,
-                    safari_icon: LOGO_URL,
                     chrome_web_badge: LOGO_URL,
+                    firefox_icon: LOGO_URL,
+                    safari_icon: LOGO_URL,
                     url: `${FRONTEND_URL}/admin/report-lists`,
                 };
 
@@ -143,8 +146,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
                 include_player_ids: [...browserIdsTo],
                 chrome_web_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
-                safari_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
+                firefox_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -161,8 +165,9 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
                 include_player_ids: [...browserIdsBy],
                 chrome_web_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
-                safari_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
+                firefox_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
                 url: chatUrl,
             };
             
@@ -232,8 +237,9 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 contents: { en: content },
                 include_player_ids: [...browserIds],
                 chrome_web_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
-                safari_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
                 chrome_web_badge: LOGO_URL,
+                firefox_icon: LOGO_URL,
+                safari_icon: LOGO_URL,
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
 
@@ -247,7 +253,6 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
 
 exports.sendNotificationOnNewMessage = async (data) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`
         // Fetch sender and receiver data from the database, including browserIds
         const sender = await User.findById(data.sender).select('_id basicDetails selfDetails browserIds');
         const receiver = await User.findById(data.receiver).select('_id browserIds');
@@ -277,6 +282,8 @@ exports.sendNotificationOnNewMessage = async (data) => {
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
 
+        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted?senderId=${sender._id}`;
+
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
@@ -284,8 +291,9 @@ exports.sendNotificationOnNewMessage = async (data) => {
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
             chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
-            safari_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
             chrome_web_badge: LOGO_URL,
+            firefox_icon: LOGO_URL,
+            safari_icon: LOGO_URL,
             url: chatUrl,
         };
 
