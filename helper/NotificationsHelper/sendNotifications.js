@@ -30,7 +30,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
-            contents: { en: 'Your profile has been approved by an admin!' },
+            contents: { en: 'Your profile has been approved by admin!' },
             include_player_ids: [...data],
             chrome_web_icon: LOGO_URL,
             chrome_web_badge: LOGO_URL,
@@ -64,7 +64,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
             // OneSignal notification payload
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
-                contents: { en: `${formattedNotification?.notificationBy?.basicDetails} requested for profile approval` },
+                contents: { en: `${formattedNotification?.notificationBy?.basicDetails?.replace('undefined', '')} requested for profile approval` },
                 include_player_ids: [...browserIds],
                 chrome_web_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
@@ -93,7 +93,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 // OneSignal notification payload
                 const notificationData = {
                     app_id: process.env.ONESIGNAL_APP_ID,
-                    contents: { en: `${formattedNotification?.notificationBy?.name || "user"} reported ${formattedNotification?.notificationTo?.name || "user"}` },
+                    contents: { en: `${formattedNotification?.notificationBy?.name?.replace('undefined', '') || "user"} reported ${formattedNotification?.notificationTo?.name?.replace('undefined', '') || "user"}` },
                     include_player_ids: [...browserIds],
                     chrome_web_icon: LOGO_URL,
                     chrome_web_badge: LOGO_URL,
@@ -131,8 +131,8 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
 
         console.log(userTo);
         // Ensure we have the basic details and name from both users
-        const userByName = userBy?.basicDetails[0]?.name || 'Another user';
-        const userToName = userTo?.basicDetails[0]?.name || 'Another user';
+        const userByName = userBy?.basicDetails[0]?.name?.replace('undefined', '') || 'Another user';
+        const userToName = userTo?.basicDetails[0]?.name?.replace('undefined', '') || 'Another user';
 
         // Extract all browserIds (as arrays) from users
         const browserIdsBy = userBy?.browserIds || [];
@@ -146,6 +146,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 contents: { en: `You can now initiate a chat with ${userByName}` }, // Mention requestBy's name
                 include_player_ids: [...browserIdsTo],
                 chrome_web_icon: userBy?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userBy?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                // chrome_web_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
@@ -165,6 +166,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 contents: { en: `You can now initiate a chat with ${userToName}` }, // Mention requestTo's name
                 include_player_ids: [...browserIdsBy],
                 chrome_web_icon: userTo?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(userTo?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                // chrome_web_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
@@ -173,7 +175,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
             
             setTimeout(async () => {
                 await sendPushNotification(notificationDataBy);
-            }, 2000);
+            }, 15000);
         }
 
     } catch (error) {
@@ -209,13 +211,13 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
-                content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
+                content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
-                content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name : "user"} was accepted.`;
+                content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
@@ -237,6 +239,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 contents: { en: content },
                 include_player_ids: [...browserIds],
                 chrome_web_icon: otherUser?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(otherUser?.selfDetails[0]?.profilePicture) : LOGO_URL,
+                // chrome_web_icon: LOGO_URL,
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
@@ -291,6 +294,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             contents: { en: messageContent },
             include_player_ids: [...browserIds],
             chrome_web_icon: sender?.selfDetails[0]?.profilePicture ? getPublicUrlFromS3(sender?.selfDetails[0]?.profilePicture) : LOGO_URL,
+            // chrome_web_icon: LOGO_URL,
             chrome_web_badge: LOGO_URL,
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
