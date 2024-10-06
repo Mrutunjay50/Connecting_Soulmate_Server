@@ -587,3 +587,33 @@ exports.getUserImageAsFile = async (req, res, next) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
+// Controller function to update browserId
+exports.updateBrowserId = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { browserId } = req.body;
+
+    // Find the user and add the new browserId to the array, or create one if the user doesn't exist
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Step 3: If the user exists, check and update browserIds
+    if (!user.browserIds) {
+      // If browserIds field is not present, initialize it
+      user.browserIds = [browserId];
+    } else if (!user.browserIds.includes(browserId)) {
+      // If browserIds field exists, add the browserId if not already present
+      user.browserIds.push(browserId);
+    }
+    await user.save(); // Save the user with the updated browserIds
+
+    return res.status(200).json({ message: 'Browser ID updated successfully', user });
+  } catch (error) {
+    console.error('Error updating browserId:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
