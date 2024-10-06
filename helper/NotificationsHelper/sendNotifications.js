@@ -37,6 +37,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
             buttons: [], // Disable action buttons including "Unsubscribe"
+            web_buttons : [],
             url: `${FRONTEND_URL}/user-dashboard`,
         };
 
@@ -72,6 +73,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
                 buttons: [], // Disable action buttons including "Unsubscribe"
+                web_buttons : [],
                 url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
             };
 
@@ -102,6 +104,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     firefox_icon: LOGO_URL,
                     safari_icon: LOGO_URL,
                     buttons: [], // Disable action buttons including "Unsubscribe"
+                    web_buttons : [],
                     url: `${FRONTEND_URL}/admin/report-lists`,
                 };
 
@@ -154,6 +157,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
                 buttons: [], // Disable action buttons including "Unsubscribe"
+                web_buttons : [],
                 url: chatUrl,
             };
             
@@ -175,6 +179,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
                 buttons: [], // Disable action buttons including "Unsubscribe"
+                web_buttons : [],
                 url: chatUrl,
             };
             
@@ -249,6 +254,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
                 buttons: [], // Disable action buttons including "Unsubscribe"
+                web_buttons : [],
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
             };
 
@@ -305,6 +311,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
             buttons: [], // Disable action buttons including "Unsubscribe"
+            web_buttons : [],
             url: chatUrl,
         };
 
