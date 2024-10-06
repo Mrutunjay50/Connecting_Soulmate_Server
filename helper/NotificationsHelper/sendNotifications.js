@@ -310,8 +310,8 @@ exports.sendNotificationOnNewMessage = async (data) => {
             chrome_web_badge: LOGO_URL,
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
-            buttons: [{}], // Disable action buttons including "Unsubscribe"
-            web_buttons : [{}],
+            buttons: [], // Disable action buttons including "Unsubscribe"
+            web_buttons : [],
             url: chatUrl,
         };
 
