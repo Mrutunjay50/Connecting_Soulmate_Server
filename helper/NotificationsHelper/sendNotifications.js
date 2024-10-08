@@ -311,13 +311,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
             buttons: [], // Disable action buttons including "Unsubscribe"
-            web_buttons : [
-                {
-                    "id": "read-more-button",
-                    "text": "View More",
-                    "url": FRONTEND_URL
-                }
-            ],
+            web_buttons : [],
             url: chatUrl,
         };
 
