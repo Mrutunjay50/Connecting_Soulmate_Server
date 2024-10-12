@@ -27,6 +27,8 @@ const sendPushNotification = async (data) => {
 exports.sendApprovedNotificationToUser = async (data) => {
     try {
 
+        let path = "/user-dashboard";
+
         // OneSignal notification payload
         const notificationData = {
             app_id: process.env.ONESIGNAL_APP_ID,
@@ -38,8 +40,8 @@ exports.sendApprovedNotificationToUser = async (data) => {
             safari_icon: LOGO_URL,
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
-            url: `${FRONTEND_URL}/user-dashboard`,
-            routes: "/user-dashboard"
+            url: `${FRONTEND_URL}${path}`,
+            routes: path
         };
 
         // Send notification
@@ -51,6 +53,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
 
 exports.sendNotificationToAdmins = async (formattedNotification, notificationType = "") => {
     try {
+        let path;
         if(notificationType === "approval"){
             // Find all admin users
             const admins = await User.find({ accessType : '0' }); // Adjust the query based on your user schema
@@ -63,7 +66,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
             const browserIds = admins?.map(user => user.browserIds) // Extract browserIds array
             .flat() // Flatten the array of arrays
             .filter(id => id); // Ensure non-null browserIds
-
+            path = "/admin/approval-lists?page=1"
             // OneSignal notification payload
             const notificationData = {
                 app_id: process.env.ONESIGNAL_APP_ID,
@@ -75,8 +78,8 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 safari_icon: LOGO_URL,
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
-                url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
-                routes: "/admin/approval-lists?page=1" // Adjust the routes based on your admin dashboard URL
+                url: `${FRONTEND_URL}${path}`,
+                routes: path // Adjust the routes based on your admin dashboard URL
             };
 
             // Send notification
@@ -95,6 +98,8 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 .flat() // Flatten the array of arrays
                 .filter(id => id); // Ensure non-null browserIds
 
+            path = "/admin/report-lists";
+
             if(notificationType === "reported"){
                 // OneSignal notification payload
                 const notificationData = {
@@ -107,8 +112,8 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     safari_icon: LOGO_URL,
                     buttons: [], // Disable action buttons including "Unsubscribe"
                     web_buttons : [],
-                    url: `${FRONTEND_URL}/admin/report-lists`,
-                    routes: "/admin/report-lists" // Adjust the routes based on your admin dashboard URL
+                    url: `${FRONTEND_URL}${path}`,
+                    routes: path // Adjust the routes based on your admin dashboard URL
                 };
 
                 // Send notification
@@ -123,7 +128,8 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
 // Function to send chat initiation notifications
 exports.sendNotificationForChatInitiation = async (formattedNotification, requestBy, requestTo) => {
     try {
-        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted`;
+        const path = "/chat-list-interest-accepted"
+        const chatUrl = `${FRONTEND_URL}${path}`;
         
         // Set up a 2-second delay to trigger the INITIATE_CHAT_WITH_USER event
         setTimeout(() => {
@@ -162,7 +168,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl,
-                routes: chatUrl, // Adjust the routes based on your chat list URL
+                routes: path, // Adjust the routes based on your chat list URL
             };
             
             setTimeout(async () => {
@@ -185,7 +191,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl,
-                routes: "/chat-list-interest-accepted" // Adjust the routes based on your chat list URL
+                routes: path // Adjust the routes based on your chat list URL
             };
             
             setTimeout(async () => {
@@ -210,38 +216,38 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         let redirectUrl;
         let content;
         let otherUser;
-        let routes;
+        let path;
         // Set the redirect URL based on the notification type
         switch (type) {
             case 'interestRequestSent':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/recieved`;
-                routes = "/inbox/interests/recieved"
+                path = "/inbox/interests/recieved"
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a interest request."
                 break;
             case 'profileRequestSent':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/recieved`;
-                routes = "/inbox/profiles/recieved"
+                path = "/inbox/profiles/recieved"
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a profile request."
                 break;
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
-                routes = "/inbox/interests/accepted"
+                path = "/inbox/interests/accepted"
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
-                routes = "/inbox/profiles/accepted"
+                path = "/inbox/profiles/accepted"
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
-                routes = "/";
+                path = "/";
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id browserIds');
                 content = "You have a new notification."
                 break;
@@ -267,7 +273,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
-                routes: routes,
+                routes: path,
             };
 
             // Send notification
@@ -308,8 +314,9 @@ exports.sendNotificationOnNewMessage = async (data) => {
         
         // Extract browserIds for both sender and receiver
         const browserIds = [...(receiver.browserIds || [])].filter(id => id); // Ensure non-null browserIds
+        const path = `/chat-list-interest-accepted?senderId=${sender._id}`
 
-        const chatUrl = `${FRONTEND_URL}/chat-list-interest-accepted?senderId=${sender._id}`;
+        const chatUrl = `${FRONTEND_URL}${path}`;
 
         // OneSignal notification payload
         const notificationData = {
@@ -325,7 +332,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: chatUrl,
-            routes: `/chat-list-interest-accepted?senderId=${sender._id}`, // Use the dynamic chat URL based on the sender and receiver IDs
+            routes: path, // Use the dynamic chat URL based on the sender and receiver IDs
         };
 
         // Send notification
