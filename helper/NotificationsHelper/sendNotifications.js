@@ -39,6 +39,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: `${FRONTEND_URL}/user-dashboard`,
+            routes: "/user-dashboard"
         };
 
         // Send notification
@@ -75,6 +76,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: `${FRONTEND_URL}/admin/approval-lists?page=1`,
+                routes: "/admin/approval-lists?page=1" // Adjust the routes based on your admin dashboard URL
             };
 
             // Send notification
@@ -106,6 +108,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     buttons: [], // Disable action buttons including "Unsubscribe"
                     web_buttons : [],
                     url: `${FRONTEND_URL}/admin/report-lists`,
+                    routes: "/admin/report-lists" // Adjust the routes based on your admin dashboard URL
                 };
 
                 // Send notification
@@ -159,6 +162,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl,
+                routes: chatUrl, // Adjust the routes based on your chat list URL
             };
             
             setTimeout(async () => {
@@ -181,6 +185,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl,
+                routes: "/chat-list-interest-accepted" // Adjust the routes based on your chat list URL
             };
             
             setTimeout(async () => {
@@ -205,32 +210,38 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
         let redirectUrl;
         let content;
         let otherUser;
+        let routes;
         // Set the redirect URL based on the notification type
         switch (type) {
             case 'interestRequestSent':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/recieved`;
+                routes = "/inbox/interests/recieved"
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a interest request."
                 break;
             case 'profileRequestSent':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/recieved`;
+                routes = "/inbox/profiles/recieved"
                 users = await User.find({ _id: { $in: [requestTo] } }).select('_id browserIds');
                 content = "You recieved a profile request."
                 break;
             case 'interestRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/interests/accepted`;
+                routes = "/inbox/interests/accepted"
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your interest request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             case 'profileRequestAccepted':
                 redirectUrl = `${FRONTEND_URL}/inbox/profiles/accepted`;
+                routes = "/inbox/profiles/accepted"
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id basicDetails browserIds');
                 otherUser = await User.findById(requestTo).select('_id basicDetails selfDetails'); // Fetching single user
                 content = `Your profile request to ${Array.isArray(otherUser.basicDetails) ? otherUser.basicDetails[0]?.name?.replace('undefined', '') : "user"} was accepted.`;
                 break;
             default:
                 redirectUrl = `${FRONTEND_URL}/`;
+                routes = "/";
                 users = await User.find({ _id: { $in: [requestBy] } }).select('_id browserIds');
                 content = "You have a new notification."
                 break;
@@ -256,6 +267,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: redirectUrl, // Use the dynamic redirect URL based on the notification type
+                routes: routes,
             };
 
             // Send notification
@@ -313,6 +325,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: chatUrl,
+            routes: `/chat-list-interest-accepted?senderId=${sender._id}`, // Use the dynamic chat URL based on the sender and receiver IDs
         };
 
         // Send notification
