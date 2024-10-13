@@ -605,9 +605,16 @@ exports.updateBrowserId = async (req, res) => {
     if (!user.browserIds) {
       // If browserIds field is not present, initialize it
       user.browserIds = [browserId];
-    } else if (!user.browserIds.includes(browserId)) {
-      // If browserIds field exists, add the browserId if not already present
-      user.browserIds.push(browserId);
+    } else {
+      // If the browserId is not already present
+      if (!user.browserIds.includes(browserId)) {
+        if (user.browserIds.length >= 3) {
+          // Remove the last element (oldest one) when there are already 3 browserIds
+          user.browserIds.pop();
+        }
+        // Add the new browserId at the 0th index
+        user.browserIds.unshift(browserId);
+      }
     }
     await user.save(); // Save the user with the updated browserIds
 
