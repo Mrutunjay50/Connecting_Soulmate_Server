@@ -594,7 +594,10 @@ exports.updateBrowserId = async (req, res) => {
   try {
     const userId = req.user._id;
     const { browserId } = req.body;
-
+    // Check if browserId is provided
+    if (!browserId || typeof browserId !== 'string' || browserId === 'null') {
+      return res.status(400).json({ message: 'Browser ID is required and must be a valid string' });
+    }
     // Find the user and add the new browserId to the array, or create one if the user doesn't exist
     const user = await User.findById(userId);
 
@@ -630,7 +633,10 @@ exports.deleteBrowserId = async (req, res) => {
   try {
     const userId = req.user._id;
     const { browserId } = req.body;
-
+    // Check if browserId is provided
+    if (!browserId || typeof browserId !== 'string') {
+      return res.status(400).json({ message: 'Browser ID is required and must be a valid string' });
+    }
     // Find the user by ID
     const user = await User.findById(userId);
 
