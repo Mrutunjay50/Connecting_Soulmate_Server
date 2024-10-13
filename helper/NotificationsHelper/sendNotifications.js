@@ -332,7 +332,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: chatUrl,
-            additionalData : path,
+            additionalData : {routes: path},
             routes: path, // Use the dynamic chat URL based on the sender and receiver IDs
         };
 
