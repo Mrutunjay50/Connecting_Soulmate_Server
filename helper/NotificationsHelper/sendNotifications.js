@@ -38,7 +38,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
             chrome_web_badge: LOGO_URL,
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
-            additionalData : {routes: path},
+            data : {routes: path},
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: `${FRONTEND_URL}${path}`,
@@ -76,7 +76,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
-                additionalData : {routes: path},
+                data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: `${FRONTEND_URL}${path}`,
@@ -111,7 +111,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     chrome_web_badge: LOGO_URL,
                     firefox_icon: LOGO_URL,
                     safari_icon: LOGO_URL,
-                    additionalData : {routes: path},
+                    data : {routes: path},
                     buttons: [], // Disable action buttons including "Unsubscribe"
                     web_buttons : [],
                     url: `${FRONTEND_URL}${path}`,
@@ -167,7 +167,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
-                additionalData : {routes: path},
+                data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl, // Adjust the routes based on your chat list URL
@@ -190,7 +190,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
-                additionalData : {routes: path},
+                data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: chatUrl,
@@ -273,7 +273,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 chrome_web_badge: LOGO_URL,
                 firefox_icon: LOGO_URL,
                 safari_icon: LOGO_URL,
-                additionalData : {routes: path},
+                data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
                 url: redirectUrl,
@@ -332,7 +332,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             chrome_web_badge: LOGO_URL,
             firefox_icon: LOGO_URL,
             safari_icon: LOGO_URL,
-            additionalData : {routes: path},
+            data : {routes: path},
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
             url: chatUrl,
