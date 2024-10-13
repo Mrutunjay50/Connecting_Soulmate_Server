@@ -333,6 +333,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             web_buttons : [],
             url: chatUrl,
             additionalData : {routes: path},
+            data : {routes: path},
             routes: path, // Use the dynamic chat URL based on the sender and receiver IDs
         };
 
