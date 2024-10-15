@@ -41,7 +41,7 @@ exports.sendApprovedNotificationToUser = async (data) => {
             data : {routes: path},
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
-            url: `${FRONTEND_URL}${path}`,
+            web_url: `${FRONTEND_URL}${path}`,
         };
 
         // Send notification
@@ -79,7 +79,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                 data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
-                url: `${FRONTEND_URL}${path}`,
+                web_url: `${FRONTEND_URL}${path}`,
                 // based on your admin dashboard URL
             };
 
@@ -114,7 +114,7 @@ exports.sendNotificationToAdmins = async (formattedNotification, notificationTyp
                     data : {routes: path},
                     buttons: [], // Disable action buttons including "Unsubscribe"
                     web_buttons : [],
-                    url: `${FRONTEND_URL}${path}`,
+                    web_url: `${FRONTEND_URL}${path}`,
                     // based on your admin dashboard URL
                 };
 
@@ -170,7 +170,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
-                url: chatUrl, // Adjust the routes based on your chat list URL
+                web_url: chatUrl, // Adjust the routes based on your chat list URL
             };
             
             setTimeout(async () => {
@@ -193,7 +193,7 @@ exports.sendNotificationForChatInitiation = async (formattedNotification, reques
                 data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
-                url: chatUrl,
+                web_url: chatUrl,
                 // based on your chat list URL
             };
             
@@ -276,7 +276,7 @@ exports.sendNotificationForRequests = async (formattedNotification, requestBy, r
                 data : {routes: path},
                 buttons: [], // Disable action buttons including "Unsubscribe"
                 web_buttons : [],
-                url: redirectUrl,
+                web_url: redirectUrl,
             };
 
             // Send notification
@@ -335,7 +335,7 @@ exports.sendNotificationOnNewMessage = async (data) => {
             data : {routes: path},
             buttons: [], // Disable action buttons including "Unsubscribe"
             web_buttons : [],
-            url: chatUrl,
+            web_url: chatUrl,
             // data : {routes: path}, // Use the dynamic chat URL based on the sender and receiver IDs
         };
 
