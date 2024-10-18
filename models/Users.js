@@ -17,7 +17,7 @@ const basicDetailsSchema = mongoose.Schema({
 const additionalDetailsSchema = mongoose.Schema({
   height: { type: Number, default: "", required: false },
   weight: { type: String, default: "", required: false },
-  email: { type: String, default: "", required: false },
+  email: { type: String, required: false, match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']},
   contact: { type: String, default: "", required: false },
   personalAppearance: { type: String, default: "", required: false },
   currentlyLivingInCountry: { type: Number, required: false, default : 0 },
@@ -136,6 +136,15 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String, enum:["F", "M"] },
+    browserIds: {
+      type: [String],
+      validate: {
+        validator: function (v) {
+          return v.length <= 3;
+        },
+        message: 'You can only store up to 3 browser IDs',
+      },
+    },
     isDeleted: {
       type: Boolean,
       enum: [true, false],

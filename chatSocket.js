@@ -8,6 +8,7 @@ const {
 } = require("./middleware/checkAcceptedInterestRequest");
 const { sendAndCreateNotification } = require("./controllers/notificationController");
 const { getConversationsWithOnlineStatus, updateLastLogin, getUnseenMessages } = require("./helper/socketHelperMethods/socketHelpers");
+const { sendNotificationOnNewMessage } = require("./helper/NotificationsHelper/sendNotifications");
 
 const onlineUsers = new Map();
 
@@ -85,6 +86,8 @@ exports.chatSocket = async (socket) => {
       });
 
       const savedMessage = await newMessage.save();
+      await sendNotificationOnNewMessage(data);
+      
       // socket.broadcast.emit(`NEW_MESSAGE`, savedMessage);
       socket.emit(`NEW_MESSAGE`, savedMessage);
       if (onlineUsers.has(data.receiver)) {

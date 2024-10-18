@@ -64,7 +64,7 @@ exports.handlePage1 = async (req, user, type) => {
 };
 
 exports.handlePage2 = async (req, user) => {
-  const { contact } = req.body.additionalDetails;
+  const { contact, email, ...otherDetails } = req.body.additionalDetails;
 
   try {
     // Check if a user with the same email or contact number exists
@@ -76,9 +76,19 @@ exports.handlePage2 = async (req, user) => {
     //   throw new Error('A user with the same email or phone number already exists.');
     // }
 
-    // If no user is found, update the additional details
-    user.additionalDetails[0] = { ...req.body.additionalDetails };
+    // Prepare the additional details object
+    const updatedDetails = {
+      ...otherDetails,
+      contact,
+    };
 
+    // Only add the email if it is not an empty string
+    if (email && email.trim() !== '') {
+      updatedDetails.email = email;
+    }
+
+    // Update the additional details
+    user.additionalDetails[0] = updatedDetails;
   } catch (err) {
     // Handle any errors that occur
     console.log(err);

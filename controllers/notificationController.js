@@ -1,5 +1,5 @@
 const { populateNotification, populateNotificationOfUsersForAdmin } = require("../helper/NotificationsHelper/populateNotification");
-const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotificationsToAdmin");
+const { sendNotificationToAdmins } = require("../helper/NotificationsHelper/sendNotifications");
 const AdminNotifications = require("../models/adminNotification");
 const Notifications = require("../models/notifications");
 const Report = require("../models/reports");
@@ -166,8 +166,8 @@ exports.notificationsSeen = async (req, res) => {
   
       // Find all admin users
       const formattedNotification = await populateNotificationOfUsersForAdmin(notification);
-      sendNotificationToAdmins(formattedNotification);
-      // // Emit the notification to all admins
+      sendNotificationToAdmins(formattedNotification, notificationType);
+      // Emit the notification to all admins
   
     } catch (error) {
       console.log('Error sending notification:', error);

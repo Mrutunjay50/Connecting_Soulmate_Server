@@ -587,3 +587,76 @@ exports.getUserImageAsFile = async (req, res, next) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
+// Controller function to update browserId
+exports.updateBrowserId = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { browserId } = req.body;
+    // Check if browserId is provided
+    if (!browserId || typeof browserId !== 'string' || browserId === 'null') {
+      return res.status(400).json({ message: 'Browser ID is required and must be a valid string' });
+    }
+    // Find the user and add the new browserId to the array, or create one if the user doesn't exist
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Step 3: If the user exists, check and update browserIds
+    if (!user.browserIds) {
+      // If browserIds field is not present, initialize it
+      user.browserIds = [browserId];
+    } else {
+      // If the browserId is not already present
+      if (!user.browserIds.includes(browserId)) {
+        if (user.browserIds.length >= 3) {
+          // Remove the last element (oldest one) when there are already 3 browserIds
+          user.browserIds.pop();
+        }
+        // Add the new browserId at the 0th index
+        user.browserIds.unshift(browserId);
+      }
+    }
+    await user.save(); // Save the user with the updated browserIds
+
+    return res.status(200).json({ message: 'Browser ID updated successfully', user });
+  } catch (error) {
+    console.error('Error updating browserId:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Controller function to delete browserId
+exports.deleteBrowserId = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { browserId } = req.body;
+    // Check if browserId is provided
+    if (!browserId || typeof browserId !== 'string') {
+      return res.status(400).json({ message: 'Browser ID is required and must be a valid string' });
+    }
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the browserId exists in the browserIds array
+    if (user.browserIds && user.browserIds.includes(browserId)) {
+      // Remove the browserId from the array
+      user.browserIds = user.browserIds.filter(id => id !== browserId);
+      await user.save(); // Save the updated user
+
+      return res.status(200).json({ message: 'Browser ID deleted successfully', user });
+    }
+
+    // If browserId is not found in the array
+    return res.status(400).json({ message: 'Browser ID not found' });
+  } catch (error) {
+    console.error('Error deleting browserId:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
