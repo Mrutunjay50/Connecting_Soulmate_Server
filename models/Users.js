@@ -136,7 +136,15 @@ const userSchema = mongoose.Schema(
     selfDetails: [selfDescriptionSchema],
     partnerPreference: [preferenceSchema],
     gender: { type: String, enum:["F", "M"] },
-    browserIds: { type: [String] },
+    browserIds: {
+      type: [String],
+      validate: {
+        validator: function (v) {
+          return v.length <= 3;
+        },
+        message: 'You can only store up to 3 browser IDs',
+      },
+    },
     isDeleted: {
       type: Boolean,
       enum: [true, false],
