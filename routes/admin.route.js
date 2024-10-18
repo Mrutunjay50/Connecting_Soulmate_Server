@@ -11,6 +11,7 @@ const {
   getUserImageInBase64ByIdForAdmin,
   banUser,
   discardUser,
+  userImageClean,
 } = require("../controllers/admin");
 // getUserPDFForAdmin,
 // reviewRequest,
@@ -41,4 +42,5 @@ module.exports = (app) => {
   app.get("/get-all-user-data-admin", isAdmin, getAllUsers);
   app.get("/get-all-reports", isAdmin, getReportedIssues);
   app.put("/admin-update-income",updateAllUsersAnnualIncomeUSD );
+  app.get("/admin-clean-user-images", userImageClean );
 };

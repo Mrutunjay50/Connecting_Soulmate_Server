@@ -114,6 +114,44 @@ exports.reviewRequest = async (req, res) => {
   }
 };
 
+exports.userImageClean = async (req, res) => {
+  try {
+    // Find all users
+    const users = await User.find();
+
+    for (const user of users) {
+      let updateRequired = false;
+
+      // Check if userPhotos has more than 5 items
+      if (user.selfDetails && user.selfDetails[0]?.userPhotos?.length > 5) {
+        // Trim userPhotos to only the first 5 items
+        user.selfDetails[0].userPhotos = user.selfDetails[0].userPhotos.slice(0, 5);
+        updateRequired = true;
+      }
+
+      // Check if userPhotosUrl has more than 5 items
+      if (user.selfDetails && user.selfDetails[0]?.userPhotosUrl?.length > 5) {
+        // Trim userPhotosUrl to only the first 5 items
+        user.selfDetails[0].userPhotosUrl = user.selfDetails[0].userPhotosUrl.slice(0, 5);
+        updateRequired = true;
+      }
+
+      // If an update is required, save the changes
+      if (updateRequired) {
+        await user.save();
+        console.log(`Updated user with ID: ${user._id}`);
+      }else {
+        console.log(`Not Changed user with ID: ${user._id}`);
+      }
+    }
+
+    console.log("All users updated successfully.");
+    res.status(200).json({ message: "All users updated successfully." });
+  } catch (error) {
+    console.error("Error updating user photos:", error);
+  }
+};
+
 
 
 exports.updateUserCategory = async (req, res) => {
