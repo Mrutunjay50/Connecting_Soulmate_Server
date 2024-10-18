@@ -216,7 +216,7 @@ exports.banUser = async (req, res) => {
     // Store the user's contact number before deleting
     const contactNumber = user.createdBy[0]?.phone; // Adjust this based on your user schema
     const name = user?.basicDetails[0]?.name || "user";
-    const gender = user?.basicDetails[0]?.gender || "";
+    const gender = user?.gender || "";
     const email = user?.additionalDetails[0]?.email || "";
     const userIdentityId = user?.basicDetails[0]?.userId || "";
 
@@ -418,7 +418,7 @@ exports.downloadAllUsersAsCSV = async (req, res) => {
 
       return {
         Name: basicDetails.name || "",
-        Gender: basicDetails.gender || "",
+        Gender: user.gender || "",
         "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
         "Place of Birth (State)": basicDetails.placeOfBirthState || "",
         "Place of Birth (City)": basicDetails.placeOfBirthCity || "",
@@ -547,7 +547,7 @@ exports.downloadUserAsCSV = async (req, res) => {
 
     csvStream.write({
       Name: basicDetails.name || "",
-      Gender: basicDetails.gender || "",
+      Gender: user?.gender || "",
       "Place of Birth (Country)": basicDetails.placeOfBirthCountry || "",
       "Place of Birth (State)": basicDetails.placeOfBirthState || "",
       "Place of Birth (City)": basicDetails.placeOfBirthCity || "",
